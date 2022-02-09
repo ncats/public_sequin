@@ -1,0 +1,286 @@
+@font-face {
+  font-family: 'Noto Sans JP';
+  font-style: normal;
+  font-weight: 100;
+  src: url('../fonts/noto-sans-jp-v28-latin-100.eot'); /* IE9 Compat Modes */
+  src: local(''), local(''),
+       url('../fonts/noto-sans-jp-v28-latin-100.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../fonts/noto-sans-jp-v28-latin-100.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../fonts/noto-sans-jp-v28-latin-100.woff') format('woff'), /* Modern Browsers */
+       url('../fonts/noto-sans-jp-v28-latin-100.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../fonts/noto-sans-jp-v28-latin-100.svg#\1') format('svg'); /* Legacy iOS */
+}
+
+/*this sets float to left-handed, min/max width, margin and font color
+across the app*/
+body {
+   float: left;
+   min-width:1000px !important;
+   max-width:2000px !important;
+   width: 100% !important;
+   height: 100% !important;
+   margin: 0 auto;
+   color:black !important;
+   font-family: "Noto Sans JP" !important;
+   font-size:14px !important;
+}
+
+/*the three below adjust More drop-down menu*/
+.navbar-nav > li:first-child {
+   display: none;
+}
+
+.navbar-nav > li > .dropdown-menu {
+   right: 0px;
+   left: auto;
+}
+
+.navbar-nav > li:last-child {
+   float: right;
+}
+
+/*adjusts background color and border for SEQUIN header*/
+.navbar-header {
+   color:white !important;
+   background-color: #006478 !important;
+   border-color: #006478 !important;
+}
+
+/*adjusts background color and border for rest of header*/
+.navbar-nav {
+   float: none !important;
+   background-color: #006478 !important;
+   border-color: #006478 !important;
+}
+
+/*adjusts background color and border for two boxes in navbar-nav*/
+.navbar > .container-fluid {
+   background-color: #006478 !important;
+   border-color: #006478 !important;
+}
+
+/*this sets background/border color for all other navbar tabs*/
+.container-fluid > .nav > li > a {
+   font-size:18px !important;
+   border-color:#006478 !important;
+   color:white !important;
+   background-color: #006478 !important;
+}
+
+/*adjust margins for app title, "SEQUIN"*/
+.navbar-brand { 
+   vertical-align:middle;
+   width: 100%; 
+   text-align: center 
+   color: white !important;
+   background-color: #006478 !important;
+   border-color: #006478 !important;
+}
+
+/*adjust alignment for iPSC profiler tab*/
+#tab_structure li a[data-value=profiler] {
+   vertical-align:middle;
+}
+
+/*this sets background/border color for progress bars*/
+.progress-bar {
+   border-color:#006478  !important;
+   background-color:#006478  !important;
+}
+
+/*this sets font color and size for text in progress bar*/
+.progress-message {
+   color: black !important;
+   font-size:16px !important;
+}
+
+/*this sets font color and size for text in progress bar*/
+.shiny-notification {
+   height: 50px;
+   width: 400px;
+   position:fixed;
+   top: 33%;
+   left: 33%;
+   right: 33%;
+   border-color: #006478  !important;
+   background-color:white  !important;
+   opacity: 1;
+}
+
+/*this sets background/border color for progress bars*/
+.progress-text {
+   font-size:18px !important;
+   font-family: "Noto Sans JP" !important;
+}
+
+/*this sets the active tab font as black*/
+.tabbable > .nav > li[class=active] > a {
+   color:black  !important;
+}
+
+/*this sets all other tab fonts as #00bfff */
+.tabbable > .nav > li > a {
+   color:gray  !important;
+}
+                     
+/*this sets button fonts as black & outline colorwhen clicked*/
+.btn {
+   color:black !important;
+   border-color:black !important;
+   outline-color:#006478 !important;
+   font-family: "Noto Sans JP" !important;
+}
+
+/* this sets button outline color when clicking*/
+.x-btn:focus, .button:focus, [type="submit"]:focus {
+   outline-color: #006478 !important;
+}
+
+/*this sets border color for selectize input, single input*/
+.selectize-control.single .selectize-input {
+   border: 1px solid black;
+}
+
+/*this sets border color for selectize input, multi input*/
+.selectize-control.multi .selectize-input {
+   border: 1px solid black;
+}
+
+/*black border for numericInput*/
+.form-control.shiny-bound-input, 
+.selectize-input {
+     border: 1px solid black;
+} 
+
+/*this sets text color  as black*/
+#load_data-load_data_help_button {
+   color:black !important;
+}
+                     
+/*this sets the paragraph as black*/
+p {
+   color:black !important;
+}
+
+h1 {
+   color:black !important;
+   font-family: "Noto Sans JP" !important;
+}
+            
+h2 {
+   color:black !important;
+   font-family: "Noto Sans JP" !important;
+}
+                     
+/*this sets header3 text as black*/
+h3 {
+   color:black !important;
+   font-family: "Noto Sans JP" !important;
+}
+                     
+/*this sets header4 text as black*/
+h4 {
+   color:black !important;
+   font-family: "Noto Sans JP" !important;
+}
+                     
+/*this sets header5 text as black*/
+h5 {
+   color:black !important;
+   font-family: "Noto Sans JP" !important;
+}
+                     
+/*this sets header6 text as black*/
+h6 {
+   color:black !important;
+   font-family: "Noto Sans JP" !important;
+}
+                     
+/*this sets tab content text as black*/
+tab-content {
+   font-size:14px !important;
+}
+                     
+/*this sets font size to 14 px - not sure it is needed*/
+em {
+   font-size:14px !important;
+}
+                     
+/*this sets toc text to #00bfff */
+.container-fluid > a {
+   color:black  !important;
+}
+                     
+/*this sets  text as black*/
+.run {
+   color: black !important;
+}
+                     
+/*this sets DT text as black*/
+.dataTables_scrollBody {
+   color:black !important;
+}
+                     
+/*this sets download buttons for DT text as black*/
+button.dt-button, div.dt-button, a.dt-button {
+   color:black !important;
+}
+                     
+/*this sets radio button background color to #00bfff  after clicking*/
+.radio-success input[type="radio"]:checked+label::after {
+   background-color:black  !important;
+}
+                     
+/*this sets radio button border color to #00bfff  before clicking*/
+.radio-success input[type="radio"]:checked+label::before {
+   border-color:black !important;
+}
+
+/*this vertically aligns awesome radio buttons*/
+.awesome-radio {
+  vertical-align: middle;
+}
+                     
+/*this sets checkbox state background/border color to #00bfff  before clicking*/
+.pretty .state label:before {
+   border-color:black  !important;
+   background-color:black  !important;
+}
+                     
+/*this sets checkbox state background/border color to #00bfff  after clicking*/
+.pretty .state label:after {
+   border-color:black !important;
+   background-color:black  !important;
+}
+                     
+/*this sets checkbox background/border color to #00bfff  before clicking*/
+.pretty.p-icon input:checked~.state label:before {
+   border-color:black  !important;
+   background-color:black  !important;
+}
+                     
+/*this sets checkbox background/border color to #00bfff  after clicking and text as white*/
+.pretty.p-icon input:checked~.state label:after {
+   border-color:black  !important;
+   color:white !important;
+   background-color:black  !important;
+}
+                     
+/*this sets icon in checkbox as white*/
+.icon {
+   color:white !important;
+}
+
+/*this sets font color as black and background color as transparent for action buttons*/
+.action-button {
+  color:black !important;
+  background-color:transparent !important;
+}
+
+ul > li {
+   color:black !important;  
+}
+
+a {
+   color:#006478 !important;  
+}

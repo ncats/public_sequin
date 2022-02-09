@@ -1,0 +1,14 @@
+FROM ncats/sctl-rshiny-complex:shiny-verse-arm64-4.0.2
+
+RUN apt-get update && apt-get install -y \
+   libxml2 \
+   liblzma-dev \
+   libssh-dev \
+   libbz2-dev \
+   libv8-dev \
+   libhdf5-dev
+
+RUN R -e "install.packages(c('DT', 'shiny', 'gtools', 'dplyr', 'shinyBS', 'shinyjs', 'shinycssloaders', 'shinythemes', 'tibble', 'tidyr', 'Rcpp', 'Hmisc', 'ggplot2', 'locfit', 'GGally', 'reshape2', 'backports', 'digest', 'fields', 'psych', 'stringr', 'openxlsx', 'Rtsne', 'flashClust', 'MCL', 'kmed', 'ape', 'knitr', 'readr', 'rmarkdown', 'gplots', 'RColorBrewer', 'data.table', 'viridis', 'scales', 'RMySQL', 'heatmaply', 'colorspace', 'umap', 'tools', 'stringi', 'purrr', 'ggrepel', 'plotrix', 'plotly', 'Seurat', 'ggdendro', 'ssh', 'httpuv', 'V8', 'shinyWidgets'), repos = 'http://cran.r-project.org/')"
+RUN R -e "devtools::install_github(c('rstudio/crosstalk', 'wjawaid/enrichR'))"
+RUN R -e "devtools::install_github('BaderLab/scClustViz')"
+RUN R -e "devtools::install_github('immunogenomics/presto')"

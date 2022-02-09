@@ -1,0 +1,1197 @@
+---
+title: "NCATS SEQUIN Tutorial"
+link-citations: yes
+output: 
+  html_document: 
+    highlight: tango
+    keep_md: yes
+    theme: united
+    toc: yes
+    toc_depth: 5
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE)
+
+options(scipen=999)
+
+library(knitr)
+library(magick)
+library(tidyverse)
+
+add_image <- function(filepath, dpi = 1200){
+  magick::image_read(filepath) %>% 
+    magick::image_scale(stringr::str_extract(string = dpi, pattern = "[0-9]+"))
+}
+```
+
+# Running the SEQUIN web application
+
+## Access the web application for SEQUIN
+
+We recommend visiting the web application to explore data. You must be on the NIH VPN to access the app here:
+
+  [The SEQUIN app](https://sequin-ci.ncats.io/)
+
+## Clone SEQUIN repository
+
+Alternatively, if you choose to run the SEQUIN locally, you will first
+need a github account. You can clone the repository by following the 
+step below:
+
+    git clone https://github.com/ncats/sctl-rshiny-complex.git
+
+## Installing Docker
+
+The SEQUIN web app is most easily run using the Docker container. 
+To install Docker, go to the following link and follow the 
+directions.
+
+  [Docker installation instructions](https://docs.docker.com/get-docker/ "Docker's Installation Page")
+
+## Building the Docker image
+
+**On Mac, Windows or Linux**
+The end-user will need to create an Rprofile.site file. In a text
+editor or VIM, type the following:
+
+    local({
+    options(shiny.port = 3838, shiny.host = "0.0.0.0")
+    })
+
+This specifies the port in which to host the app locally.
+
+Navigate to the cloned github repository. The Dockerfile and the
+install.R file should be located one directory above the directory
+named, app/. After Docker is installed locally on your machine, you
+must navigate to the location of the Dockerfile and build it by 
+running the following command:
+    
+    docker build -t sequin_app .
+
+The build process takes a couple of hours, which is why we recommmend
+accessing the app while on the NCATS VPN. After the build is complete,
+you can access the app by typing the following command in the terminal:
+
+    docker run -p 3838:3838 sequin_app
+    
+You will need to navigate to your browser (we recommend chrome) and 
+type the following:
+  
+    http://localhost:3838 
+    
+It will take a few minutes to load the app as there are several libraries loaded initially.
+
+# Splash page
+When you land at https://sequin-ci.ncats.io/, a pop-up box will include some background information about the web application as shown below.
+
+<center>
+```{r, echo=FALSE, out.width="367px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 11.37.11 AM.png", dpi = 1200)
+```
+</center>
+
+# Selection of data
+
+## Existing datasets
+
+1. Select either single-cell RNA-Seq or Bulk RNA-seq data.
+
+2. Under the `Existing datasets` header, choose one or more existing data sets. Click on a row to select a data set. Click again to de-select. 
+
+<center>
+```{r, echo=FALSE, out.width="991px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 11.37.57 AM.png", dpi = 1200)
+```
+</center>
+
+<center>
+```{r, echo=FALSE, out.width="991px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 11.38.16 AM.png", dpi = 1200)
+```
+</center>
+
+3. Once the data set(s) are selected, you can subset the data to target specific factors (e.g. specific samples, condition, Seurat clusters, etc.)
+
+   * To select cells/samples from specific experimental groups, click `Subset data` and a pop-up modal will appear as shown below. Here, select specific groups based on the factor specified in `Select factor`. 
+<center>
+```{r, echo=FALSE, out.width="550px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 11.39.37 AM.png", dpi = 1200)
+```
+</center>
+   * You can select samples by selecting the check box. You can also `Select all` or `Deselect all` as shown below.
+<center>
+```{r, echo=FALSE, out.width="550px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Select_all.png", dpi = 1200)
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Deselect_all.png", dpi = 1200)
+```
+</center>
+
+4. If you want to load the entire dataset rather than subsetting the data, just click on the `Load full dataset(s)` button. If you have subset the data and want to load it, click on the `Load selected sample(s)`.
+<center>
+```{r, echo=FALSE, out.width="291px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 11.41.21 AM.png", dpi = 1200)
+```
+</center>
+
+5. There are several options on the scRNA-Seq side including: `Type of clustering` (explained in detail below), setting the minimum detection rate for all genes (`Detection rate threshold`), excluding rRNA, mitochondrial and pseudo genes (`Exclude RNA/MT/pseudo genes`) and down sampling the total number of cells for an analysis (`Downsample cells`). 
+
+    * Under `Type of clustering`, you can choose `Use pre-assigned clusters in metadata`, which will utilize the pre-computed clusters in the metadata. If you choose `Run multiple resolutions using Seurat`, this will run multiple resolutions in Seurat from 0.4 to 2.8 with a 0.4 step for you to view in later areas in the application. This is useful for comparing results from different resolutions.
+<center>
+```{r, echo=FALSE, out.width="782px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 11.42.29 AM.png", dpi = 1200)
+```
+</center>
+
+    * You can also select a gene detection rate threshold and choose to filter out rRNA-, mitochondrial- and pseudo genes (we recommend this step).
+<center>
+```{r, echo=FALSE, out.width="1030px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 7.23.51 PM.png", dpi = 1200)
+```
+</center>
+
+6. For particularly large scRNA-Seq datasets (over 10,000 cells), we automatically default to down sampling the data set to 10,000 cells. For down sampling, you'll need to select the maximum number of cells you want to down sample under `Max cells`. We use a random seed number to start random sampling, so if you would like to start in a different location, please change the value in `Random seed`. If you would like to retain the entire data set, please un-check the box for down sampling.
+
+    * Please be aware, some of the downstream visualizations, tables and analyses will take a VERY long time to run and in select instances, will throw errors disconnecting from the application. A warning message will pop up detailing this information. PLEASE BE AWARE!
+<center>
+```{r, echo=FALSE, out.width="1032px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 7.27.54 PM.png", dpi = 1200)
+```
+</center>
+
+7. We have included advanced options on the scRNA-Seq including setting the `Detection rate threshold` and `PCA cumulative variance %`. For DGE, this tests only genes detected in a  minimum fraction of cells. When analyzing scRNA-Seq data, Seurat clusteres cells based on their PCA scores. The top PCs represent robust compression of the given dataset. The PCA cumulative variance percentage sets a cap on the total cumulative variance and the total PCs that encompass that variance. If the end-user does not set this, the default is set at 75%.
+<center>
+```{r, echo=FALSE, out.width="355px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 11.48.10 AM.png", dpi = 1200)
+```
+</center>
+
+8. If you have visited the web application before and have created your own clusters under the `Merge clusters` tab or by cells under `Group cells by gene expression`, the updated metadata that you pushed to the RDS will appear below `Select dataset(s) from existing experiment` under the header `Option: Select user-updated metadata`. As shown below, under the column `Experiment`, the name of the existing dataset will be listed. Under the column `Username`, the username you created will be listed as well as the date that the data was pushed to the RDS under `Date`. Under the column `Table name`, we automatically concatenate the existing dataset with the username and a number. If you create multiple metadata tables, we append an iterative number so you can distinguish these metadata tables. Lastly, under the column `Note`, we include any `Comment` you added in this [section](#merge-clusters) or this [section](#group-cells-by-gene-expression). See [section](#merge-clusters) or this [section](#group-cells-by-gene-expression) for more information. Click on the checkbox to use your user-updated metadata file.
+<center>
+```{r, echo=FALSE, out.width="1045px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/1_data_summary_qc/Screen Shot 2022-01-10 at 6.58.31 PM.png", dpi = 1200)
+```
+</center>
+
+9. There are also several options on the bulk RNA-Seq side including: Filtering above a minimum row sum of counts (`Min. total counts per gene`), the type of transformation to perform on the data (`Count transformation method`) and excluding rRNA, mitochondrial and pseudo genes (`Exclude RNA/MT/pseudo genes`).
+
+    * When setting the `Min. total counts per gene`, this refers to the sum of all counts, across samples for a given row (gene). If you set this value to 10, then all row sums that are less than 10 will be filtered from the data.
+    * It is also possible to perform different transformations on the data using `Count transformation method`. We include the following options: 
+      *  Normal log: log2(count + 1)
+      *  Regularized log: rlog(n) that minimizes differences between samples for genes with low counts and normalizes with respect to library size
+      *  Variance stabilizing transformation: vst(n) that calculates a variance stabilizing transformation from a dispersion-mean relationship (i.e. it looks at the trend in the variance and mean in the data and applies a transformation to the count data to remove this trend)
+      *  No transformation. 
+<center>
+```{r, echo=FALSE, out.width="1393px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 6.40.58 PM.png", dpi = 1200)
+
+```
+</center>
+
+10. Another option that is available on the bulk RNA-Seq side is the option to remove an outlier sample. 
+
+    * When you select `Subset data`, an additional option will be available to `Identify outliers`; click on this button. An additional pop-up will appear; click the button that says `Run PCA`. This will load a PCA plot and allow you to select specific samples to remove.
+<center>
+```{r, echo=FALSE, out.width="835px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 6.44.09 PM.png", dpi = 1200)  
+```
+</center>
+    * To select a sample to remove as an outlier, click on the sample in the PCA plot (displayed below as 1.). The sample name appears under `Current selection:` (displayed below as 2.). Click on `+Add sample`. This will remove this outlier sample from your analysis.
+<center>
+```{r, echo=FALSE, out.width="631px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/exist_bulk_outlierb.png", dpi = 1200)  
+```
+</center>
+    * To see which samples you have selected, look at `Selected samples:` (displayed below as 1.). And finally to submit outliers, click on `Submit outliers` as shown below.
+<center>
+```{r, echo=FALSE, out.width="631px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/exist_bulk_outlierc.png", dpi = 1200)  
+```
+</center>
+    * This will take you back to the `Subset data` pop-up. You will see all samples selected expect the ones you removed as outlier(s) (see below).
+<center>
+```{r, echo=FALSE, out.width="651px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/exist_bulk_outlierd.png", dpi = 1200)  
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/exist_bulk_outliere.png", dpi = 1200) 
+```
+</center>
+
+## Custom datasets
+
+1. You can also load your own metadata and count matrices. Simply, click on the `Custom dataset` tab to upload your own data.
+
+    * Please ensure that you type in the name of the dataset to be uploaded (labeled below as 1.). Click on the `Browse` button to upload both the count and metadata matrices, separately (labeled below as 2. and 3.). Please note, it make take a few seconds for the data to load. Please make sure you see the message, "Upload Complete" before proceeding (labeled below as 4. and 5.). 
+<center>
+```{r, echo=FALSE, out.width="1045px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 6.50.59 PM.png", dpi = 1200)
+
+```
+</center>
+    * In addition to loading your own custom dataset, it is also possible to merge your custom dataset with one that is existing in the application. Simply click on the button, `+ Add existing experiments` and a pop-up will appear. Click on the checkbox to add an experiment as shown below.
+```{r, echo=FALSE, out.width="1372px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 7.44.06 PM.png", dpi = 1200)
+```
+```{r, echo=FALSE, out.width="1044px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-10 at 6.51.43 PM.png", dpi = 1200)
+```
+</center>
+    * To remove an existing dataset, click on `-Clear existing experiments` as shown below.
+<center>
+```{r, echo=FALSE, out.width="1029px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Clear_existing.png", dpi = 1200)
+```
+</center>
+    * All options available on the bulk RNA-Seq and scRNA-seq for existing datasets are available for custom datasets as well.
+    
+## Data summary
+
+1. Once the data has been processed, the dataset the existing dataset(s) and/or custom dataset(s) will show up below the navigation bar as show in the example below.
+<center>
+```{r, echo=FALSE, out.width="1044px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/1_data_summary_qc/Screen Shot 2022-01-10 at 6.56.55 PM.png", dpi = 1200)
+```
+</center>
+
+    * The total number of genes prior to filtration (if filtering was selected) is shown, alongside the total number genes post-filtration and the total number of samples (bulk RNA-Seq) or cells (scRNA-Seq).
+
+### Count Data
+
+1. The count data is a table of the first and last five rows (i.e., genes) of the count data. Sample names are in the columns and genes are represented in each row. For the example below, sample treated_day1_rep1_L001 and gene A1CF, has zero counts.
+<center>
+```{r, echo=FALSE, out.width="2440px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/1_data_summary_qc/Screen Shot 2022-01-10 at 12.08.43 PM.png", dpi = 1200)
+```
+</center>
+
+    * In addition, the entire raw count matrix and the normalized count matrix can be downloaded by clicking the buttons `Download raw counts` or `Download normalized data`.
+<center>
+```{r, echo=FALSE, out.width="2440px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/1_data_summary_qc/download.png", dpi = 1200)
+```
+</center>
+
+### Metadata  
+
+1. The metadata is a table containing all of the associated variables corresponding to each sample. The table may include variables such as treatment, day, cell line, etc. The example below has metadata pertaining to the sample name, the sample (pre-defined), the condition, the treatment and day. The data can also be downloaded by clicking `Download metadata` as shown below.
+<center>
+```{r, echo=FALSE, out.width="2323px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/1_data_summary_qc/Screen Shot 2022-01-10 at 6.58.31 PM.png", dpi = 1200)
+```
+</center>
+
+## Quality control
+
+### Count data distributions - box and whisker
+
+1.The box-and-whisker plot shows the median, the interquartile range, minimum and maximum of the mean log~2~ (transformed normalized counts + 1) for the selected experimental factor. For single-cell RNA-seq, cells are grouped based on `orig.ident` (original cell identity classes). For bulk RNA-seq, samples may be grouped based on one or more factors. Shown below is an example of a bulk RNA-Seq box and whisker plot of the count data grouped by the factor condition. To download plots, click on the `Download static plot (PDF)` or Download static plot (PNG)`.
+<center>
+```{r, echo=FALSE, out.width="2415px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/1_data_summary_qc/Screen Shot 2022-01-10 at 12.09.52 PM.png", dpi = 1200)
+```
+</center>
+
+### Count data distributions - histogram
+
+The histogram shows the average frequency of transformed normalized counts for the selected experimental factor. For single-cell RNA-seq, cells are grouped based on `orig.ident` (original cell identity classes). For bulk RNA-seq, samples may be grouped based on one or more factors. Shown below is an example of a bulk RNA-Seq box and histogram of the count data grouped by the factor condition. To download plots, click on the `Download static plot (PDF)` or Download static plot (PNG)`.
+<center>
+```{r, echo=FALSE, out.width="2444px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/1_data_summary_qc/Screen Shot 2022-01-10 at 12.10.33 PM.png", dpi = 1200)
+```
+</center>
+
+### Total reads
+The barplot shows the total read counts for the selected factor. For single-cell RNA-seq, cells are grouped based on `orig.ident` (original cell identity classes). For bulk RNA-seq, samples may be grouped based on one or more factors. Shown below is an example of a bulk RNA-Seq box and a histogram of the total reads grouped by the factor condition. To download plots, click on the `Download static plot (PDF)` or Download static plot (PNG)`.
+<center>
+```{r, echo=FALSE, out.width="2444px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/1_data_summary_qc/Screen Shot 2022-01-10 at 12.11.22 PM.png", dpi = 1200)
+```
+</center>
+
+# Discovery-driven analyses
+
+## Correlation
+1. Click on the tab `Discovery-driven analyses/Correlation` to explore the correlation between samples, distance matrices (bulk RNA-Seq) and clustering using dimensional reduction plots.
+
+    * For both bulk and sc-RNA-Seq, you can explore the correlation among samples or cells. We automatically down sample genes to 2000 and samples or cells to 500 when the datasets are large. The purpose of this is to reduce load time. 
+<center>
+```{r, echo=FALSE, out.width="2058px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/2_data_structure/Screen Shot 2022-01-10 at 8.29.38 PM.png", dpi = 1200)
+```
+</center>
+
+    * If you would like to view all genes and all samples/cells, just click `All` under Genes and input the total number of samples or cells under `Cells`. Please be aware, if the dataset contains over 10,000 cells and thousands of genes, the correlation matrix will take a long time to build and visualize!
+<center>
+```{r, echo=FALSE, out.width="1372px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/2_data_structure/all.png", dpi = 1200)
+```
+</center>
+
+    * The heatmap shows the correlation (Pearson *R* value) in expression across all genes for each pair of samples/cells.
+<center>
+```{r, echo=FALSE, out.width="2452px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/2_data_structure/Screen Shot 2022-01-10 at 1.52.17 PM.png", dpi = 1200)
+```
+</center>
+
+    * If you would like to see sample labels, click on the checkbox `Show column/row labels (may not align correctly for large heatmaps)` as shown below.
+<center>
+```{r, echo=FALSE, out.width="2452px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/2_data_structure/labels.png", dpi = 1200)
+```
+</center>
+
+    * If you would like to adjust the coloring the heatmap, change the coloring between default (blue-white-red), viridis (blue-green-yellow) or green-yellow-red.
+<center>
+```{r, echo=FALSE, out.width="2452px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/2_data_structure/color.png", dpi = 1200)
+```
+</center>
+
+    * If you would like to explore specific comparisons between two samples or two cells, click on any location in the heatmap, and a scatterplot of gene expression will appear below the correlation heatmap.
+<center>
+```{r, echo=FALSE, out.width="2452px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/2_data_structure/Screen Shot 2022-01-10 at 1.54.14 PM.png", dpi = 1200)
+```
+</center>
+
+### Sample distance matrix
+1. We also provide an analysis to look at distance between samples on the bulk RNA-Seq side with similar options to the correlation matrix as shown below.
+<center>
+```{r, echo=FALSE, out.width="2452px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/2_data_structure/Screen Shot 2022-01-10 at 1.53.29 PM.png", dpi = 1200)
+```
+</center>
+
+    * We provide a heatmap showing the Euclidean distance between each pair of samples based on gene expression profiles and clustering dendrograms for bulk RNA-Seq only as shown below.
+<center>
+```{r, echo=FALSE, out.width="2452px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/2_data_structure/Screen Shot 2022-01-10 at 1.53.52 PM.png", dpi = 1200)
+```
+</center>
+
+## Clustering
+1. Clustering of samples/cells can be viewed in dimensional reduction plots under `Discovery-driven analyses`/`Clustering`. Details and optional parameters are described below.  
+
+    * If your experiment includes multiple experimental factors, you can choose which factor to use for labeling the samples/cells in the plot and select it under `Grouping factor` as shown below. For bulk RNA-Seq data, only PCA plots are available for visualization.
+<center>
+```{r, echo=FALSE, out.width="2452px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/2_data_structure/Screen Shot 2022-01-10 at 1.59.46 PM.png", dpi = 1200)
+```
+</center>
+    
+    * For scRNA-Seq, you can choose PCA, t-distributed stochastic neighbor embedding (tSNE) or uniform manifold approximation and projection (UMAP) from the drop-down menu under `Method` as shown below.
+<center>
+```{r, echo=FALSE, out.width="2452px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/2_data_structure/Screen Shot 2022-01-10 at 2.01.24 PM.png", dpi = 1200)
+```
+</center>
+
+# DGE analysis
+
+Differential gene expression (DGE) and related downstream analyses are accessed at the `DGE analysis` page. Different visualizations and analyses are available for bulk RNA-seq and scRNA-seq as detailed below.
+
+## Bulk RNA-seq
+
+### Run DGE
+
+1. To run DGE analysis, several options are available including: the experimental design, the factor and grouping variables (if required by the experimental design), the DGE method, the option to batch correct, the adjusted p-value cut-off and the minimum fold-change. These options are detailed below.
+<center>
+```{r, echo=FALSE, out.width="1010px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-12 at 6.26.18 PM.png", dpi = 1200)
+```
+</center>
+
+    * The experimental designs that are available are listed and described below:
+      * `Two group comparisons`: This design tests for differentially expressed genes between two experimental groups within a given factor from the metadata. Only one experimental factor can be selected and two comparisons within that factor can be made. For example, in the image below, the selected `Factor` is treatment, with comparisons between `Group 1`, treated and `Group 2`, untreated. As is shown under `Linear model:`, day is the only factor used to predict differential gene expression. For `Two group comparisons` we also have the option to compare one sample to the rest of the samples as shown below.
+<center>
+```{r, echo=FALSE, out.width="1010px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-12 at 6.22.12 PM.png", dpi = 1200)
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-12 at 6.19.25 PM.png", dpi = 1200)
+```
+</center>
+      * `Multiple factor comparisons (factorial)`: DE testing is performed between levels from different factors. For example, if factor A is treatment with `Factor A group 1`, untreated and `Factor A group 2` treated while `Factor B` is day with `Factor B group 1` day 1 and `Factor B group 2` day 20, DE testing will be performed between treated_day1 vs. untreated_day20. As is shown under `Linear model:`, the independent variables used to predict differential gene expression will be the combination of treatment and day, untreated_day1 vs treated_day20, only.
+<center>
+```{r, echo=FALSE, out.width="1010px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 2.04.06 PM.png", dpi = 1200)
+```
+</center>
+      * `Classical interaction design`: DE is performed between levels of each factor chosen relative to a reference. This experimental method tests between all possible combinations of each non-reference level vs. the corresponding reference. For example, if `Factor A` is "day" with `Factor A reference`, "day 1" and `Factor B` is "treatment" with `Factor B reference`, "untreated", the factor levels are day and treatment. The reference is to day 1 and untreated. As is shown under `Linear model:`, day, treatment and the interaction of these two independent variables are used to predict differential gene expression. The contrasts will include: day 1 vs day 20, treated vs untreated, the interacton term of day 20, treated and an intercept term. 
+<center>
+```{r, echo=FALSE, out.width="1239px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 2.27.45 PM.png", dpi = 1200)
+```
+</center>
+      * Additive models: DE is performed after taking into account a blocking factor that may be producing confounding effects. For example, if the `Blocking factor` is day with a `Blocking factor reference` of day 1, day 1 will be removed from the downstream DE analysis. If the `Treatment factor` is treatment with `Treatment factor reference` of untreated, then the subsequent contrasts will include day 20, treated vs untreated and an intercept as predictors of differential gene expression. As is shown under `Linear model:`, day and treatment are the two independent variables used to predict differential gene expression while removing day 1 as a factor.
+<center>
+```{r, echo=FALSE, out.width="1239px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 2.28.12 PM.png", dpi = 1200)
+```
+</center>
+      * Main effects: DE is performed to test the significance of a factor across multiple factor levels, for instance, when a factor has at least two levels. In the example below, `Main effect factor` is cell_line with the `Main effect reference` H9 with `Group 1` H9 and `Group 2` LiPSC.GR1.1. As is shown under `Linear model:`, condition is the only independent variable used to predict differential gene expression relative to cell_line H9. 
+<center>
+```{r, echo=FALSE, out.width="1239px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 2.28.58 PM.png", dpi = 1200)
+```
+</center>
+      * Main effects with grouping factors: Similarly to `Main effects`, `Main effect factor` is the only factor used to predict differential gene expression; however, a `Grouping factor` is used to perform DE testing within the selected factor. In the example below, the `Main effect factor` is cell_line with `Main effect reference` H9, `Group 1` LiPSC.GR1.1` and `Group 2` H9. The `Grouping factor` is treatment with `Grouping factor level` Y27. The final contrast will be LiPSC.GR1.1 vs H9 within the Y27 treatment group. As is shown in the `Linear model:`, cell_line is the main independent variable used to predict differential gene expression while only comparing with the Y27 treatment.
+<center>
+```{r, echo=FALSE, out.width="1239px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 2.30.42 PM.png", dpi = 1200)
+```
+</center>
+
+2. Three multiple methods to perform differential gene expression analysis under `DGE method`. The three methods include DESeq2, edgeR and limma-voom.
+
+    * DESeq2: differential gene expression analysis based on the negative binomial distribution
+    * edgeR: differential gene expression analysis based on a weighted mean of log ratios-based method
+    * limma-voom: differential gene expression analysis based on quantile normalization
+
+<center>
+```{r, echo=FALSE, out.width="2452px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/DGE_type.png", dpi = 1200)
+```
+</center>
+
+3. When there is a known batch effect, multiple datasets are combined or multiple samples across multiple datasets are combined, it is essential to perform batch correction. We utilize the RUVg function from the RUVSeq package. See [here](https://bioconductor.org/packages/release/bioc/html/RUVSeq.html) for additional details. We also include an option to batch correct using a set of housekeeping genes, which we recommend. To batch correct, you will need to supply the factor by which to batch correct.
+<center>
+```{r, echo=FALSE, out.width="2479px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/batch.png", dpi = 1200)
+```
+</center>
+
+4. Lastly, you have the option to adjust the adjusted p-value cut-off for multiple test comparisons under `Adj. p-value` and the minimum log fold-change under `Min. fold change` for differential gene expression.
+<center>
+```{r, echo=FALSE, out.width="2479px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/pval.png", dpi = 1200)
+```
+</center>
+
+5. After you have selected your desired parameters, please click `Submit` to run DE testing.
+
+### Overview
+
+1. After DE testing has been completed, a `DGE regulation table` is generated detailing the contrasts (`Comparison`), the whether the gene is up or downregulated in a particular comparison (`Regulation`) and the total number of gene IDs that are up or downregulated (`IDs`). In the example below, there are 130 gene IDs upregulated in treated vs untreated and 108 gene IDs downregulated in treated vs untreated.
+<center>
+```{r, echo=FALSE, out.width="1238px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 2.33.41 PM.png", dpi = 1200)
+```
+</center>
+
+2. In addition to the `DGE regulation table`, we also generate a barplot showing the total total number of genes up and down-regulated in DE testing.
+<center>
+```{r, echo=FALSE, out.width="1236px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/barplot.png", dpi = 1200)
+```
+</center>
+
+### Volcano plot
+
+1. After DE testing is completed, you can visualize the significant up- and down-regulated genes using a volcano or MA plot. If there are multiple contrasts to visualize, you can change the contrast under the `Contrast` drop-down menu (circled in red below). The `Volcano plot` shows the -log~10~(p-value) vs log~2~(fold-change). We also highlight the down- and up-regulated genes as shown in the `DGE regulation table`. You can hover over each data point to get more information about the gene that was differentially expressed.
+<center>
+```{r, echo=FALSE, out.width="1239px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 2.34.58 PM.png", dpi = 1200)
+```
+</center>
+
+2. Similarly, you can view an Bland-altman (MA) plot with the same visualizations except plotting log~2~(fold-change) vs log~10~(baseMean).
+<center>
+```{r, echo=FALSE, out.width="1239px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-11 at 4.10.56 PM.png", dpi = 1200)
+```
+</center>
+
+3. The `DGE table` contains a list of the signficantly differentially expressed genes based on the submitted `Min. fold change` and the `Adj. p-val cutoff`. The description of the columns
+
+    * id: gene ID  
+    * baseMean: mean gene expression (normalized counts divided by size factors) across all samples    
+    * log2FoldChange: log~2~(fold change) for the contrast selected in `Contrast`
+    * lfcSE: standard error estimate for the log~2~(fold change)    
+    * stat: test statistic (depending on the algorithm used)    
+    * pvalue: p-value, or the probability of observing the given fold-change or a more extreme one given the null hypothesis that there is no difference in gene expression    
+    * padj: adjusted p-value
+<center>
+```{r, echo=FALSE, out.width="3263px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 2.35.09 PM.png", dpi = 1200)
+```
+</center>
+
+### Gene set enrichment
+
+1. There are multiple parameters for gene set enrichment (GSE) that include: input gene list, contrast, gene list filtering, use top n genes and selection of EnrichR libraries.
+
+    * Under the `Input gene list`: you can select `DGE filtered`, which is the identified differentially expressed genes. Included is an option to compare a given sample to the rest of the samples.
+<center>
+```{r, echo=FALSE, out.width="3297px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/dge_input.png", dpi = 1200)
+```
+</center>
+
+    * `Custom` allows you to provide genes manually. When providing genes, please use hgnc symbols separated by ", ". Provide one or more genes for analysis.
+<center>
+```{r, echo=FALSE, out.width="2693px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-12 at 6.57.03 PM.png", dpi = 1200)
+```
+</center>
+
+    * Under `Contrast`, you may select the contrast based on the `Experimental design`.
+<center>
+```{r, echo=FALSE, out.width="3297px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/contrast.png", dpi = 1200)
+```
+</center>
+    * Under `Gene list filtering`, you may select all significant differentially expressed genes (`All DE genes`), only those genes significantly up-regulated as shown below (`Up in D1`) or only those genes significantly upregulated as shown below (`Up in D20`).
+```{r, echo=FALSE, out.width="3297px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/gene_list_filter.png", dpi = 1200)
+```
+    * Under `Use top n genes` we perform GSE on the top 100 significantly differentially expressed genes identified in DE testing. Alternatively, you can select `Use all genes passing filters`.
+<center>
+```{r, echo=FALSE, out.width="3297px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/topn.png", dpi = 1200)
+```
+</center>
+    * Lastly, you can select the EnrichR libraries you would like to use to perform GSE.
+<center>
+```{r, echo=FALSE, out.width="3297px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/enricher.png", dpi = 1200)
+```
+</center>
+    * Under `Data size:`, a list of the total genes used to perform GSE analysis will be listed here.
+<center>
+```{r, echo=FALSE, out.width="3297px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/data_size.png", dpi = 1200)
+```
+</center>
+    * To perform GSE, click on `Run GSE`.
+
+2. After GSE is run, a table is produced providing the following information:
+
+    * Library name: enrichR library containing the gene set term
+    * Library rank: significance rank of the gene set term in its library 
+    * Gene count: number of genes from the gene set term in the input gene list
+    * Term: name of the gene set term
+    * Overlap: \<gene count\>/\<total genes in the gene set term\>
+    * P-value: p-value from the Fisher's exact test
+    * Adjusted p-value: adjusted p-value
+    * Z-score: statistic computed to determine deviation from rank in computed Fisher exact test 
+    * Score: log(p) * z, where p = Fisher exact test p-value and z = z-score for deviation from expected rank
+    * Gene list: the list of DGE genes found in the gene set
+
+```{r, echo=FALSE, out.width="1224px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 2.50.31 PM.png", dpi = 1200)
+```
+
+### Heatmap 
+
+1. There are multiple parameters for visualizing a heatmap of normalilzed, scaled gene expression values that are similar to GSE including: `Input gene list`, `Contrast`, `Gene list filtering`, `Use top n genes`. In addition, you have the option to change the coloring scheme in the heatmap using `Color palette`, select the factor from the metadata to color samples in `Choose factor(s) for labelling` and `Cluster genes` and `Cluster samples`.
+
+    * The option to color your heatmap cells by normalized, scaled expression value is located under `Color palette` and includes: default (red-white-blue), red-blue (darker red-white-blue), viridis (blue-green-yellow) and green-yellow-red.
+<center>
+```{r, echo=FALSE, out.width="2448px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/heatmap_color.png", dpi = 1200)
+```
+</center>
+    * You can also choose the factor(s) you would like to label your samples. In the example below, selecting day will color the samples by condition. You can also choose to `Use samples from contrast only` by checking the box. This will only show samples from the selected comparison under `Contrast` (in this example treated vs untreated).
+<center>
+```{r, echo=FALSE, out.width="2448px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/heatmap_factors.png", dpi = 1200)
+```
+</center>
+    * When you check `Cluster genes` and `Cluster samples`, dendrograms will cluster genes and samples, respectively, based on the hclust clustering algorithm and will appear on your heatmap.
+<center>
+```{r, echo=FALSE, out.width="2448px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/heatmap_cluster.png", dpi = 1200)
+```
+</center>
+
+    * When you check `Scale genes`, this scales the expression data via linear transformation (mean equal to 0 and variance equal to 1). The purpose behind scaling is to ensure that highly-expressed genes do not dominate downstream analyses.
+<center>
+```{r, echo=FALSE, out.width="2448px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/scale_genes.png", dpi = 1200)
+```
+</center>
+
+    * Similarly to GSE, the total number of genes used in the analysis and the total number of samples will appear next to `Data size:`. To build the heatmap, click `Build heatmap`.
+<center>
+```{r, echo=FALSE, out.width="2448px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/heatmap_data_size.png", dpi = 1200)
+```
+</center>
+
+2. After clicking `Build heatmap`, the heatmap will be generated as shown below. In this example, the samples are colored by day at the top of the heatmap and the default cell coloring was used to plot gene expression. In addition, both samples and genes are clustered in this example.
+<center>
+```{r, echo=FALSE, out.width="1958px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 2.52.26 PM.png", dpi = 1200)
+```
+</center>
+
+3. You can also hover over points in the heatmap to identify the gene and normalized, scaled expression value.
+<center>
+```{r, echo=FALSE, out.width="1963px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 3.04.47 PM.png", dpi = 1200)
+```
+</center>
+
+4. To explore a specific gene and how it varies over a factor level, simply click a square within the heatmap to visualize normalized counts by factor in box and whisker plot. In the example below, the factor selected was day under `Choose factor`. For the gene, FAM111B, you can see the normalized count data between day 1 and day 20.
+<center>
+```{r, echo=FALSE, out.width="1963px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 3.06.33 PM.png", dpi = 1200)
+```
+</center>
+
+### Clustering
+
+1. We included the option to cluster samples using weighted correlation network analysis (WGCNA) or K-mediods. Clustering enables analysis and visualization of all samples and genes based on gene expression using an unsupervised approach. The approach is to find genes that are highly correlated and potentially driving biological processes. DE testing is not required to perform clustering.
+<center>
+```{r, echo=FALSE, out.width="2469px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 3.07.20 PM.png", dpi = 1200)
+```
+</center>
+
+2. For WGCNA, you have the option of targeting a select total number of top variable genes by population `Top variable genes` and also select the minimum module size `Min.module size`. The module size is the minimum number of clusters generated for the gene dendrogram. Click on `Launch clustering analysis`.
+<center>
+```{r, echo=FALSE, out.width="2469px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/wgcna_top_min.png", dpi = 1200)
+```
+</center>
+
+3. WGCNA creates a gene dendrogram based on hierarchical clustering of all genes. There is a label on the horizontal access denoted as `Dynamic tree cut`, which is a color bar indicating the number and size of gene modules. A gene module is a set of genes with correlated expression across samples. The gene modules can be downloaded by clicking `Download gene modules (CSV)`. The modules are identified and named by color.  
+<center>
+```{r, echo=FALSE, out.width="1975px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 3.08.18 PM.png", dpi = 1200)
+```
+</center>
+
+4. WGCNA also creates a topological overlap matrix (TOM plot) that is a gene correlation matrix with dendrograms in rows and columns and color bars indicating the gene modules to which each gene belongs. This provides a visualization of the correlation between pairs of genes and between pairs of gene modules.
+<center>
+```{r, echo=FALSE, out.width="1530px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 3.08.51 PM.png", dpi = 1200)
+```
+</center>
+
+3. For K-mediods, you also have the option of targeting a select total number of top variable genes by population `Top variable genes`. Click on `Launch clustering analysis`.
+<center>
+```{r, echo=FALSE, out.width="2475px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 3.13.35 PM.png", dpi = 1200)
+```
+</center>
+
+4. K-medoids - consensus matrix heatmap  
+The k-medoids displays a consensus matrix heatmap based on all genes and samples based on k-medoids. Clustering is performed using a range of parameter settings, and the consensus heatmap reflects how often two given genes end up in the same cluster, which provides a stable estimate of similarity between pairs of genes. 
+<center>
+```{r, echo=FALSE, out.width="2475px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/bulk/3_analysis/Screen Shot 2022-01-10 at 3.14.20 PM.png", dpi = 1200)
+```
+</center>
+
+## scRNA-Seq
+
+When scRNA-Seq datasets are selected, there are two options for loading data. The first is to utilize cluster identification using the metadata provided (`Use pre-assigned clusters from metadata`) and the second, is to perform multiple resolutions on the data (`Run multiple resolutions using Seurat`). When running multiple resolutions, the first page you will come to when exploring scRNA-Seq data is the `Clustree` tab.
+
+### Clustree
+
+1. In `Select resolution`, you will see a dimensional reduction plot, with the option of visualizing the clustered data by selected resolution. You will see the output from Clustree, which can guide you in your decisions to select the appropriate resolution for clustering.
+
+    * You have the option to select PCA, tSNA or UMAP. Once you have selected your resolution, it will be retained for the subsequent analyses. You can always come back to this page and adjust your resolution. We also provide an option to overlay metadata onto clusters by selecting the `Grouping factor`.
+<center>
+```{r, echo=FALSE, out.width="2444px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.31.55 PM.png", dpi = 1200)
+```
+</center>
+
+    * We also provide the output from Clustree in R. The clustree plot provides a visual output of each resolution and the associated size of each cluster. The arrows indication flow from one cluster to another among resolutions. Ideal resolutions do not show "cross-over" events (row six to seven) and also do not generate very small clusters. Used in conjunction with the dimensional reduction plot, you can select the optimal resolution for clustering of your scRNA-Seq data..
+<center>
+```{r, echo=FALSE, out.width="2444px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.32.19 PM.png", dpi = 1200)
+```
+</center>
+
+    * You will also notice above the vertical list of options (i.e. Overview, Gene expression, etc.), there is a banner that specifies the resolution you have selected as shown below for resolution 0.4.
+<center>
+```{r, echo=FALSE, out.width="2444px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.32.49 PM.png", dpi = 1200)
+```
+</center>
+
+
+### Overview
+The `Overview` tab displays summary plots of cluster and metadata quality.  
+
+1. Clusters: These plots show visualizations of clustering quality based on selected resolution or based on clustering in the metadata. More details are described below.
+
+    * For `Clusters separation`, you can select the number of DE genes per cluster compared to the closest cluster, the number of DE genes per cluster compared to all other clusters or the average silhouette width per cluster (select under `Cluster separation metric`). You can adjust the false discovery rate (FDR) for DE testing.
+    * The `Silhouette plot` shows the silhouette widths and their averages per cluster. Ideal clustering should show a silhouette plot with primarily positive and minimal negative widths.
+<center>
+```{r, echo=FALSE, out.width="2471px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.34.00 PM.png", dpi = 1200)
+```
+</center>
+
+2. Metadata: These plots show relationships between metadata variables. 
+
+    * `Metadata relationships` between metadata variables are displayed as either boxplots or scatterplots, depending on the format of the variables selected. For instance, cluster vs. nFeature_RNA (the number of genes) is displayed as a boxplot, while nFeature_RNA vs. nCount_RNA (total RNA counts) is displayed as a scatterplot. For scatterplots, boxplots are also displayed on the x- and y-axes reflecting the distribution of values for the x- and y-axis individually. 
+    * `Metdata by cluster` show the summary of individual metadata variables by the selected `Metadata`. These are displayed as either boxplots or barplots, depending on the format of the variable (numeric and factor, respectively).
+<center>
+```{r, echo=FALSE, out.width="2471px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.34.40 PM.png", dpi = 1200)
+```
+</center>
+
+### Gene expression
+
+The `Gene expression` tab shows gene expession across clusters by box and whisker plot and dimensional reduction plot.
+
+1. `Gene expression by cluster` allows you to select a particular gene and see its normalized expression by cluster using a box and whisker plot. We also include a dendrogram that reflects similarities among clusters based on the selected gene. Optional parameters are described below. There are two options for grouping my cluster: `Include jitter` and `Include detection rate`. Selection of both is the default. Jitter overlays individual gene expression values outside of the interquartile range (IQR). Including the detection rate threshold is the percentage of cells expressing the gene in a given cluster (shown as dashes).
+<center>
+```{r, echo=FALSE, out.width="1957px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.35.17 PM.png", dpi = 1200)
+```
+</center>
+
+2. `Cell distribution of genes of interest` allows you to select a particular gene and visualize normalized gene expression across clusters in a dimensional reduction plot. You can select among the following options:
+
+    * `Gene`: From the drop-down menu, select your gene of interest to visualize.  
+    * `Cell embedding`: choose either PCA, UMAP, or tSNE to visualize the dimensional reduction plot.
+    * `x-axis`: choose the dimension to visualize on the x-axis
+    * `y-axis`: choose the dimension to visualize on the y-axis 
+<center>
+```{r, echo=FALSE, out.width="1957px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.37.52 PM.png", dpi = 1200)
+```
+</center>
+    * Under `Plot`, you can select visualization by `Gene expression overlay` or `Clusters`. If you select `Clusters`, cells will be plotted in a dimensional reduction plot without showing gene expression.
+    * If you check the box `Include cluster labels (style as above)`, the cluster numbers will be overlaid above the clusters
+<center>
+```{r, echo=FALSE, out.width="1660px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 6.33.10 PM.png", dpi = 1200)
+```
+</center>
+
+### DGE
+
+The `DGE` tab shows differential gene expression results visually in a dotplot and summarized in a table.
+
+1. `DGE by cluster` allows you to select a specific cluster under `Cluster`, adjust the `FDR` and perform DE testing under `Dotplot genes` via DE vs rest or DE vs neighbor. 
+
+    * DE vs. rest: DE genes from comparing each cluster with all other cells
+    * DE vs. neighbor: DE genes from comparing each cluster with its nearest neighbor cluster
+    * You can limit/expand the `# genes per cluster` to show in the dotplot.
+    * Each dot represents expression of one gene in a cluster. Gene labels are shown at the bottom of the plot, and a dendrogram is displayed at the top of the plot which depicts relationships among the chosen genes. The cell clusters are shown at the left side of the plot and a dendrogram depicts the relationships among the clusters based on the chosen genes. The size of each dot represents the detection rate, or % of cells in a particular cluster that express the gene (see size legend at the bottom left). Each dot is colored based on the gene expression level (see color scale at the bottom left above the size legend).  
+<center>
+```{r, echo=FALSE, out.width="1957px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.39.14 PM.png", dpi = 1200)
+```
+</center>
+
+    * The `DGE table` presents statistics for DE genes with your set absolute log~2~(fold-change) (`Abs. log~2~fold-change`) and adjusted p-value (`Adj. p-value`). Run differential gene expression by clicking `Load table`.
+<center>
+```{r, echo=FALSE, out.width="1957px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.39.42 PM.png", dpi = 1200)
+```
+</center>
+    
+    * The `DGE table` includes the following columns:
+      * Gene: gene symbol
+      * Mean_<cluster #>: mean normalized gene expression of cells in the chosen cluster (Cluster # for gene list)  
+      * Mean_<Rest|Cluster #>: mean normalized gene expression of either all other cells (for Dotplot Genes: DE vs. rest) or cells in the closest neighboring cluster (for Dotplot Genes: DE vs. neighbor)  
+      * p_val_adj: adjusted p-value for the chosen comparison  
+      * log2FC: log~2~(fold-change) of gene expression for the selected cluster compared to the other cells in the selected comparison  
+<center>
+```{r, echo=FALSE, out.width="1957px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.40.03 PM.png", dpi = 1200)
+```
+</center>
+
+2. `Custom DGE` allows you to perform differential gene expression for all available factors in the metadata and not just cluster comparisons. As shown below, you can select the `Factor` from the metadata (i.e. orig.ident, day, treatment, etc.), which in this case is `orig.ident`. In addition, you can select the two groups to compare. As shown below, `Group 1` is All (pairwise) while `Group 2` is Rest. This will perform pairwise DE testing between each orig.ident group (i.e. Morulae, Zygote, etc.) vs the rest of the clusters. This will be the most time consuming DGE test. The end-user can also select single comparisons like Morulae vs Zygote or do one specific comparison of say Morulae vs the rest of the clusters. 
+<center>
+```{r, echo=FALSE, out.width="1977px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.41.33 PM.png", dpi = 1200)
+```
+</center>
+
+    * If you would like to adjust options, click on `View options`. This will allow you to adjust the log~2~(fold-change) (`LFC threshold`), the `Test` you would like to use to perform DE testing, the minimum cut-off for gene detection `Min.pct` and the minimum difference in gene expression between `Group 1` and `Group 2`.
+<center>
+```{r, echo=FALSE, out.width="1977px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.41.59 PM.png", dpi = 1200)
+```
+</center>
+
+    * After clicking `Submit`, the `Differential gene expression results` will produce a table including the following columns:
+      * Gene: the gene
+      * Log2 fold-change: the log~2~(fold-change) value
+      * P-value: the uncorrected p-value
+      * P-value (adj): the adjusted p-value
+      * Pct.<Factor>: `Group 1` in the `Comparison` drop-down menu
+      * Pct.<Factor>: `Group 2` in the `Comparison` drop-down menu
+<center>
+```{r, echo=FALSE, out.width="1977px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.43.13 PM.png", dpi = 1200)
+```
+</center>
+
+### Volcano plot
+
+1. The `Volcano plot` tab compares two selected clusters or sets of cells using the selected plot types:
+
+    * Gene expression ratio: log~N~(gene expression ratio) vs. -log~10~(FDR adjusted p-value)
+<center>
+```{r, echo=FALSE, out.width="1977px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 3.44.35 PM.png", dpi = 1200)
+```
+</center>
+
+    * Detection rate difference: difference in detection rate (cluster A - cluster B) vs. -log~10~(FDR adjusted p-value)
+    <center>
+```{r, echo=FALSE, out.width="1961px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.05.06 PM.png", dpi = 1200)
+```
+</center>
+
+    * Gene expression difference: log~N~(difference in mean normalized expression, cluster A - cluster B) vs. mean normalized gene expression across both clusters
+<center>
+```{r, echo=FALSE, out.width="1660px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 6.46.10 PM.png", dpi = 1200)
+```
+</center>
+    
+      * You can also specify the top DE genes under `# top genes to label` and the type of genes to label (i.e. Largest fold-changes)
+      * You can select which two clusters to compare under `Cluster A` and `Cluster B`
+      * Lastly, you can download the statistics pertaining to significant DE genes by cluster
+      <center>
+```{r, echo=FALSE, out.width="1832px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-12 at 12.58.04 PM.png", dpi = 1200)
+```
+</center>
+      
+      * You can also visualize the the DGE table. There are options to adjust the absolute log~2~(fold-change) under `Abs log~2~ fold-change` and change the adjusted p-value (`Adj. p-value). To build the table click on `Load table`.
+<center>
+```{r, echo=FALSE, out.width="1226px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.06.31 PM.png", dpi = 1200)
+```
+</center>
+     
+     * The DGE statistics table contains the following columns:
+        * Gene: gene symbol
+        * Mean_<cluster #>: mean normalized gene expression of cells in the chosen cluster from Cluster A
+        * Mean_<cluster #>: mean normalized gene expression of cells in the chosen cluster from Cluster B
+        * p_val_adj: adjusted p-value
+        * log2FC: log~2~(fold-change) of gene expression from Cluster A compared to  Cluster B
+<center>
+```{r, echo=FALSE, out.width="2452px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.07.30 PM.png", dpi = 1200)
+```
+</center>
+
+### Heatmap
+
+1. For the Heatmap on the scRNA-Seq side, there are three options for visualizing DEGs: Cluster DGE, Custom DGE and Manual. 
+
+    * The cluster contrasts will perform DGE on individually selected clusters (i.e. cluster 0 vs 1, etc). 
+<center>
+```{r, echo=FALSE, out.width="2076px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 7.57.37 PM.png", dpi = 1200)
+```
+</center>
+    
+    * Custom DGE will only appear if the end-user has apriori selected contrasts under Custom DGE.
+<center>
+```{r, echo=FALSE, out.width="2076px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 7.57.48 PM.png", dpi = 1200)
+```
+</center>
+    
+    * Lastly, the end-user can select Manual and input a list of genes to perform DGE. Genes should be copied and pasted with a comma and space separating each gene (ex. A2m, A4GALT).
+<center>
+```{r, echo=FALSE, out.width="2076px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 7.58.18 PM.png", dpi = 1200)
+```
+</center>
+
+    * A similar heatmap will appear as it does on the bulk RNA-Seq side. As with the bulk side, you can hover over genes in the heatmap to see their mean normalized expression as shown below.
+<center>
+```{r, echo=FALSE, out.width="1955px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.11.06 PM.png", dpi = 1200)
+```
+</center>
+
+    * Similarly to the bulk side, you can click on a cell in the heatmap to explore the normalized counts in a box and whisker plot of the selected gene. You can also select the factor by which you would like to group the samples. Below, the factor selected is orig.ident, labeled on the x-axis.
+<center>
+```{r, echo=FALSE, out.width="1960px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.12.18 PM.png", dpi = 1200)
+```
+</center>
+
+### Gene set enrichment
+
+1. For gene set enrichment (GSE), there are three options for performing GSE on DEGs: Cluster DGE, Custom DGE and Manual. 
+
+    * The cluster contrasts will perform GSE on individually selected clusters (i.e. cluster 0 vs 1, etc). 
+<center>
+```{r, echo=FALSE, out.width="2481px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.08.27 PM.png", dpi = 1200)
+```
+</center>
+    
+    * Custom DGE will only appear if the end-user has apriori selected contrasts under Custom DGE. The `Factor` and `Contrast` selected under `Custom DGE` contrasts will be atuo-selected to perform enrichment analysis.
+<center>
+```{r, echo=FALSE, out.width="2076px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 7.51.20 PM.png", dpi = 1200)
+```
+</center>
+    
+    * Lastly, the end-user can select Manual and input a list of genes to perform enrichment analysis. Genes should be copied and pasted with a comma and space separating each gene (ex. A2m, A4GALT).
+<center>
+```{r, echo=FALSE, out.width="2076px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 7.51.30 PM.png", dpi = 1200)
+```
+</center>
+
+    * A similar GSE table will appear and will look similar to the output on the bulk RNA-Seq side.
+    
+### Manually select cells
+
+1. We have enabled you to select cells manually or by filtering to perform custom DE testing. You can perform DGE and GSE on your selections.
+
+    * You have the option to adjust the following for visualization:
+      * You can choose whether to visualize cells via PCA, UMAP or tSNE
+      * You can also select what dimension you would like to visualize under `x-axis` and `y-axis`
+<center>
+```{r, echo=FALSE, out.width="1983px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/embedding.png", dpi = 1200)
+```
+</center>
+
+    * To filter from the metadata directly, select the factor under `Metadata overlay and filtering`. 
+<center>
+```{r, echo=FALSE, out.width="1983px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/metadata.png", dpi = 1200)
+```
+</center>
+    * To perform DE testing, click on the `+Add` button, then select the cells by the selected factor under `Select cells by <factor>`. 
+<center>
+```{r, echo=FALSE, out.width="2076px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 8.18.06 PM.png", dpi = 1200)
+```
+</center>
+    * To add the cells to set A, click on `+Set A: Add cells`. You will see the total number of cells added above `+Set A: Add cells`.
+<center>
+```{r, echo=FALSE, out.width="2076px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 8.18.58 PM.png", dpi = 1200)
+```
+</center>
+    * To add the cells to set B, select a different set of cells under `Select cells by <factor>`. Then click on `+Set B: Add cells`.You will see the total number of cells added above `+Set B: Add cells`.
+<center>
+```{r, echo=FALSE, out.width="2072px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 8.19.36 PM.png", dpi = 1200)
+```
+</center>
+    * To remove the filtering option, click on `-Remove` (step 1. shown below). To remove cells from set A, click on `-Set A: Remove cells`. To remove cells from set B, click on `-Set B: Remove cells`.
+<center>
+```{r, echo=FALSE, out.width="1145px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-12 at 3.24.27 PM.png", dpi = 1200)
+```
+</center>
+
+    * To manually select cells in the dimensional reduction plot using the lasso tool, use your mouse to select the cells you would like to include in set A (step 1 below). Click on `+Set A: Add cells` to include the selected cells in set A (step 2 below).
+<center>
+```{r, echo=FALSE, out.width="2104px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 8.24.53 PM.png", dpi = 1200)
+```
+</center>
+    
+    * Repeat the same steps for set B as described above. See plots below.
+<center>
+```{r, echo=FALSE, out.width="2104px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 8.25.30 PM.png", dpi = 1200)
+```
+</center>
+
+    * Prior to clicking `Calculate differential gene expression`, you must include a name for this comparison under `Short name for this comparison`.
+<center>
+```{r, echo=FALSE, out.width="2104px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 8.25.51 PM.png", dpi = 1200)
+```
+</center>
+
+    * If you would like to download DGE results, you can adjust the absolute log~2~(fold-change) and modify the adjusted p-value under `Abs. log~2~fold-change` and `Adj. p-value`, respectively. Then click on `Download DGE data` to download your DE testing data.
+<center>
+```{r, echo=FALSE, out.width="701px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 8.27.07 PM.png", dpi = 1200)
+```
+</center>
+
+    * You can also download GSE with the same options as described in this [section](#gene-set-enrichment)
+<center>
+```{r, echo=FALSE, out.width="701px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 8.27.26 PM.png", dpi = 1200)
+```
+</center>
+      * You can also visualize your custom DGE results under `Heatmap` as decribed in this [section](#heatmap)
+<center>
+```{r, echo=FALSE, out.width="2762px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 8.30.48 PM.png", dpi = 1200)
+```
+</center>
+
+      * If you would prefer to visualize your GSE in the app itself, you may click back on the `Gene set enrichment` tab and select `Set A-Set B` under `Cluster contrast` as shown below.
+<center>
+```{r, echo=FALSE, out.width="2803px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 8.31.12 PM.png", dpi = 1200)
+```
+</center>
+
+### Clustering
+
+1. Similarly, to the analysis on the bulk RNA-Seq files, you have the same options for the scRNA-Seq. Please see this [section](#clustering) for more information.
+
+### Merge clusters
+
+1. If you are not completely satisfied with the clustering provided in the metadata or after running a variety of resolutions, you can combine clusters under `Merge clusters`.
+
+    * Under `Select clusters to combine`, either select or type in clusters you would like to combine.
+<center>
+```{r, echo=FALSE, out.width="2479px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.26.42 PM.png", dpi = 1200)
+```
+</center>
+
+    * As you select clusters to combine, the plot will be automatically updated as shown below.
+<center>
+```{r, echo=FALSE, out.width="2479px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.27.14 PM.png", dpi = 1200)
+```
+</center>
+
+    * Once you are satisfied with your cluster merging, you will need to specify a username for yourself (alphanumeric only) and type it in under `Username` (step 1 below). You can also include any notes about the cluster combination under `Comment` (step 2 below). The `Updated table name` will be automatically updated, so you do *not* need to add anything in that box. Lastly, click on `Save to database` to save your updated metadata in the RDS (step 3 below. This updated metadata can be loaded as described in this [section](#existing-datasets)  
+<center>
+```{r, echo=FALSE, out.width="2479px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.27.39 PM.png", dpi = 1200)
+```
+</center>
+
+### Group cells by gene expression
+
+1. As an alternative to combining clusters to update metadata, you can group cells manually based on expression of one or more genes. This may be the preferred approach for manually re-clustering.
+<center>
+```{r, echo=FALSE, out.width="980px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.41.28 PM.png", dpi = 1200)
+```
+</center>
+
+    * To start, select gene(s) under `Select genes`. You can either type in the gene name or scroll through the list to select your target gene. To begin creating clusters, type in the name you would like to use under `New set name` and click on `+New set` to create a set name or keep it labeled as Set 1, etc.
+<center>
+```{r, echo=FALSE, out.width="980px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/merge_cells_set_name.png", dpi = 1200)
+```
+</center>
+
+    * Scroll your mouse over the plot until you see a `+`, click and hold down your mouse while using the lasso tool to draw a dotted line around your selected cells as shown below in step 1. Next, click `Add to <set_name>` as shown in step 2. Lastly, you will see how many cells will be included in that set as shown below in step 3.
+<center>
+```{r, echo=FALSE, out.width="980px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.43.04 PM.png", dpi = 1200)
+```
+</center>
+
+    * Repeat the above steps for the subsequent sets as shown below until you have created all required sets.
+<center>
+```{r, echo=FALSE, out.width="980px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.43.32 PM.png", dpi = 1200)
+```
+</center>
+
+    * If you would like to use more than one gene, select them all under `Select genes`. You can specify how you would like to visualize the gene expression (i.e. mean, median or sum) under `Summary metric`.
+<center>
+```{r, echo=FALSE, out.width="842px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 9.27.12 PM.png", dpi = 1200)
+```
+</center>
+
+    * Once you have selected all of your sets, please type your desired username (alphanumeric only) under `Username` (step 1). Optionally, add a comment about your clustering schema under `Comment (step 2). Please do *not* type anything into `Updated table name` (step 3). Lastly, click on `Save to database` to store your updated metadata in the RDS (step 4).
+<center>
+```{r, echo=FALSE, out.width="980px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-10 at 4.44.13 PM.png", dpi = 1200)
+```
+</center>
+
+    * Another option is to generate sets using ranges of gene expression values. As shown below, you can select a minimum and maximum range for a given gebe and simply click `Add to <set name>` as shown below in steps 1 - 4. In this example, we selected ranges 0 - 1 for Cluster 1. This can be iteratively selected for different ranges and added to each additional set.
+<center>
+```{r, echo=FALSE, out.width="842px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/Screen Shot 2022-01-11 at 9.31.53 PM.png", dpi = 1200)
+```
+</center>
+
+    * If the checkbox `inclusive` is clicked, the range includes the minimum or maximum value. If the checkbox is not clicked, the range includes all values greater than `From (min <number>)` and/or all values less than `From (max <number>)`.
+<center>
+```{r, echo=FALSE, out.width="980px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/sc/3_analysis/inclusive.png", dpi = 1200)
+```
+</center>
+
+# iPSC profiler
+
+1. The iPSC profiler enables visualization of the expression of gene modules. A gene module is a set of genes that comprise a gene expression pathway, etc. Expression, as it is defined here, is quantified by a module score, which is a measure of the exprpession of genes in the module compared to a random set of genes.
+
+    * The module score is calculated using the following metrics:
+      * Calculate control score: mean normalized expression of the control genes in one cell (randomly sampled genes from the same bin as each module gene)
+      * Calculate feature score: mean normalized expression of module genes in one cell
+      * Calculate module score: for one cell is the feature score - control score
+
+## Heatmap
+1. The heatmap shows the module scores across all cells by module. By default, module scores from all available modules are shown. Optional parameters for the heatmap are described below.
+
+    * `Grouping factor`: select the factor used to group cells (i.e. the colorbar above the heatmap). This comes from the metadata.
+    * `Color palette`: the option to color your heatmap cells by normalized expression value includes: default (red-white-blue), red-blue (darker red-white-blue), viridis (blue-green-yellow) and green-yellow-red.
+    * `Use all modules`: if this is checked, all gene modules will be included in the heatmap. If you would like to only view select module(s), uncheck the checkbox `Use all modules`. 
+<center>
+```{r, echo=FALSE, out.width="2450px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/ipsc/Screen Shot 2022-01-10 at 4.50.34 PM.png", dpi = 1200)
+```
+</center>
+
+    * To select module(s), select from the drop-down under `Select profiles`. A heatmap will be generated automatically.
+<center>
+```{r, echo=FALSE, out.width="1225px"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/ipsc/Screen Shot 2022-01-10 at 4.51.14 PM.png", dpi = 1200)
+```
+</center>
+
+## PCA/tSNE/UMAP
+
+1. Module scores are projected onto either PCA, UMAP or tSNE dimensional reduction plots in the left plot. The dimensional reduction plot is replicated in the right plot, colored according to the factor selected.
+
+    * In addition to modifying the type of dimensional reduction plot, you can look at one module at a given time by selecting it under `Module`. 
+    * You can also change which factor to overlay onto the dimensional reduction plot under `Grouping factor`.
+<center>
+```{r, echo=FALSE, out.width="3267x"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/ipsc/Screen Shot 2022-01-10 at 4.52.15 PM.png", dpi = 1200)
+```
+</center>
+
+## Violin plot
+
+1. Module scores for all cells are visualized as violin plots, with cells grouped based on a chosen factor.
+
+    * To select how to group cells, select the factor from the metadata under `Grouping factor`.
+    * You can select a single module at a time to view as a violin plot under `Module`.
+<center>
+```{r, echo=FALSE, out.width="3267x"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/ipsc/Screen Shot 2022-01-10 at 4.52.49 PM.png", dpi = 1200)
+```
+</center>
+
+## Module info
+
+1. A more detailed description of each module can be found under description along with the source manuscript if one is available.
+<center>
+```{r, echo=FALSE, out.width="3267x"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/ipsc/Screen Shot 2022-01-10 at 4.54.00 PM.png", dpi = 1200)
+```
+</center>
+
+# More
+
+1. The drop-down menu on the far left labeled, `More`, includes this tutorial under `Tutorial`, a frequently asked questions under `FAQ`, information about the group that created this web application under `About us` and lastly information about the R session under `Session info`.
+<center>
+```{r, echo=FALSE, out.width="2104x"}
+add_image("/home/rstudio-user/ben_test_12222020/tutorial_12202021/tutorial_20220112/img/load/Screen Shot 2022-01-11 at 9.40.12 PM.png", dpi = 1200)
+```
+</center>

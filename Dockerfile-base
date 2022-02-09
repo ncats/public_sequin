@@ -1,0 +1,17 @@
+FROM rocker/shiny-verse:4.0.3
+
+RUN apt-get update && apt-get install -y \
+   libxml2 \
+   libxml2-dev \
+   liblzma-dev \
+   libssh-dev \
+   libbz2-dev \
+   libv8-dev \
+   libhdf5-dev
+
+RUN R -e "install.packages(c('DT', 'shiny', 'gtools', 'dplyr', 'shinyBS', 'shinyjs', 'shinycssloaders', 'shinythemes', 'tibble', 'tidyr', 'Rcpp', 'Hmisc', 'ggplot2', 'locfit', 'GGally', 'reshape2', 'backports', 'digest', 'fields', 'psych', 'stringr', 'openxlsx', 'Rtsne', 'flashClust', 'MCL', 'kmed', 'ape', 'knitr', 'readr', 'rmarkdown', 'gplots', 'RColorBrewer', 'data.table', 'viridis', 'scales', 'RMySQL', 'heatmaply', 'colorspace', 'umap', 'tools', 'stringi', 'purrr', 'ggrepel', 'plotrix', 'plotly', 'Seurat', 'ggdendro', 'ssh', 'httpuv', 'V8', 'shinyWidgets'), repos = 'http://cran.r-project.org/')"
+RUN R -e "devtools::install_github(c('rstudio/crosstalk', 'wjawaid/enrichR'))"
+RUN R -e "devtools::install_github('BaderLab/scClustViz')"
+RUN R -e "devtools::install_github('immunogenomics/presto')"
+
+# will be pushed to ncats/sctl-rshiny-complex:base-4.0.3
