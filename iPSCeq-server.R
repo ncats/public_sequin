@@ -14890,15 +14890,26 @@ iPSCeqServer <- function(input, output, session) {
     req(input$username)
     if(is.null(seurat_only()) || is.null(recomb_seur()) || is.null(d$datasetNames)) return()
     datasets <- paste(d$datasetNames, collapse = "_")
-    # need to push info to sc_useradd
-    mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-                      dbname = scdb, host = ec_host, port = p)
-    dat <- dbReadTable(mydb, "sc_useradd")
-    dbDisconnect(mydb)
+    if(getOption("standalone")) {
+      if(file.exists(paste0(getOption("localDir"), "/sc_useradd.csv"))) {
+        dat <- read.csv(paste0(getOption("localDir"), "/sc_useradd.csv"), as.is = T, stringsAsFactors = F)
+      } else {
+        dat <- as.data.frame(matrix("", nrow = 0, ncol = 8))
+        colnames(dat) <- c(
+          "iterator", "experiment_id", "unique_table", "username", 
+          "uploaded_date", "table_name", "samples_used", "note"
+        )
+      }
+    } else {
+      mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
+                        dbname = scdb, host = ec_host, port = p)
+      dat <- dbReadTable(mydb, "sc_useradd")
+      dbDisconnect(mydb)
+    }
     idx <- dat %>%
       filter(grepl(paste(datasets, input$username, sep = "-"), table_name))
 
-    if (nrow(idx) == 0) {
+    if(nrow(idx) == 0) {
       idx <- 1
     } else {
       idx <- idx %>%
@@ -15007,13 +15018,28 @@ iPSCeqServer <- function(input, output, session) {
   observeEvent(input$submit_mysql, {
     if(SubmitData$data_type == "Single-cell") {
       if(length(input$clusters_comb) >= 2) {
-        withProgress(message = "Pushing recombined cluster data to the MySQL database.", value = 0, {
+        txt <- "Pushing recombined cluster data to the MySQL database."
+        if(getOption("standalone")) {
+          txt <- "Saving recombined cluster data to local file."
+        }
+        withProgress(message = txt, value = 0, {
           incProgress(1/3)
-
           # need to push info to sc_useradd
-          mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sup, password = pwd_sc_sup,
-                            dbname = scdb, host = ec_host, port = p)
-          dat <- dbReadTable(conn = mydb, name = "sc_useradd")
+          if(getOption("standalone")) {
+            if(file.exists(paste0(getOption("localDir"), "/sc_useradd.csv"))) {
+              dat <- read.csv(paste0(getOption("localDir"), "/sc_useradd.csv"), as.is = T, stringsAsFactors = F)
+            } else {
+              dat <- as.data.frame(matrix("", nrow = 0, ncol = 8))
+              colnames(dat) <- c(
+                "iterator", "experiment_id", "unique_table", "username", 
+                "uploaded_date", "table_name", "samples_used", "note"
+              )
+            }
+          } else {
+            mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sup, password = pwd_sc_sup,
+                              dbname = scdb, host = ec_host, port = p)
+            dat <- dbReadTable(conn = mydb, name = "sc_useradd")
+          }
           if(nrow(dat) == 0) {
             idx <- 1
           } else {
@@ -15027,8 +15053,7 @@ iPSCeqServer <- function(input, output, session) {
             experiment_id = as.integer(SubmitData$datasets_table$experiment_id[SubmitData$datasets_table$experiment_name %in% d$datasetNames][1])
           )
 
-          df <- dbReadTable(mydb, "sc")
-          names(df)[1] <- gsub("^X\\.", "", names(df)[1])
+          df <- SubmitData$datasets_table
           
           sel_samps <- samples_used()
           sel_samps <- paste(sel_samps, collapse = "; ")
@@ -15043,11 +15068,42 @@ iPSCeqServer <- function(input, output, session) {
                    samples_used = sel_samps,
                    note = input$note,
                    iterator = idx)
-          df <- df %>% dplyr::select(c(iterator, experiment_id,
-                                       unique_table, username,
-                                       uploaded_date, table_name,
-                                       samples_used, note))
-          dbWriteTable(conn = mydb, name = "sc_useradd", value = df, append = TRUE, row.names = FALSE)
+          df <- df %>% 
+            dplyr::select(c(
+              iterator, 
+              experiment_id,
+              unique_table, 
+              username,
+              uploaded_date, 
+              table_name,
+              samples_used, 
+              note
+            ))
+          
+          if(getOption("standalone")) {
+            if(file.exists(paste0(getOption("localDir"), "/sc_useradd.csv"))) {
+              write.table(
+                x = df,
+                file = paste0(getOption("localDir"), "/sc_useradd.csv"),
+                sep = ",",
+                quote = T,
+                append = T,
+                row.names = F,
+                col.names = F
+              )
+            } else {
+              write.table(
+                x = df,
+                file = paste0(getOption("localDir"), "/sc_useradd.csv"),
+                sep = ",",
+                quote = T,
+                row.names = F,
+                col.names = T
+              )
+            }
+          } else {
+            dbWriteTable(conn = mydb, name = "sc_useradd", value = df, append = TRUE, row.names = FALSE)
+          }
           # need to push table to scdb
           meta <- recomb_seur() %>%
             dplyr::select(-`Number of Cells`)
@@ -15061,8 +15117,19 @@ iPSCeqServer <- function(input, output, session) {
             colnames(meta)[colnames(meta) == "sample"] = "sample_DUP"
           }
           
-          dbWriteTable(conn = mydb, name = input$tablename, value = meta, overwrite = TRUE, row.names = FALSE)
-          dbDisconnect(mydb)
+          if(getOption("standalone")) {
+            write.table(
+              x = meta,
+              file = paste0(getOption("localDir"), "/", input$tablename, ".csv"),
+              sep = ",",
+              row.names = F,
+              col.names = T,
+              quote = T
+            )
+          } else {
+            dbWriteTable(conn = mydb, name = input$tablename, value = meta, overwrite = TRUE, row.names = FALSE)
+            dbDisconnect(mydb)
+          }
           incProgress(2/3)
         })
       }

@@ -2981,49 +2981,65 @@ DownsampleCells <- function(db, expName, nCells = 2000, mySeed = NULL) {
 
 # SQL - generate a seurat object from SQL db count/metadata (sc only)
 SeuratProcess <- function(dataset, samples = NULL, nCells = NULL, mySeed = NULL) {
-  # connect to mysql database
-  mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-                    dbname = scdb, host = ec_host, port = p)
-  # read the table containing info on the scRNA-seq exp
-  # in the mysql db
-  dat <- dbReadTable(mydb, "sc")
-  dat <- dat %>%
-    dplyr::filter(experiment_name %in% dataset) %>%
-    dplyr::pull(unique_table)
   
-  metadata <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
-  if(!is.null(nCells)) {
-    if(nCells < nrow(metadata)) {
-      counts <- DownsampleCells(db = mydb, expName = dat, nCells = nCells, mySeed = mySeed)
+  if(getOption("standalone")) {
+    metadata <- read.csv(paste0(getOption("localDir"), "/", dataset, "_meta.csv"), row = 1)
+    counts <- read.csv(paste0(getOption("localDir"), "/", dataset, "_counts.csv"), row = 1)
+    if(!is.null(nCells) && nCells < nrow(metadata)) {
+      set.seed(mySeed)
+      counts <- counts[, sample(1:ncol(counts), size = nCells)]
+    }
+    if(!is.null(samples)) {
+      rowsToKeep <- SubsetMulti(fullDF = metadata, subDF = samples)
+      counts <- counts[, rowsToKeep]
+      metadata <- metadata[rowsToKeep, , drop = F]
+    }
+  } else {
+    # connect to mysql database
+    mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
+                      dbname = scdb, host = ec_host, port = p)
+    # read the table containing info on the scRNA-seq exp
+    # in the mysql db
+    dat <- dbReadTable(mydb, "sc")
+    dat <- dat %>%
+      dplyr::filter(experiment_name %in% dataset) %>%
+      dplyr::pull(unique_table)
+    
+    metadata <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
+    
+    if(!is.null(nCells)) {
+      if(nCells < nrow(metadata)) {
+        counts <- DownsampleCells(db = mydb, expName = dat, nCells = nCells, mySeed = mySeed)
+      } else {
+        counts <- dbGetQuery(mydb, statement = paste0("SELECT cell_id, gene, counts FROM ", dat, "_counts WHERE counts > 0"))
+      }
     } else {
       counts <- dbGetQuery(mydb, statement = paste0("SELECT cell_id, gene, counts FROM ", dat, "_counts WHERE counts > 0"))
     }
-  } else {
-    counts <- dbGetQuery(mydb, statement = paste0("SELECT cell_id, gene, counts FROM ", dat, "_counts WHERE counts > 0"))
-  }
-  dbDisconnect(mydb)
-  
-  if(!is.null(samples)) {
-    rowsToKeep <- SubsetMulti(fullDF = metadata, subDF = samples)
-    pull_cell_id <- metadata$cell_id[rowsToKeep]
-    counts <- counts %>%
-      filter(cell_id %in% pull_cell_id) %>%
-      spread(cell_id, counts, fill = 0, convert = T) %>%
-      column_to_rownames("gene")
+    dbDisconnect(mydb)
     
-    metadata <- metadata %>%
-      filter(cell_id %in% pull_cell_id)
-    metadata <- metadata %>%
-      column_to_rownames("cell_id")
-  } else {
-    counts <- counts %>%
-      spread(cell_id, counts, fill = 0, convert = T) %>%
-      column_to_rownames("gene")
-    
-    metadata <- metadata %>%
-      column_to_rownames("cell_id")
+    if(!is.null(samples)) {
+      rowsToKeep <- SubsetMulti(fullDF = metadata, subDF = samples)
+      pull_cell_id <- metadata$cell_id[rowsToKeep]
+      counts <- counts %>%
+        filter(cell_id %in% pull_cell_id) %>%
+        spread(cell_id, counts, fill = 0, convert = T) %>%
+        column_to_rownames("gene")
+      
+      metadata <- metadata %>%
+        filter(cell_id %in% pull_cell_id)
+      metadata <- metadata %>%
+        column_to_rownames("cell_id")
+    } else {
+      counts <- counts %>%
+        spread(cell_id, counts, fill = 0, convert = T) %>%
+        column_to_rownames("gene")
+      
+      metadata <- metadata %>%
+        column_to_rownames("cell_id")
+    }
   }
-  
+
   # Replace hyphens with periods
   rownames(metadata) <- sub(pattern = "-", replacement = ".", x = rownames(metadata))
   colnames(counts) <- sub(pattern = "-", replacement = ".", x = colnames(counts))

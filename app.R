@@ -8,6 +8,9 @@
 # Created:       2018-01-26 11:29:39 CDT
 #---------------------------------------------------------------------
 
+# Run as either standalone app or connect to database
+options(standalone = T, localDir = "example_data")
+
 # Turn off just-in-time compilation to speed initial load time
 compiler::enableJIT(0)
 
@@ -35,9 +38,11 @@ source("iPSCeq-server.R")
 
 # NEED TO REMOVE ~/arc/
 # load credentials required
-source("sql.R")
+if(!getOption("standalone")) {
+  # source("sql.R")
+  source("~/arc/sql.R")
+}
 
-# source("~/arc/sql.R")
 
 # load embedded fonts
 font_add_google(name = "Noto Sans JP", family = "noto-sans-jp")

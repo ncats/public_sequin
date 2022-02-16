@@ -1,0 +1,8 @@
+experiment_id,experiment_name,description,upload_date,unique_table,created_by,Type,publication,publication_link
+1,example_sc,scRNA-seq example dataset,8-Jul-21,example_sc,bernest,sc,"Yan et al., 2013",https://www.nature.com/articles/nsmb.2660
+1,exp1_sc,Single-cell experiment 1,8-Jul-21,exp1_sc,bernest,sc,,
+2,exp2_sc,Single-cell experiment 2,8-Jul-21,exp2_sc,bernest,sc,,
+3,exp3_sc,Single-cell experiment 3,8-Jul-21,exp3_sc,bernest,sc,,
+1,exp1_bulk,Bulk experiment 1,8-Jul-21,exp1_bulk,bernest,bulk,,
+2,exp2_bulk,Bulk experiment 2,8-Jul-21,exp2_bulk,bernest,bulk,,
+3,exp3_bulk,Bulk experiment 3,8-Jul-21,exp3_bulk,bernest,bulk,,

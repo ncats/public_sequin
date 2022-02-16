@@ -3645,35 +3645,44 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
   
   # Reactive expression to load list of bulk/scRNA-seq datasets on app load
   ExpData <- reactive({
-    mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-                      dbname = scdb, host = ec_host, port = p)
-    sc <- dbReadTable(mydb, "sc") %>%
-      filter(paste0(unique_table, "_counts") %in% dbListTables(mydb)) %>%
-      filter(paste0(unique_table, "_meta") %in% dbListTables(mydb))
-    sc <- sc[c(which(sc$experiment_name == "example_sc"), which(sc$experiment_name != "example_sc")), ]
     
-    names(sc)[1] <- "experiment_id"
-    sc$Type <- "sc"
-    # Count rows in metadata
-    nSamples <- sapply(sc$unique_table, function(expName) DBTableNRows(mydb, myTab = paste0(expName, "_meta")))
-    sc <- data.frame(sc, NSamples = nSamples)
-    dbDisconnect(mydb)
-    
-    mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
-                      dbname = bdb, host = ec_host, port = p)
-    b <- dbReadTable(mydb, "bulk") %>%
-      filter(paste0(unique_table, "_counts") %in% dbListTables(mydb)) %>%
-      filter(paste0(unique_table, "_meta") %in% dbListTables(mydb))
-    b <- b[c(which(b$experiment_name == "example_bulk"), which(b$experiment_name != "example_bulk")), ]
-    
-    b$Type <- "bulk"
-    # Count rows in metadata
-    nSamples <- sapply(b$unique_table, function(expName) DBTableNRows(mydb, myTab = paste0(expName, "_meta")))
-    b <- data.frame(b, NSamples = nSamples)
-    
-    dbDisconnect(mydb)
-    
-    df <- rbind(b, sc)
+    if(getOption("standalone")) {
+      df <- read.csv(paste0(getOption("localDir"), "/data_info.csv"), as.is = T, stringsAsFactors = F)
+      nSamples <- sapply(df$unique_table, function(expName) {
+        nrow(read.csv(paste0(getOption("localDir"), "/", expName, "_meta.csv")))
+      })
+      df <- data.frame(df, NSamples = nSamples)
+    } else {
+      mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
+                        dbname = scdb, host = ec_host, port = p)
+      sc <- dbReadTable(mydb, "sc") %>%
+        filter(paste0(unique_table, "_counts") %in% dbListTables(mydb)) %>%
+        filter(paste0(unique_table, "_meta") %in% dbListTables(mydb))
+      sc <- sc[c(which(sc$experiment_name == "example_sc"), which(sc$experiment_name != "example_sc")), ]
+      
+      names(sc)[1] <- "experiment_id"
+      sc$Type <- "sc"
+      # Count rows in metadata
+      nSamples <- sapply(sc$unique_table, function(expName) DBTableNRows(mydb, myTab = paste0(expName, "_meta")))
+      sc <- data.frame(sc, NSamples = nSamples)
+      dbDisconnect(mydb)
+      
+      mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
+                        dbname = bdb, host = ec_host, port = p)
+      b <- dbReadTable(mydb, "bulk") %>%
+        filter(paste0(unique_table, "_counts") %in% dbListTables(mydb)) %>%
+        filter(paste0(unique_table, "_meta") %in% dbListTables(mydb))
+      b <- b[c(which(b$experiment_name == "example_bulk"), which(b$experiment_name != "example_bulk")), ]
+      
+      b$Type <- "bulk"
+      # Count rows in metadata
+      nSamples <- sapply(b$unique_table, function(expName) DBTableNRows(mydb, myTab = paste0(expName, "_meta")))
+      b <- data.frame(b, NSamples = nSamples)
+      
+      dbDisconnect(mydb)
+      
+      df <- rbind(b, sc)
+    }
     
     # Add publication link as "Source" column
     df$Source <- NA
@@ -3778,6 +3787,16 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
   # DATA - reactive expression to pull bulk and scRNA-seq
   # data set from mysql db
   data_info <- reactive({
+    
+    if(getOption("standalone")) {
+      df <- read.csv(paste0(getOption("localDir"), "/data_info.csv"), as.is = T, stringsAsFactors = F)
+      nSamples <- sapply(df$unique_table, function(expName) {
+        nrow(read.csv(paste0(getOption("localDir"), "/", expName, "_meta.csv")))
+      })
+      df <- data.frame(df, NSamples = nSamples)
+      return(df)
+    }
+    
     mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
                       dbname = scdb, host = ec_host, port = p)
     sc <- dbReadTable(mydb, "sc") %>%
@@ -3971,7 +3990,18 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
   # DATA - reactive expression to return user-created metadata table
   user_made_meta_table <- reactive({
     req(load_datasets_table(), d$select_datasets_table_rows_selected)
-    
+    if(getOption("standalone")) {
+      if(!file.exists(paste0(getOption("localDir"), "/sc_useradd.csv"))) return()
+      sc <- read.csv(paste0(getOption("localDir"), "/sc_useradd.csv"), as.is = T, stringsAsFactors = F)
+      myTables <- sub(pattern = ".csv$", replacement = "", x =  dir(getOption("localDir"), pattern = ".csv$"))
+    } else {
+      mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
+                        dbname = scdb, host = ec_host, port = p)
+      sc <- dbReadTable(conn = mydb, name = "sc_useradd")
+      myTables <- dbListTables(mydb)
+      dbDisconnect(mydb)
+    }
+    if(nrow(sc) == 0) return()
     if(length(d$select_datasets_table_rows_selected) == 0) return()
     
     selectedDatasetsTable <- load_datasets_table()[d$select_datasets_table_rows_selected, ]
@@ -3983,14 +4013,9 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
       selectedDatasetsTable$unique_table <- paste(selectedDatasetsTable$unique_table, collapse = "_")
     }
     
-    mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-                      dbname = scdb, host = ec_host, port = p)
-    
-    sc <- dbReadTable(conn = mydb, name = "sc_useradd") %>%
+    sc <- sc %>%
       filter(unique_table == selectedDatasetsTable$unique_table) %>%
-      filter(table_name %in% dbListTables(mydb))
-    
-    dbDisconnect(mydb)
+      filter(table_name %in% myTables)
     
     if(nrow(sc) == 0) return()
     
@@ -4002,8 +4027,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
   
   # DATA - actual user-created DT metadata table
   output$user_made_meta <- DT::renderDataTable({
-    req(user_made_meta_table())
-    if(nrow(user_made_meta_table()) == 0) return()
+    if(is.null(user_made_meta_table()) || nrow(user_made_meta_table()) == 0) return()
     df <- user_made_meta_table()[, c("unique_table", "username", "uploaded_date", "table_name", "note")]
     df <- data.frame(Checkbox = "", df) 
     DT::datatable(
@@ -4024,8 +4048,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
   
   # User renderUI to avoid blank space if header and table aren't loaded
   output$user_made_meta_ui <- renderUI({
-    req(user_made_meta_table())
-    if(nrow(user_made_meta_table()) == 0) return()
+    if(is.null(user_made_meta_table()) || nrow(user_made_meta_table()) == 0) return()
     tagList(
       h4("Option: Select user-updated metadata"),
       DT::dataTableOutput(session$ns("user_made_meta")),
@@ -4185,27 +4208,51 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
     
     if(!is.null(d$select_datasets_table_rows_selected)) {
       selectedDatasetsTable = load_datasets_table()[d$select_datasets_table_rows_selected, ]
-      if(input$data_type == "Single-cell") {
-        mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-                          dbname = scdb, host = ec_host, port = p)
-        tablesDF <- dbReadTable(mydb, "sc")
-      } else {
-        mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
-                          dbname = bdb, host = ec_host, port = p)
-        tablesDF <- dbReadTable(mydb, "bulk")
-      }
+      # if(input$data_type == "Single-cell") {
+      #   mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
+      #                     dbname = scdb, host = ec_host, port = p)
+      #   tablesDF <- dbReadTable(mydb, "sc")
+      # } else {
+      #   mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
+      #                     dbname = bdb, host = ec_host, port = p)
+      #   tablesDF <- dbReadTable(mydb, "bulk")
+      # }
+      
+      # for(i in 1:nrow(selectedDatasetsTable)) {
+      #   exp <- selectedDatasetsTable[i,] %>% dplyr::pull(experiment_name)
+      #   dat <- tablesDF %>%
+      #     dplyr::filter(experiment_name %in% exp) %>%
+      #     dplyr::pull(unique_table)
+      #   meta <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
+      #   # ignore the following columns
+      #   factorData <- meta[, !names(meta) %in% excludeCols, drop = F]
+      #   data[["meta"]][[selectedDatasetsTable$experiment_name[i]]] <- factorData
+      #   data[["factor"]][[selectedDatasetsTable$experiment_name[i]]] <- colnames(factorData)[1]
+      # }
       for(i in 1:nrow(selectedDatasetsTable)) {
         exp <- selectedDatasetsTable[i,] %>% dplyr::pull(experiment_name)
-        dat <- tablesDF %>%
+        dat <- load_datasets_table() %>%
           dplyr::filter(experiment_name %in% exp) %>%
           dplyr::pull(unique_table)
-        meta <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
+        if(getOption("standalone")) {
+          meta <- read.csv(paste0(getOption("localDir"), "/", exp, "_meta.csv"), row = 1)
+        } else {
+          if(input$data_type == "Single-cell") {
+            mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
+                              dbname = scdb, host = ec_host, port = p)
+          } else {
+            mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
+                              dbname = bdb, host = ec_host, port = p)
+          }
+          meta <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
+          dbDisconnect(mydb)
+        }
         # ignore the following columns
         factorData <- meta[, !names(meta) %in% excludeCols, drop = F]
         data[["meta"]][[selectedDatasetsTable$experiment_name[i]]] <- factorData
         data[["factor"]][[selectedDatasetsTable$experiment_name[i]]] <- colnames(factorData)[1]
       }
-      dbDisconnect(mydb)
+      
     }
     
     d$selectSamplesTableVarsList <- data[["meta"]]
@@ -4445,10 +4492,17 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
       }
     } else {
       expNames <- load_datasets_table()$unique_table[d$select_datasets_table_rows_selected]
-      mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-                        dbname = scdb, host = ec_host, port = p)
-      nCells <- sapply(expNames, function(expName) DBTableNRows(mydb, myTab = paste0(expName, "_meta")))
-      dbDisconnect(mydb)
+      if(getOption("standalone")) {
+        nCells <- sapply(expNames, function(expName) {
+          nrow(read.csv(paste0(getOption("localDir"), "/", expName, "_meta.csv")))
+        })
+      } else {
+        mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
+                          dbname = scdb, host = ec_host, port = p)
+        nCells <- sapply(expNames, function(expName) DBTableNRows(mydb, myTab = paste0(expName, "_meta")))
+        dbDisconnect(mydb)
+      }
+
       if (!is.null(count_content()) & is.null(meta_content())) return()
       else if (is.null(count_content()) & !is.null(meta_content())) return()
       else if (!is.null(count_content()) & !is.null(meta_content())) {
@@ -4902,17 +4956,22 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
               }
             } 
             
-            # read the table containing info on the scRNA-seq exp
+            # read the table containing info on the bulk RNA-seq exp
             # in the mysql db
-            mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
-                              dbname = bdb, host = ec_host, port = p)
-            dat <- dbReadTable(mydb, "bulk")
-            dat <- dat %>%
-              dplyr::filter(experiment_name %in% dataset) %>%
-              dplyr::pull(unique_table)
-            metaDF <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
-            countsMatrix <- dbReadTable(mydb, name = paste(dat, "_counts", sep = ""))
-            dbDisconnect(mydb)
+            if(getOption("standalone")) {
+              metaDF <- read.csv(paste0(getOption("localDir"), "/", dataset, "_meta.csv"), row = 1)
+              countsMatrix <- read.csv(paste0(getOption("localDir"), "/", dataset, "_counts.csv"), row = 1)
+            } else {
+              mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
+                                dbname = bdb, host = ec_host, port = p)
+              dat <- dbReadTable(mydb, "bulk")
+              dat <- dat %>%
+                dplyr::filter(experiment_name %in% dataset) %>%
+                dplyr::pull(unique_table)
+              metaDF <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
+              countsMatrix <- dbReadTable(mydb, name = paste(dat, "_counts", sep = ""))
+              dbDisconnect(mydb)
+            }
             
             myFactors <- d$inputFactors[[dataset]]
             if(!is.null(myFactors)) {
@@ -5257,7 +5316,6 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
               }
             }
           }
-          
           if (!is.null(count_content()) && !is.null(meta_content())) {
             cts <- count_content()
             meta <- meta_content()
@@ -5276,8 +5334,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
             
             datasetList[[nam]] <- upl_seurat
           }
-          
-          
+
           if(length(datasetList) > 1) {
             for(i in 1:length(datasetList)) {
               dataset <- names(datasetList)[i]
@@ -5329,12 +5386,21 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
                               metadata = datasetList[[1]]@meta.data)
           }
           if(!is.null(user_made_meta_table()) & !is.null(input$user_made_meta_rows_selected)) {
-            mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-                              dbname = scdb, host = ec_host, port = p)
             tableName <- user_made_meta_table()$table_name[input$user_made_meta_rows_selected]
+            if(getOption("standalone")) {
+              myTables <- sub(pattern = ".csv$", replacement = "", x =  dir(getOption("localDir"), pattern = ".csv$"))
+              if(tableName %in% myTables) {
+                userMadeMetaDF <- read.csv(paste0(getOption("localDir"), "/", tableName, ".csv"), row = 1)
+              }
+            } else {
+              mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
+                                dbname = scdb, host = ec_host, port = p)
+              myTables <- dbListTables(mydb)
+              if(tableName %in% myTables) userMadeMetaDF <- dbReadTable(mydb, tableName)
+              dbDisconnect(mydb)
+            }
             
-            if(tableName %in% dbListTables(mydb)) {
-              userMadeMetaDF <- dbReadTable(mydb, tableName)
+            if(tableName %in% myTables) {
               if("sample_DUP" %in% colnames(userMadeMetaDF) && !("sample" %in% colnames(userMadeMetaDF))) {
                 colnames(userMadeMetaDF)[colnames(userMadeMetaDF) == "sample_DUP"] = "sample"
               }
@@ -5348,32 +5414,36 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
                 dataMerged$metadata$Set <- userMadeMetaDF$Set
               }
             }
-            dbDisconnect(mydb)
           }
           dataMerged$metadata$seurat_clusters <- as.factor(dataMerged$metadata$seurat_clusters)
-          
         } else {
           for(i in 1:nrow(selectedDatasetsTable)) {
             dataset <- selectedDatasetsTable$experiment_name[i]
             
             # read the table containing info on the scRNA-seq exp
             # in the mysql db
-            mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
-                              dbname = bdb, host = ec_host, port = p)
-            dat <- dbReadTable(mydb, "bulk")
-            dat <- dat %>%
-              dplyr::filter(experiment_name %in% dataset) %>%
-              dplyr::pull(unique_table)
-            metaDF <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
-            countsMatrix <- dbReadTable(mydb, name = paste(dat, "_counts", sep = ""))
-            dbDisconnect(mydb)
-            
-            countsMatrix <- countsMatrix %>%
-              spread(sample_id, counts, convert = T) %>%
-              column_to_rownames("gene")
-            
-            metaDF <- metaDF %>%
-              column_to_rownames("sample_id")
+            if(getOption("standalone")) {
+              metaDF <- read.csv(paste0(getOption("localDir"), "/", dataset, "_meta.csv"), row = 1)
+              countsMatrix <- read.csv(paste0(getOption("localDir"), "/", dataset, "_counts.csv"), row = 1)
+            } else {
+              mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
+                                dbname = bdb, host = ec_host, port = p)
+              dat <- dbReadTable(mydb, "bulk")
+              dat <- dat %>%
+                dplyr::filter(experiment_name %in% dataset) %>%
+                dplyr::pull(unique_table)
+              metaDF <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
+              countsMatrix <- dbReadTable(mydb, name = paste(dat, "_counts", sep = ""))
+              dbDisconnect(mydb)
+              
+              countsMatrix <- countsMatrix %>%
+                spread(sample_id, counts, convert = T) %>%
+                column_to_rownames("gene")
+              
+              metaDF <- metaDF %>%
+                column_to_rownames("sample_id")
+            }
+
             # "-" in counts sample names gets converted to "." in data.frame()
             # which causes errors. Converting "-" in sample names to "_" in
             # counts and metadata
@@ -5443,14 +5513,6 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
       }
       incProgress(2/3)
       
-      # oneLevelVars <- colnames(dataMerged[["metadata"]])[apply(dataMerged[["metadata"]], 2, function(col) length(unique(col)) == 1)]
-      # if(length(oneLevelVars) >= 1) {
-      #   dataMerged[["metadata"]] <- dataMerged[["metadata"]][, !(colnames(dataMerged[["metadata"]]) %in% oneLevelVars), drop = F]
-      #   d$goqc_warning <- paste("The following metadata variables have only 1 level and have been excluded:",
-      #                           paste(oneLevelVars, collapse = ", "))
-      # } else {
-      #   d$goqc_warning <- NULL
-      # }
       d$selectedData <- dataMerged
       d$selectedDatasetsTable <- selectedDatasetsTable
       d$cts_out <- NULL
