@@ -3784,46 +3784,6 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
     d$datasets_table <- load_datasets_table()
   })
   
-  # DATA - reactive expression to pull bulk and scRNA-seq
-  # data set from mysql db
-  data_info <- reactive({
-    
-    if(getOption("standalone")) {
-      df <- read.csv(paste0(getOption("localDir"), "/data_info.csv"), as.is = T, stringsAsFactors = F)
-      nSamples <- sapply(df$unique_table, function(expName) {
-        nrow(read.csv(paste0(getOption("localDir"), "/", expName, "_meta.csv")))
-      })
-      df <- data.frame(df, NSamples = nSamples)
-      return(df)
-    }
-    
-    mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-                      dbname = scdb, host = ec_host, port = p)
-    sc <- dbReadTable(mydb, "sc") %>%
-      filter(paste0(unique_table, "_counts") %in% dbListTables(mydb)) %>%
-      filter(paste0(unique_table, "_meta") %in% dbListTables(mydb))
-    
-    names(sc)[1] <- "experiment_id"
-    sc$Type <- "sc"
-    nSamples <- sapply(sc$unique_table, function(expName) DBTableNRows(mydb, myTab = paste0(expName, "_meta")))
-    sc <- data.frame(sc, NSamples = nSamples)
-    dbDisconnect(mydb)
-    
-    mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
-                      dbname = bdb, host = ec_host, port = p)
-    b <- dbReadTable(mydb, "bulk") %>%
-      filter(paste0(unique_table, "_counts") %in% dbListTables(mydb)) %>%
-      filter(paste0(unique_table, "_meta") %in% dbListTables(mydb))
-    
-    b$Type <- "bulk"
-    nSamples <- sapply(b$unique_table, function(expName) DBTableNRows(mydb, myTab = paste0(expName, "_meta")))
-    b <- data.frame(b, NSamples = nSamples)
-    dbDisconnect(mydb)
-    
-    df <- rbind(b, sc)
-    return(df)
-  })
-  
   output$submit_addExisting <- renderUI({
     req(input$select_datasets_table_addExisting_rows_selected)
     actionButton(session$ns("submit_addExisting"), label = "Submit")
@@ -4208,27 +4168,6 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
     
     if(!is.null(d$select_datasets_table_rows_selected)) {
       selectedDatasetsTable = load_datasets_table()[d$select_datasets_table_rows_selected, ]
-      # if(input$data_type == "Single-cell") {
-      #   mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-      #                     dbname = scdb, host = ec_host, port = p)
-      #   tablesDF <- dbReadTable(mydb, "sc")
-      # } else {
-      #   mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
-      #                     dbname = bdb, host = ec_host, port = p)
-      #   tablesDF <- dbReadTable(mydb, "bulk")
-      # }
-      
-      # for(i in 1:nrow(selectedDatasetsTable)) {
-      #   exp <- selectedDatasetsTable[i,] %>% dplyr::pull(experiment_name)
-      #   dat <- tablesDF %>%
-      #     dplyr::filter(experiment_name %in% exp) %>%
-      #     dplyr::pull(unique_table)
-      #   meta <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
-      #   # ignore the following columns
-      #   factorData <- meta[, !names(meta) %in% excludeCols, drop = F]
-      #   data[["meta"]][[selectedDatasetsTable$experiment_name[i]]] <- factorData
-      #   data[["factor"]][[selectedDatasetsTable$experiment_name[i]]] <- colnames(factorData)[1]
-      # }
       for(i in 1:nrow(selectedDatasetsTable)) {
         exp <- selectedDatasetsTable[i,] %>% dplyr::pull(experiment_name)
         dat <- load_datasets_table() %>%
@@ -5390,7 +5329,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
             if(getOption("standalone")) {
               myTables <- sub(pattern = ".csv$", replacement = "", x =  dir(getOption("localDir"), pattern = ".csv$"))
               if(tableName %in% myTables) {
-                userMadeMetaDF <- read.csv(paste0(getOption("localDir"), "/", tableName, ".csv"), row = 1)
+                userMadeMetaDF <- read.csv(paste0(getOption("localDir"), "/", tableName, ".csv"))
               }
             } else {
               mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,

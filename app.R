@@ -32,17 +32,8 @@ source("iPSCeq-ui.R")
 # Load server side interface
 source("iPSCeq-server.R")
 
-# load shiny modules: need to update
-# to add this to functions
-# source("scClustViz/shinyModules.R")
-
-# NEED TO REMOVE ~/arc/
 # load credentials required
-if(!getOption("standalone")) {
-  # source("sql.R")
-  source("~/arc/sql.R")
-}
-
+if(!getOption("standalone")) source("sql.R")
 
 # load embedded fonts
 font_add_google(name = "Noto Sans JP", family = "noto-sans-jp")

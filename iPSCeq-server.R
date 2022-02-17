@@ -14946,7 +14946,9 @@ iPSCeqServer <- function(input, output, session) {
   output$submit_mysql <- renderUI({
     req(input$username, input$tablename)
     if(is.null(recomb_seur())) return()
-    actionButton("submit_mysql", label = "Save to database")
+    txt <- "Save to database"
+    if(getOption("standalone")) txt <- "Save data"
+    actionButton("submit_mysql", label = txt)
   })
 
   # SC-DGE-CCC - download button for seurat object after combining clusters
@@ -15515,18 +15517,28 @@ iPSCeqServer <- function(input, output, session) {
       width = "200px"
     )
   })
-
+  
   # SC-DGE-CCC - specify file output name (cells combined)
   output$table_name2 <- renderUI({
     if(is.null(input$username2) || input$username2 == "" || is.null(d$datasetNames) ||
        is.null(d$inD_goi) || is.null(input$gene)) return()
     datasets <- paste(d$datasetNames, collapse = "_")
-
-    # need to push info to sc_useradd
-    mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-                      dbname = scdb, host = ec_host, port = p)
-    dat <- dbReadTable(mydb, "sc_useradd")
-    dbDisconnect(mydb)
+    if(getOption("standalone")) {
+      if(file.exists(paste0(getOption("localDir"), "/sc_useradd.csv"))) {
+        dat <- read.csv(paste0(getOption("localDir"), "/sc_useradd.csv"), as.is = T, stringsAsFactors = F)
+      } else {
+        dat <- as.data.frame(matrix("", nrow = 0, ncol = 8))
+        colnames(dat) <- c(
+          "iterator", "experiment_id", "unique_table", "username", 
+          "uploaded_date", "table_name", "samples_used", "note"
+        )
+      }
+    } else {
+      mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
+                        dbname = scdb, host = ec_host, port = p)
+      dat <- dbReadTable(mydb, "sc_useradd")
+      dbDisconnect(mydb)
+    }
     idx <- dat %>%
       filter(grepl(paste(datasets, input$username2, sep = "-"), table_name))
 
@@ -15571,26 +15583,44 @@ iPSCeqServer <- function(input, output, session) {
   output$submit_mysql2 <- renderUI({
     req(input$username2, input$tablename2)
     if(is.null(d$cellSets) || length(d$cellSets) == 0) return()
-    actionButton("submit_mysql2", label = "Save to database")
+    txt <- "Save to database"
+    if(getOption("standalone")) txt <- "Save data"
+    actionButton("submit_mysql2", label = txt)
   })
 
   # SC-DGE-CCC - push updated metadata for combined cells to sql db
   observeEvent(input$submit_mysql2, {
     if(is.null(input$tablename2) || input$tablename2 == "") return()
     
-    selectedCells = unlist(d$cellSets)
-    cellSetsVec = rep.int(NA, length(selectedCells))
-    names(cellSetsVec) = selectedCells
+    selectedCells <- unlist(d$cellSets)
+    cellSetsVec <- rep.int(NA, length(selectedCells))
+    names(cellSetsVec) <- selectedCells
     for(setName in names(d$cellSets)) {
       if(length(d$cellSets[[setName]]) > 0) cellSetsVec[d$cellSets[[setName]]] = setName
     }
-
-    withProgress(message = "Pushing recombined cluster data to the server.", value = 0, {
+    
+    txt <- "Pushing recombined cluster data to the MySQL database."
+    if(getOption("standalone")) {
+      txt <- "Saving recombined cluster data to local file."
+    }
+    withProgress(message = txt, value = 0, {
       incProgress(1/3)
       # need to push info to sc_useradd
-      mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sup, password = pwd_sc_sup,
-                        dbname = scdb, host = ec_host, port = p)
-      dat <- dbReadTable(conn = mydb, name = "sc_useradd")
+      if(getOption("standalone")) {
+        if(file.exists(paste0(getOption("localDir"), "/sc_useradd.csv"))) {
+          dat <- read.csv(paste0(getOption("localDir"), "/sc_useradd.csv"), as.is = T, stringsAsFactors = F)
+        } else {
+          dat <- as.data.frame(matrix("", nrow = 0, ncol = 8))
+          colnames(dat) <- c(
+            "iterator", "experiment_id", "unique_table", "username", 
+            "uploaded_date", "table_name", "samples_used", "note"
+          )
+        }
+      } else {
+        mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sup, password = pwd_sc_sup,
+                          dbname = scdb, host = ec_host, port = p)
+        dat <- dbReadTable(conn = mydb, name = "sc_useradd")
+      }
       if(nrow(dat) == 0) {
         idx <- 1
       } else {
@@ -15605,9 +15635,8 @@ iPSCeqServer <- function(input, output, session) {
         experiment_id = as.integer(SubmitData$datasets_table$experiment_id[SubmitData$datasets_table$experiment_name %in% d$datasetNames][1])
       )
       
-      df <- dbReadTable(mydb, "sc")
-      names(df)[1] <- gsub("^X\\.", "", names(df)[1])
-
+      df <- SubmitData$datasets_table
+      
       sel_samps <- sc_samples_used()
       sel_samps <- paste(sel_samps, collapse = "; ")
       
@@ -15621,13 +15650,44 @@ iPSCeqServer <- function(input, output, session) {
                samples_used = sel_samps,
                note = input$note2,
                iterator = idx)
-      df <- df %>% dplyr::select(c(iterator, experiment_id,
-                                   unique_table, username,
-                                   uploaded_date, table_name,
-                                   samples_used, note))
-      dbWriteTable(conn = mydb, name = "sc_useradd", value = df, append = TRUE, row.names = FALSE)
+      df <- df %>% 
+        dplyr::select(c(
+          iterator, 
+          experiment_id,
+          unique_table, 
+          username,
+          uploaded_date, 
+          table_name,
+          samples_used, 
+          note
+        ))
       
-      incProgress(2/3)
+      if(getOption("standalone")) {
+        if(file.exists(paste0(getOption("localDir"), "/sc_useradd.csv"))) {
+          write.table(
+            x = df,
+            file = paste0(getOption("localDir"), "/sc_useradd.csv"),
+            sep = ",",
+            quote = T,
+            append = T,
+            row.names = F,
+            col.names = F
+          )
+        } else {
+          write.table(
+            x = df,
+            file = paste0(getOption("localDir"), "/sc_useradd.csv"),
+            sep = ",",
+            quote = T,
+            row.names = F,
+            col.names = T
+          )
+        }
+      } else {
+        dbWriteTable(conn = mydb, name = "sc_useradd", value = df, append = TRUE, row.names = FALSE)
+      }
+      
+      incProgress(1/3)
 
       seuratData <- d$inD_goi[, selectedCells]
       meta <- seuratData@meta.data
@@ -15646,8 +15706,20 @@ iPSCeqServer <- function(input, output, session) {
         colnames(meta)[colnames(meta) == "sample"] = "sample_DUP"
       }
       
-      dbWriteTable(conn = mydb, name = input$tablename2, value = meta, overwrite = TRUE, row.names = FALSE)
-      dbDisconnect(mydb)
+      if(getOption("standalone")) {
+        write.table(
+          x = meta,
+          file = paste0(getOption("localDir"), "/", input$tablename2, ".csv"),
+          sep = ",",
+          row.names = F,
+          col.names = T,
+          quote = T
+        )
+      } else {
+        dbWriteTable(conn = mydb, name = input$tablename2, value = meta, overwrite = TRUE, row.names = FALSE)
+        dbDisconnect(mydb)
+      }
+      incProgress(1/3)
     })
   })
 
