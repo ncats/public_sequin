@@ -3546,7 +3546,8 @@ LoadDataUI <- function(id) {
                       icon = icon("trash")
                     )
                   )
-                )
+                ),
+                fluidRow(column(width = 10, uiOutput(ns("counts_warning_msg"))))
               ),
               column(
                 width = 5,
@@ -3565,7 +3566,8 @@ LoadDataUI <- function(id) {
                       icon = icon("trash")
                     )
                   )
-                )
+                ),
+                fluidRow(column(width = 10, uiOutput(ns("meta_warning_msg"))))
               )
             ),
             fluidRow(uiOutput(ns("addClearExisting_ui"))),
@@ -3694,7 +3696,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
         df$publication[!is.na(df$publication_link)],
         "</a>"
       )
-
+    
     return(df)
   })
   
@@ -3731,7 +3733,9 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
     meta_content = NULL,
     resValues = seq(from = 0.4, to = 2.8, by = 0.4),
     showAdvancedOptions = F,
-    tooFewSamplesMessage = "Minimum 6 cells required. Please include more cells."
+    tooFewSamplesMessage = "Minimum 6 cells required. Please include more cells.",
+    counts_warning_msg = NULL,
+    meta_warning_msg = NULL
   )
   
   # Observes whether user-uploaded data is ready and whether it is 
@@ -4074,7 +4078,8 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
   observeEvent(input$data_type, {
     d$selectSamplesTableList <- d$datasetsRowsSelected <- d$cts_out <- 
       d$selectedData <- d$end_count <- d$end_meta <- 
-      d$select_datasets_table_rows_selected <- d$selectSamplesTableVarsList <- NULL
+      d$select_datasets_table_rows_selected <- d$selectSamplesTableVarsList <- 
+      d$counts_warning_msg <- d$meta_warning_msg <- NULL
     d$data_type <- input$data_type
     updateTextInput(
       session = session,
@@ -4315,11 +4320,35 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
     )
   })
   
+  # Warning if counts can't be processed
+  output$counts_warning_msg <- renderUI({
+    if(is.null(d$counts_warning_msg)) {
+      return(br())
+    }
+    div(style = "color: red;", d$counts_warning_msg)
+  })
+  
   count_content <- reactive({
     if(is.null(d$end_count)) return()
-    fread(d$end_count$datapath, header = T) %>%
-      mutate_all(funs(replace_na(.,0))) %>% 
-      column_to_rownames(names(.)[1])
+    df <- tryCatch(
+      fread(d$end_count$datapath, header = T) %>%
+        column_to_rownames(names(.)[1]) %>%
+        mutate_all(funs(replace_na(.,0))),
+      error = function(e) NULL
+    )
+
+    if(is.null(df) || ncol(df) == 0) {
+      d$counts_warning_msg <- "Please check data format and try again."
+      return()
+    }
+    colClasses <- unlist(lapply(df, class))
+    if(!all(colClasses %in% c("integer", "numeric"))) {
+      d$counts_warning_msg <- "Please check data format and try again."
+      return()
+    }
+
+    d$counts_warning_msg <- NULL
+    return(df)
   })
   observe({
     d$count_content <- count_content()
@@ -4366,10 +4395,40 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
     )
   })
   
+  # Warning if metadata can't be processed
+  output$meta_warning_msg <- renderUI({
+    if(is.null(d$meta_warning_msg)) {
+      return(br())
+    }
+    div(style = "color: red;", d$meta_warning_msg)
+  })
+  
   meta_content <- reactive({
     if(is.null(d$end_meta)) return()
-    fread(d$end_meta$datapath, header = T) %>%
-      column_to_rownames(names(.)[1])
+    df <- tryCatch(
+      fread(d$end_meta$datapath, header = T) %>%
+        column_to_rownames(names(.)[1]),
+      error = function(e) NULL
+    )
+    if(is.null(df) || ncol(df) == 0) {
+      d$meta_warning_msg <- "Please check data format and try again."
+      return()
+    }
+    colClasses <- unlist(lapply(df, class))
+    if(sum(colClasses %in% c("character", "factor")) == 0) {
+      d$meta_warning_msg <- "Please check data format and try again."
+      return()
+    }
+    
+    if(!is.null(count_content())) {
+      if(!(all(colnames(count_content()) %in% rownames(df)))) {
+        d$meta_warning_msg <- "Please check data format and try again."
+        return()
+      }
+    }
+    
+    d$meta_warning_msg <- NULL
+    return(df)
   })
   observe({
     d$meta_content <- meta_content()
@@ -4385,11 +4444,11 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
   })
   
   observeEvent(input$end_count_delete_button, {
-    d$end_count <- NULL
+    d$end_count <- d$counts_warning_msg <- NULL
   })
   
   observeEvent(input$end_meta_delete_button, {
-    d$end_meta <- NULL
+    d$end_meta <- d$meta_warning_msg <- NULL
   })
   
   # DATA - checkbox choice of whether to downsample
@@ -4441,7 +4500,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
         nCells <- sapply(expNames, function(expName) DBTableNRows(mydb, myTab = paste0(expName, "_meta")))
         dbDisconnect(mydb)
       }
-
+      
       if (!is.null(count_content()) & is.null(meta_content())) return()
       else if (is.null(count_content()) & !is.null(meta_content())) return()
       else if (!is.null(count_content()) & !is.null(meta_content())) {
@@ -4580,7 +4639,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
       if(input$downsample_select && is.finite(input$downsample_nCells) && 
          input$downsample_nCells <= maxSamples) return()
     }
-    maxCellsFormatted <- formatC(maxSamples, big.mark = ",")
+    maxCellsFormatted <- prettyNum(maxSamples, big.mark = ",")
     txt <- paste0("Dataset(s) will be downsampled to a maximum of ", maxCellsFormatted, " cells.")
     h4(txt, style = "color: red;")
   })
@@ -5273,7 +5332,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
             
             datasetList[[nam]] <- upl_seurat
           }
-
+          
           if(length(datasetList) > 1) {
             for(i in 1:length(datasetList)) {
               dataset <- names(datasetList)[i]
@@ -5382,7 +5441,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
               metaDF <- metaDF %>%
                 column_to_rownames("sample_id")
             }
-
+            
             # "-" in counts sample names gets converted to "." in data.frame()
             # which causes errors. Converting "-" in sample names to "_" in
             # counts and metadata

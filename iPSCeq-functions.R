@@ -3039,7 +3039,7 @@ SeuratProcess <- function(dataset, samples = NULL, nCells = NULL, mySeed = NULL)
         column_to_rownames("cell_id")
     }
   }
-
+  
   # Replace hyphens with periods
   rownames(metadata) <- sub(pattern = "-", replacement = ".", x = rownames(metadata))
   colnames(counts) <- sub(pattern = "-", replacement = ".", x = colnames(counts))

@@ -236,21 +236,7 @@ iPSCeqServer <- function(input, output, session) {
     sc_dge_factor_minDiffPct = -1
   )
 
-  count_content <- reactive({
-    if(is.null(d$end_count)) return()
-    fread(d$end_count$datapath, header = T) %>%
-      mutate_all(funs(replace_na(.,0))) %>% 
-      column_to_rownames(names(.)[1])
-  })
-  
-  meta_content <- reactive({
-    if(is.null(d$end_meta)) return()
-    fread(d$end_meta$datapath, header = T) %>%
-      column_to_rownames(names(.)[1])
-  })
-  
   # Dataset names in row at top of app
-  # output$datasetNames <- renderText({
   output$datasetNames <- renderUI({
     req(SubmitData$data_type, d$datasetNames, input$tab_structure)
     txt <- paste(d$datasetNames, collapse = ", ")
@@ -14908,7 +14894,7 @@ iPSCeqServer <- function(input, output, session) {
     }
     idx <- dat %>%
       filter(grepl(paste(datasets, input$username, sep = "-"), table_name))
-
+    
     if(nrow(idx) == 0) {
       idx <- 1
     } else {
@@ -14926,7 +14912,7 @@ iPSCeqServer <- function(input, output, session) {
       value = datasets 
     )
   })
-
+  
   # SC-DGE-CCC - create col name for samples used
   samples_used <- reactive({
     req(seurat_only(), recomb_seur())
@@ -14950,7 +14936,7 @@ iPSCeqServer <- function(input, output, session) {
     if(getOption("standalone")) txt <- "Save data"
     actionButton("submit_mysql", label = txt)
   })
-
+  
   # SC-DGE-CCC - download button for seurat object after combining clusters
   output$download_seurat_comb <- renderUI({
     if(is.null(recomb_seur())) return()
@@ -14976,7 +14962,6 @@ iPSCeqServer <- function(input, output, session) {
 
   # SC-DGE-CCC - download button for metadata after combining clusters
   output$download_metadata_comb <- renderUI({
-    # req(d$inD, recomb_seur(), count_content(), meta_content())
     if(is.null(recomb_seur())) return()
     downloadButton("download_metadata_comb_button", label = "Download metadata (CSV)")
   })
@@ -15054,12 +15039,12 @@ iPSCeqServer <- function(input, output, session) {
           datasets <- data.frame(
             experiment_id = as.integer(SubmitData$datasets_table$experiment_id[SubmitData$datasets_table$experiment_name %in% d$datasetNames][1])
           )
-
+          
           df <- SubmitData$datasets_table
           
           sel_samps <- samples_used()
           sel_samps <- paste(sel_samps, collapse = "; ")
-
+          
           df$experiment_id <- as.integer(df$experiment_id)
           df <- df %>%
             filter(experiment_id %in% datasets$experiment_id) %>%
@@ -15517,7 +15502,7 @@ iPSCeqServer <- function(input, output, session) {
       width = "200px"
     )
   })
-  
+
   # SC-DGE-CCC - specify file output name (cells combined)
   output$table_name2 <- renderUI({
     if(is.null(input$username2) || input$username2 == "" || is.null(d$datasetNames) ||
@@ -15541,7 +15526,7 @@ iPSCeqServer <- function(input, output, session) {
     }
     idx <- dat %>%
       filter(grepl(paste(datasets, input$username2, sep = "-"), table_name))
-
+    
     if (nrow(idx) == 0) {
       idx <- 1
     } else {
@@ -15551,10 +15536,10 @@ iPSCeqServer <- function(input, output, session) {
         pull(count)
       idx <- idx + 1
     }
-
+    
     datasets <- paste(datasets, sep = "_")
     datasets <- paste(datasets, input$username2, idx, sep = "-")
-
+    
     textInput(
       inputId = "tablename2", 
       label = "Updated table name",
@@ -15587,7 +15572,7 @@ iPSCeqServer <- function(input, output, session) {
     if(getOption("standalone")) txt <- "Save data"
     actionButton("submit_mysql2", label = txt)
   })
-
+  
   # SC-DGE-CCC - push updated metadata for combined cells to sql db
   observeEvent(input$submit_mysql2, {
     if(is.null(input$tablename2) || input$tablename2 == "") return()
@@ -15630,7 +15615,7 @@ iPSCeqServer <- function(input, output, session) {
           mutate(iterator = iterator + 1) %>%
           pull(iterator)
       }
-
+      
       datasets <- data.frame(
         experiment_id = as.integer(SubmitData$datasets_table$experiment_id[SubmitData$datasets_table$experiment_name %in% d$datasetNames][1])
       )
@@ -15688,7 +15673,7 @@ iPSCeqServer <- function(input, output, session) {
       }
       
       incProgress(1/3)
-
+      
       seuratData <- d$inD_goi[, selectedCells]
       meta <- seuratData@meta.data
       meta <- meta %>%

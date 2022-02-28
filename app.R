@@ -8,8 +8,9 @@
 # Created:       2018-01-26 11:29:39 CDT
 #---------------------------------------------------------------------
 
-# Run as either standalone app or connect to database
-options(standalone = T, localDir = "example_data")
+# Run as standalone app (and set local data directory) or connect to database
+if(is.null(getOption("standalone"))) options(standalone = T)
+if(is.null(getOption("localDir"))) options(localDir = "example_data")
 
 # Turn off just-in-time compilation to speed initial load time
 compiler::enableJIT(0)
