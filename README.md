@@ -1,7 +1,3 @@
----
-title: SEQUIN
----
-
 SEQUIN is an R/Shiny application for analysis and visualization of bulk and single-cell RNA-seq data.
 
 For complete details, please see our [manuscript](https://www.biorxiv.org/content/10.1101/2022.02.23.481646v1) or [tutorial.](https://htmlpreview.github.io/?https://github.com/ncats/public_sequin/blob/main/www/ncats-SEQUIN-tutorial.html)
