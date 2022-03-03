@@ -1,16 +1,9 @@
-#---------------------------------------------------------------------
-# Title:         NCATS Complex Shiny Application
-# Author:        Brandon Monier
-# Author2:       Marissa Hirst
-# Author3:       Ben Ernest
-# Last Modified: 2020-03-04
-# --
-# Created:       2018-01-26 11:29:39 CDT
-#---------------------------------------------------------------------
+# Set local data directory for running as standalone app
+options(localDir = "example_data")
 
-# Run as standalone app (and set local data directory) or connect to database
-if(is.null(getOption("standalone"))) options(standalone = T)
-if(is.null(getOption("localDir"))) options(localDir = "example_data")
+################################################################################
+# Run as standalone app or connect to existing database
+options(standalone = T)
 
 # Turn off just-in-time compilation to speed initial load time
 compiler::enableJIT(0)

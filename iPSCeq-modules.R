@@ -3654,6 +3654,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
         nrow(read.csv(paste0(getOption("localDir"), "/", expName, "_meta.csv")))
       })
       df <- data.frame(df, NSamples = nSamples)
+      colnames(df)[colnames(df) == "type"] = "Type"
     } else {
       mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
                         dbname = scdb, host = ec_host, port = p)
