@@ -8276,7 +8276,6 @@ iPSCeqServer <- function(input, output, session) {
     
     bottomMargin <- max(d$totalFigureHeight - heatmapHeight, 0)
     if(!is.dendrogram(rowDend) || !is.dendrogram(colDend)) bottomMargin <- 0
-    
     return(list(
       rescaled_mat = rescaled_mat,
       rescaled_mat_unclipped = rescaled_mat_unclipped,
@@ -8461,8 +8460,8 @@ iPSCeqServer <- function(input, output, session) {
       paste("qc-heatmap.png")
     },
     content = function(file) {
-      png(file, width = 1200, height = 850)
-      qcHeatMap(
+      png(file, width = 1200, height = 850, family = "noto-sans-jp")
+      p <- qcHeatMap(
         heat = heattran2()$rescaled_mat,
         color = heattran2()$cols,
         rows = heattran2()$rowDend,
