@@ -8430,7 +8430,7 @@ iPSCeqServer <- function(input, output, session) {
       paste("qc-heatmap.pdf")
     },
     content = function(file) {
-      pdf(file = file, width = 7.5, height = 7.5, onefile = F) 
+      pdf(file, width = 7.5, height = 7.5, onefile = F) 
       qcHeatMap(
         heat = heattran2()$rescaled_mat,
         color = heattran2()$cols,
@@ -12675,7 +12675,7 @@ iPSCeqServer <- function(input, output, session) {
     content = function(file) {
       withProgress(message = "Preparing for download...", value = 0, {
         incProgress(1/2)
-        png(file, width = 900, height = 900)
+        png(file, width = 900, height = 900, family = "noto-sans-jp")
         qcHeatMap(
           heat = heattran2_sc()$rescaled_mat,
           color = heattran2_sc()$cols,
