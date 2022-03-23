@@ -2483,7 +2483,7 @@ iPSCeqServer <- function(input, output, session) {
   ###################################################################
   
   # LoadData module. SubmitData is a reactiveValues-type object.
-  SubmitData <- callModule(module = LoadData, id = "load_data", maxSamples = 10000)
+  SubmitData <- callModule(module = LoadData, id = "load_data")
   
   observeEvent(SubmitData$data_type, {
     d$cts_out <- d$selectedData <- d$datasetNames <- NULL
@@ -8460,8 +8460,8 @@ iPSCeqServer <- function(input, output, session) {
       paste("qc-heatmap.png")
     },
     content = function(file) {
-      png(file, width = 1200, height = 850, family = "noto-sans-jp")
-      p <- qcHeatMap(
+      png(filename = file, width = 1200, height = 850, family = "noto-sans-jp")
+      qcHeatMap(
         heat = heattran2()$rescaled_mat,
         color = heattran2()$cols,
         rows = heattran2()$rowDend,
@@ -12675,7 +12675,7 @@ iPSCeqServer <- function(input, output, session) {
     content = function(file) {
       withProgress(message = "Preparing for download...", value = 0, {
         incProgress(1/2)
-        png(file, width = 900, height = 900, family = "noto-sans-jp")
+        png(filename = file, width = 900, height = 900, family = "noto-sans-jp")
         qcHeatMap(
           heat = heattran2_sc()$rescaled_mat,
           color = heattran2_sc()$cols,
