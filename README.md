@@ -31,9 +31,13 @@ Installation steps:
    source("install_sequin.R")
    ```
 
-3. From R, launch SEQUIN.
+3. After installation, restart R.
+
+
+4. From R, launch SEQUIN.
 
    ```r
+   setwd("/path/to/public_sequin") # Use your local repo directory
    shiny::runApp(launch.browser = T) # Opens SEQUIN in browser
    ```
 
@@ -45,7 +49,7 @@ renv::deactivate()
 
 To launch SEQUIN at a later time, restore the project and run the app.
 ```r
-setwd("/path/to/public_sequin/")
+setwd("/path/to/public_sequin")
 renv::restore()
 shiny::runApp(launch.browser = T)
 ```
