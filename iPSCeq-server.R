@@ -626,8 +626,8 @@ iPSCeqServer <- function(input, output, session) {
   
   output$clusteringLinks <- renderUI({
     req(input$clustalg, clustout(), d$showClusteringLinks, input$clustering_tabsetPanel)
-    if(length(clustout()) != 2 & length(clustout()) != 8) return()
-    if(length(clustout()) == 8) {
+    if(length(clustout()) != 2 & length(clustout()) != 5) return()
+    if(length(clustout()) == 5) {
       lab2 <- "WGCNA - dendrogram"
       lab3 <- "WGCNA - TOM"
       if(input$clustering_tabsetPanel == "clustPlotW02") lab2 <- strong(lab2)
@@ -1326,8 +1326,8 @@ iPSCeqServer <- function(input, output, session) {
     req(input$clustalg_sc, clustout_sc(), d$sc_showClusteringLinks, input$sc_dge_tabsetPanel, 
         input$sc_clustering_tabsetPanel)
     if(input$sc_dge_tabsetPanel != "sc_dge_clustering") return()
-    if(length(clustout_sc()) != 2 & length(clustout_sc()) != 8) return()
-    if(length(clustout_sc()) == 8) {
+    if(length(clustout_sc()) != 2 & length(clustout_sc()) != 5) return()
+    if(length(clustout_sc()) == 5) {
       lab2 <- "WGCNA - dendrogram"
       lab3 <- "WGCNA - TOM"
       if(input$sc_clustering_tabsetPanel == "sc_clustPlotW02") lab2 <- strong(lab2)
@@ -8749,7 +8749,6 @@ iPSCeqServer <- function(input, output, session) {
   # BULK-DGE-CLUS - reactive - perform clustering get 
   # variable counts (WIP - very mess atm...)
   clustout <- eventReactive(input$goclust, {
-    clust_t0 <- as.numeric(Sys.time())
     num <- input$clustvarnumber
     if(SubmitData$data_type == "Bulk") {
       cts <- ddsout()[[1]]
@@ -8770,35 +8769,7 @@ iPSCeqServer <- function(input, output, session) {
         dds_mat <- as.matrix(dds_mat)
         gene.names <- sort(rownames(dds_mat))
         datExpr <- t(dds_mat)
-        # Create an object called "datTraits" that contains your
-        # trait data
-        if(SubmitData$data_type == "Bulk") {
-          datTraits <- colData(ddsout()[[1]])
-        } else {
-          datTraits <- ddsout()[[2]]
-        }
-        nLevels <- apply(datTraits, 2, function(col) length(unique(col)))
-        datTraits <- datTraits[, nLevels > 1 & nLevels <= 12, drop = F]
-        A <- adjacency(t(datExpr),type="signed") # this calculates the whole network connectivity
-        k <- as.numeric(apply(A,2,sum))-1 # standardized connectivity
-        Z.k <- scale(k)
-        thresholdZ.k <- -2.5 # often -2.5
-        outlierColor <- ifelse(Z.k<thresholdZ.k,"red","black")
-        sampleTree <- flashClust(stats::as.dist(1-A), method = "average")
-        
-        traitColors <- datTraits
-        for(i in 1:ncol(traitColors)) {
-          if(i %% 2 == 0) {
-            traitColors[, i] <- labels2colors(traitColors[, i], 
-                                              colorSeq = brewer.pal(12, "Set3"))
-          } else {
-            traitColors[, i] <- labels2colors(traitColors[, i],
-                                              colorSeq = brewer.pal(12, "Paired"))
-          }
-        }
-        
-        dimnames(traitColors)[[2]] <- paste(names(datTraits))
-        datColors <- data.frame(outlier = outlierColor, traitColors)
+
         incProgress(1/3)
         # TOM analysis - (computationally expensive)
         softPower <- 18
@@ -8875,22 +8846,15 @@ iPSCeqServer <- function(input, output, session) {
         rownames(moddf) <- seq_len(nrow(moddf))
         moddf$gene <- as.character(moddf$gene)
         moddf$module <- as.factor(moddf$module)
-        sampleDF <- data.frame(
-          sample = sampleTree$labels,
-          outlier = datColors$outlier
-        )
         disableWGCNAThreads()
         incProgress(1/3)
         return(
           list(
-            sampleTree,
-            datColors,
             geneTree,
             dynamicColors,
             mergedColors,
             dissTOM,
-            moddf,
-            sampleDF
+            moddf
           )
         )
       })
@@ -9043,7 +9007,7 @@ iPSCeqServer <- function(input, output, session) {
     req(clustout())
     isolate({
       if (input$clustalg == "wgcna") {
-        if (length(clustout()) == 8) {
+        if (length(clustout()) == 5) {
           h4(strong("WGCNA - gene dendrogram"))
         }
       } else {
@@ -9063,11 +9027,11 @@ iPSCeqServer <- function(input, output, session) {
         validate(
           need(input$goclust != "", "")
         )
-        if (length(clustout()) == 8) {
+        if (length(clustout()) == 5) {
           withProgress(message = "Creating gene dendrogram...", value = 0, {
             incProgress(1/2)
-            geneTree <- clustout()[[3]]
-            dynamicColors <- clustout()[[4]]
+            geneTree <- clustout()[[1]]
+            dynamicColors <- clustout()[[2]]
             datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
             incProgress(1/2)
             GGDend(geneTree, 
@@ -9105,7 +9069,7 @@ iPSCeqServer <- function(input, output, session) {
     req(clustout())
     isolate({
       if (input$clustalg == "wgcna") {
-        if (length(clustout()) == 8) {
+        if (length(clustout()) == 5) {
           h4(strong("WGCNA - download modules"))
         }
       } else {
@@ -9120,8 +9084,8 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-gene-dendrogram.png")
     },
     content = function(file) {
-      geneTree <- clustout()[[3]]
-      dynamicColors <- clustout()[[4]]
+      geneTree <- clustout()[[1]]
+      dynamicColors <- clustout()[[2]]
       datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
       png(file, width = 800, height = 400)
       g <- GGDend(geneTree, 
@@ -9156,8 +9120,8 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-gene-dendrogram.pdf")
     },
     content = function(file) {
-      geneTree <- clustout()[[3]]
-      dynamicColors <- clustout()[[4]]
+      geneTree <- clustout()[[1]]
+      dynamicColors <- clustout()[[2]]
       datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
       pdf(file, width = 8, height = 6.5)
       g <- GGDend(geneTree, 
@@ -9177,7 +9141,7 @@ iPSCeqServer <- function(input, output, session) {
     req(clustout())
     isolate({
       if (input$clustalg == "wgcna") {
-        if (length(clustout()) == 8) {
+        if (length(clustout()) == 5) {
           h4(strong("WGCNA - topological overlap matrix"))
         }
       } else {
@@ -9193,12 +9157,12 @@ iPSCeqServer <- function(input, output, session) {
     isolate({
       if(input$goclust == 0) return()
       if(input$clustalg != "wgcna") return()
-      if(length(clustout()) != 8) return()
+      if(length(clustout()) != 5) return()
       withProgress(message = "Creating TOM plot...", value = 0, {
         incProgress(1/2)
-        geneTree <- clustout()[[3]]
-        dynamicColors <- clustout()[[4]]
-        dissTOM <- clustout()[[6]]
+        geneTree <- clustout()[[1]]
+        dynamicColors <- clustout()[[2]]
+        dissTOM <- clustout()[[4]]
         incProgress(1/2)
         GGTom(geneTree, colors = dynamicColors, distMat = dissTOM, plotTitle = NULL)
       })
@@ -9211,7 +9175,7 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-gene-modules.csv")
     },
     content = function(file) {
-      moddf <- clustout()[[7]]
+      moddf <- clustout()[[5]]
       colorPalette <- c("teal","lightyellow","lavender",
                         "salmon","blue","orange","green",
                         "lightpink","gray","violet","mint","yellow")
@@ -9226,7 +9190,7 @@ iPSCeqServer <- function(input, output, session) {
     req(clustout())
     isolate({
       if (input$clustalg == "wgcna") {
-        if (length(clustout()) == 8) {
+        if (length(clustout()) == 5) {
           downloadButton(
             "downloadclustplotW03pngimg",
             "Download plot (PNG)"
@@ -9243,7 +9207,7 @@ iPSCeqServer <- function(input, output, session) {
     req(clustout())
     isolate({
       if (input$clustalg == "wgcna") {
-        if (length(clustout()) == 8) {
+        if (length(clustout()) == 5) {
           downloadButton(
             "downloadclustplotW03pdfimg",
             "Download plot (PDF)"
@@ -9261,9 +9225,9 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-tom-plot.png")
     },
     content = function(file) {
-      geneTree <- clustout()[[3]]
-      dynamicColors <- clustout()[[4]]
-      dissTOM <- clustout()[[6]]
+      geneTree <- clustout()[[1]]
+      dynamicColors <- clustout()[[2]]
+      dissTOM <- clustout()[[4]]
       png(file, width = 600, height = 400)
       g <- GGTom(geneTree, colors = dynamicColors, 
                  distMat = dissTOM)
@@ -9277,7 +9241,7 @@ iPSCeqServer <- function(input, output, session) {
     req(clustout())
     isolate({
       if (input$clustalg == "wgcna") {
-        if (length(clustout()) == 8) {
+        if (length(clustout()) == 5) {
           downloadButton(
             "downloadclustmod2",
             "Download gene modules (CSV)"
@@ -9295,51 +9259,15 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-tom-plot.pdf")
     },
     content = function(file) {
-      geneTree <- clustout()[[3]]
-      dynamicColors <- clustout()[[4]]
-      dissTOM <- clustout()[[6]]
+      geneTree <- clustout()[[1]]
+      dynamicColors <- clustout()[[2]]
+      dissTOM <- clustout()[[4]]
       pdf(file, width = 8, height = 8)
       g <- GGTom(geneTree, colors = dynamicColors, 
                  distMat = dissTOM)
       print(g)
       dev.off()
       
-    }
-  )
-  
-  # BULK-DGE-CLUS - download button sample module 
-  output$downloadclustsample <- renderUI({
-    req(clustout())
-    isolate({
-      if (input$clustalg == "wgcna") {
-        if (length(clustout()) == 8) {
-          downloadButton(
-            "downloadclustsample2",
-            "Download sample modules (CSV)"
-          )
-        }
-      } else {
-        return()
-      }
-    })
-  })
-  
-  # BULK-DGE-CLUS - sample module file download
-  output$downloadclustsample2 <- downloadHandler(
-    filename = function() {
-      paste("wgcna-sample-modules.csv")
-    },
-    content = function(file) {
-      sampledf <- clustout()[[8]]
-      if(SubmitData$data_type == "Bulk") {
-        metaDF <- as.data.frame(colData(ddsout()[[1]]))
-      } else {
-        metaDF <- ddsout()[[2]]
-      }
-      metaDF <- metaDF[sampledf$sample, ]
-      sampledf <- cbind(sampledf, metaDF)
-      sampledf <- sampledf[, colnames(sampledf) != "outlier"]
-      write.csv(sampledf, file, row.names = FALSE)
     }
   )
   
@@ -14034,53 +13962,7 @@ iPSCeqServer <- function(input, output, session) {
         # Run this to check if there are gene outliers
         gsg <- goodSamplesGenes(datExpr, verbose = 3)
         gsg$allOK
-        # Create an object called "datTraits" that contains your
-        # trait data
-        datTraits <- seur@meta.data
-        datTraits <- datTraits[, grep("nCount_RNA|nFeature_RNA|silWidth|Sample", x = colnames(datTraits), invert = T), drop = F]
-        nLevels <- apply(datTraits, 2, function(col) length(unique(col)))
-        
-        # removed the max bc it makes the subsequent code throw errors
-        # if for example we have more than 12 seurat clusters
-        datTraits <- datTraits[, nLevels > 1,
-                               #& nLevels <= 12, 
-                               drop = F]
 
-        # Form a data frame analogous to expression data that will
-        # hold the clinical traits.
-        # should return TRUE if datasets align correctly, otherwise your
-        # names are out of order
-        table(rownames(datTraits) == rownames(datExpr))
-        # calculates the whole network connectivity
-        A <- adjacency(t(datExpr), type="signed")
-        k <- as.numeric(apply(A, 2, sum))-1 # standardized connectivity
-        Z.k <- scale(k)
-        thresholdZ.k <- -2.5 # often -2.5
-        outlierColor <- ifelse(Z.k < thresholdZ.k, "red", "black")
-        sampleTree <- flashClust(stats::as.dist(1-A), method = "average")
-        # convert traits to color: where red indicates high values
-        datTraits$seurat_clusters <- as.numeric(datTraits$seurat_clusters)
-        
-        if (ncol(datTraits) > 2) {
-          datTraits[c(1, 3:ncol(datTraits))] <- lapply(c(1, 3:ncol(datTraits)), function(x) as.character(names(datTraits)[x]))
-        } else {
-          datTraits$orig.ident <- as.character(as.factor(datTraits$orig.ident))
-        }
-
-        # MAY NEED TO UPDATE THIS WITH RAINBOW FOR FACTORS > 12
-        traitColors <- datTraits
-        for(i in 1:ncol(traitColors)) {
-          if(i %% 2 == 0) {
-            traitColors[, i] <- labels2colors(traitColors[, i],
-                                              colorSeq = brewer.pal(12, "Set3"))
-          } else {
-            traitColors[, i] <- labels2colors(traitColors[, i],
-                                              colorSeq = brewer.pal(12, "Paired"))
-          }
-        }
-
-        dimnames(traitColors)[[2]] <- paste(names(datTraits))
-        datColors <- data.frame(outlier = outlierColor, traitColors)
         incProgress(1/3)
         # TOM analysis - (computationally expensive)
         softPower <- 18
@@ -14157,22 +14039,15 @@ iPSCeqServer <- function(input, output, session) {
         rownames(moddf) <- seq_len(nrow(moddf))
         moddf$gene <- as.character(moddf$gene)
         moddf$module <- as.factor(moddf$module)
-        sampleDF <- data.frame(
-          sample = sampleTree$labels,
-          outlier = datColors$outlier
-        )
         disableWGCNAThreads()
         incProgress(1/3)
         return(
           list(
-            sampleTree,
-            datColors,
             geneTree,
             dynamicColors,
             mergedColors,
             dissTOM,
-            moddf,
-            sampleDF
+            moddf
           )
         )
       })
@@ -14236,63 +14111,6 @@ iPSCeqServer <- function(input, output, session) {
       d$wgcna_warning_sc <- NULL
     }
 
-    datColors <- clustout_sc()[[2]]
-    
-    if (d$resType == "seurat_res") {
-      res <- input$overall_res
-      res <- gsub(".*_|\\:.*", "", res)
-      if(!(res %in% names(seurat_only()))) return(NULL)
-      seur <- seurat_only()[grepl(res, names(seurat_only()))]
-      seur <- seur[[1]]
-    } else {
-      seur <- seurat_only()
-
-    }
-    coldata <- seur@meta.data
-    rowText <- coldata[clustout_sc()[[1]]$labels,
-                       colnames(coldata)[colnames(coldata) %in% colnames(datColors)]]
-    headerCallback <- c(
-      "function(thead, data, start, end, display){",
-      "  $('th', thead).css('border-bottom', '1px solid #ddd');",
-      "}"
-    )
-
-    for(i in 1:ncol(rowText)) rowText[, i] <- as.character(rowText[, i])
-    datColors <- datColors[, colnames(rowText)]
-    rownames(datColors) <- rownames(rowText)
-    for(colname in colnames(rowText)) {
-      local({
-        df <- data.frame(Group = unique(rowText[,colname]),
-                         Dummy = as.character(letters[1:length(unique(rowText[,colname]))]),
-                         Color = datColors[match(unique(rowText[,colname]),
-                                                 table = rowText[,colname]),
-                                           colname])
-        df <- df[order(df$Group), ]
-        outputName <- paste0(colname, "_legend_table_sc")
-        tableTitle <- colname
-        output[[outputName]] <- DT::renderDataTable({
-          DT::datatable(
-            df[,c("Group","Dummy")],
-            rownames = F,
-            colnames = rep.int("", times = 2),
-            escape = F, selection = "none",
-            caption = htmltools::tags$caption(
-              style = "text-align: center; color: black; margin-bottom: -1.5em;",
-              tableTitle
-            ),
-            callback = htmlwidgets::JS("$('table.dataTable.no-footer').css('border-bottom', '1.5px solid #ddd');"),
-            options = list(lengthChange = F, bFilter = F, bInfo = F, bPaginate = F,
-                           ordering = F,
-                           headerCallback = htmlwidgets::JS(headerCallback)),
-            class = "cell-border") %>%
-            formatStyle(columns = c("Group","Dummy"),
-                        color = styleEqual(df$Dummy, df$Color),
-                        backgroundColor = styleEqual(df$Dummy, df$Color),
-                        fontSize = "12px",
-                        lineHeight = "50%")
-        })
-      })
-    }
     d$sc_showClusteringLinks <- T
     updateTabsetPanel(inputId = "sc_clustering_tabsetPanel", selected = "sc_clustPlotW02")
   })
@@ -14402,7 +14220,7 @@ iPSCeqServer <- function(input, output, session) {
     req(clustout_sc(), !d$newCluster)
     isolate({
       if (input$clustalg_sc == "wgcna") {
-        if (length(clustout_sc()) == 8) {
+        if (length(clustout_sc()) == 5) {
           h4(strong("WGCNA - gene dendrogram"))
         }
       } else {
@@ -14418,9 +14236,9 @@ iPSCeqServer <- function(input, output, session) {
     isolate({
       withProgress(message = "Creating gene dendrogram...", value = 0, {
         incProgress(1/2)
-        geneTree <- clustout_sc()[[3]]
-        dynamicColors <- clustout_sc()[[4]]
-        mergedColors <- clustout_sc()[[5]]
+        geneTree <- clustout_sc()[[1]]
+        dynamicColors <- clustout_sc()[[2]]
+        mergedColors <- clustout_sc()[[3]]
         datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
         incProgress(1/2)
         GGDend(geneTree,
@@ -14435,7 +14253,7 @@ iPSCeqServer <- function(input, output, session) {
   # SC-DGE-CLUS - download button gene dendrogram (PNG)
   output$downloadclustplotW02png_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
-    if(length(clustout_sc()) != 8) return()
+    if(length(clustout_sc()) != 5) return()
     downloadButton("downloadclustplotW02pngimg_sc", label = "Download plot (PNG)")
   })
 
@@ -14446,8 +14264,8 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       png(file, width = 800, height = 400)
-      geneTree <- clustout_sc()[[3]]
-      dynamicColors <- clustout_sc()[[4]]
+      geneTree <- clustout_sc()[[1]]
+      dynamicColors <- clustout_sc()[[2]]
       datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
       g <- GGDend(geneTree,
                   colorDF = datColors,
@@ -14464,7 +14282,7 @@ iPSCeqServer <- function(input, output, session) {
   # SC-DGE-CLUS - download button gene dendrogram (PDF)
   output$downloadclustplotW02pdf_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
-    if(length(clustout_sc()) != 8) return()
+    if(length(clustout_sc()) != 5) return()
     downloadButton("downloadclustplotW02pdfimg_sc", label = "Download plot (PDF)")
   })
 
@@ -14475,8 +14293,8 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       CairoPDF(file, width = 12, height = 6.5)
-      geneTree <- clustout_sc()[[3]]
-      dynamicColors <- clustout_sc()[[4]]
+      geneTree <- clustout_sc()[[1]]
+      dynamicColors <- clustout_sc()[[2]]
       datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
       g <- GGDend(geneTree,
                   colorDF = datColors,
@@ -14495,7 +14313,7 @@ iPSCeqServer <- function(input, output, session) {
     req(clustout_sc(), !d$newCluster)
     isolate({
       if (input$clustalg_sc == "wgcna") {
-        if (length(clustout_sc()) == 8) {
+        if (length(clustout_sc()) == 5) {
           h4(strong("WGCNA - topological overlap matrix"))
         }
       } else {
@@ -14511,12 +14329,12 @@ iPSCeqServer <- function(input, output, session) {
     isolate({
       if(input$goclust_sc == 0) return()
       if(input$clustalg_sc != "wgcna") return()
-      if(length(clustout_sc()) != 8) return()
+      if(length(clustout_sc()) != 5) return()
       withProgress(message = "Creating TOM plot...", value = 0, {
         incProgress(1/2)
-        geneTree <- clustout_sc()[[3]]
-        dynamicColors <- clustout_sc()[[4]]
-        dissTOM <- clustout_sc()[[6]]
+        geneTree <- clustout_sc()[[1]]
+        dynamicColors <- clustout_sc()[[2]]
+        dissTOM <- clustout_sc()[[4]]
         incProgress(1/2)
         GGTom(geneTree, colors = dynamicColors, distMat = dissTOM, plotTitle = NULL)
       })
@@ -14526,7 +14344,7 @@ iPSCeqServer <- function(input, output, session) {
   # SC-DGE-CLUS - download button TOM plot (PNG)
   output$downloadclustplotW03png_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
-    if(length(clustout_sc()) != 8) return()
+    if(length(clustout_sc()) != 5) return()
     downloadButton("downloadclustplotW03pngimg_sc", label = "Download plot (PNG)")
   })
 
@@ -14537,9 +14355,9 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       png(file, width = 600, height = 400)
-      geneTree <- clustout_sc()[[3]]
-      dynamicColors <- clustout_sc()[[4]]
-      dissTOM <- clustout_sc()[[6]]
+      geneTree <- clustout_sc()[[1]]
+      dynamicColors <- clustout_sc()[[2]]
+      dissTOM <- clustout_sc()[[4]]
       g <- GGTom(geneTree, colors = dynamicColors,
                  distMat = dissTOM)
       print(g)
@@ -14550,7 +14368,7 @@ iPSCeqServer <- function(input, output, session) {
   # SC-DGE-CLUS - download button TOM plot (PDF)
   output$downloadclustplotW03pdf_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
-    if(length(clustout_sc()) != 8) return()
+    if(length(clustout_sc()) != 5) return()
     downloadButton("downloadclustplotW03pdfimg_sc", label = "Download plot (PDF)")
   })
 
@@ -14561,9 +14379,9 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       CairoPDF(file, width = 8, height = 8)
-      geneTree <- clustout_sc()[[3]]
-      dynamicColors <- clustout_sc()[[4]]
-      dissTOM <- clustout_sc()[[6]]
+      geneTree <- clustout_sc()[[1]]
+      dynamicColors <- clustout_sc()[[2]]
+      dissTOM <- clustout_sc()[[4]]
       g <- GGTom(geneTree, colors = dynamicColors,
                  distMat = dissTOM)
       print(g)
@@ -14576,7 +14394,7 @@ iPSCeqServer <- function(input, output, session) {
     req(clustout_sc(), !d$newCluster)
     isolate({
       if (input$clustalg_sc == "wgcna") {
-        if (length(clustout_sc()) == 8) {
+        if (length(clustout_sc()) == 5) {
           h4(strong("WGCNA - download modules"))
         }
       } else {
@@ -14588,7 +14406,7 @@ iPSCeqServer <- function(input, output, session) {
   # SC-DGE-CLUS - download button for gene modules
   output$downloadclustmod_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
-    if(length(clustout_sc()) != 8) return()
+    if(length(clustout_sc()) != 5) return()
     downloadButton("downloadclustmod2_sc", label = "Download gene modules (CSV)")
   })
 
@@ -14598,43 +14416,13 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-gene-modules-sc.csv")
     },
     content = function(file) {
-      moddf <- clustout_sc()[[7]]
+      moddf <- clustout_sc()[[5]]
       colorPalette <- c("teal","lightyellow","lavender",
                         "salmon","blue","orange","green",
                         "lightpink","gray","violet","mint","yellow")
       names(colorPalette) <- brewer.pal(12, "Set3")
       moddf$module <- colorPalette[moddf$module]
       write.csv(moddf, file, row.names = FALSE)
-    }
-  )
-
-  # SC-DGE-CLUS - download button for sample module
-  output$downloadclustsample_sc <- renderUI({
-    req(clustout_sc(), !d$newCluster)
-    isolate({
-      if (input$clustalg_sc == "wgcna") {
-        if (length(clustout_sc()) == 8) {
-          downloadButton(
-            "downloadclustsample2_sc",
-            "Download sample modules (CSV)"
-          )
-        }
-      }
-    })
-  })
-
-  # SC-DGE-CLUS - download file for sample module
-  output$downloadclustsample2_sc <- downloadHandler(
-    filename = function() {
-      paste("wgcna-sample-modules-sc.csv")
-    },
-    content = function(file) {
-      sampledf <- clustout_sc()[[8]]
-      metaDF <- as.data.frame(colData(ddsout()[[1]]))
-      metaDF <- metaDF[sampledf$sample, grep("nCount_RNA|nFeature_RNA|silWidth", x = colnames(metaDF), invert = T)]
-      sampledf <- cbind(sampledf, metaDF)
-      sampledf <- sampledf[, colnames(sampledf) != "outlier"]
-      write.csv(sampledf, file, row.names = FALSE)
     }
   )
 
@@ -14649,17 +14437,6 @@ iPSCeqServer <- function(input, output, session) {
   output$downloadclustmodK2_sc <- downloadHandler(
     filename = function() {
       paste("kmed-gene-clusters-sc.csv")
-    },
-    content = function(file) {
-      clustdf <- clustout_sc()[[2]]
-      write.csv(clustdf, file, row.names = FALSE, col.names = TRUE)
-    }
-  )
-
-  # SC-DGE-CLUS - download handler for gene module
-  output$downloadclustmodM2_sc <- downloadHandler(
-    filename = function() {
-      paste("mcl-gene-clusters-sc.csv")
     },
     content = function(file) {
       clustdf <- clustout_sc()[[2]]
