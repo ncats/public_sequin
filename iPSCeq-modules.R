@@ -236,7 +236,7 @@ plot_sil <- function(sCVd, size) {
        do.clus.stat = F) +
     mtext(paste("n =", n), adj = 0, cex = 1.5) +
     mtext(substitute(k ~ ~"clusters" ~ ~C[j], list(k = k)), 
-        adj = 1, cex = 1.5)
+          adj = 1, cex = 1.5)
 }
 
 # tsnePlot -------------------
@@ -1381,28 +1381,28 @@ plot_compareClusts2 <- function(sCVd, clA, clB, dataType,
                                 labType = "de", labGenes,
                                 labNum = 5, labTypeDiff = "logGER",
                                 sizeFactor = 1) {
-    if(dataType == "MGE") {
-      plot_compareClusts_MAplot2(
-        sCVd = sCVd, 
-        clA = clA, 
-        clB = clB, 
-        labType = labType, 
-        labNum = labNum, 
-        labGenes = labGenes,
-        sizeFactor = sizeFactor
-      )
-    } else {
-      plot_compareClusts_volcano2(
-        sCVd = sCVd, 
-        clA = clA, 
-        clB = clB, 
-        dataType = dataType, 
-        labType = labType, 
-        labNum = labNum, 
-        labGenes = labGenes,
-        sizeFactor = sizeFactor
-      )
-    }
+  if(dataType == "MGE") {
+    plot_compareClusts_MAplot2(
+      sCVd = sCVd, 
+      clA = clA, 
+      clB = clB, 
+      labType = labType, 
+      labNum = labNum, 
+      labGenes = labGenes,
+      sizeFactor = sizeFactor
+    )
+  } else {
+    plot_compareClusts_volcano2(
+      sCVd = sCVd, 
+      clA = clA, 
+      clB = clB, 
+      dataType = dataType, 
+      labType = labType, 
+      labNum = labNum, 
+      labGenes = labGenes,
+      sizeFactor = sizeFactor
+    )
+  }
 }
 
 #################################################################################################
@@ -2009,7 +2009,7 @@ profiler <- function(input, output, session, seuratData) {
     req(ModuleScoreSeurat(), input$heatmap_profiler_factor)
     if(!(input$heatmap_profiler_factor %in% colnames(ModuleScoreSeurat()@meta.data))) return()
     if(length(SelectedModules()) == 0 || is.null(heatCols_profiler())) return()
-      downloadButton(session$ns("heatmap_moduleScore_pdf_img"), "Download plot (PDF)")
+    downloadButton(session$ns("heatmap_moduleScore_pdf_img"), "Download plot (PDF)")
   })
   output$heatmap_moduleScore_pdf_img <- downloadHandler(
     filename = "Heatmap_ModuleScores.pdf",
@@ -2081,7 +2081,7 @@ profiler <- function(input, output, session, seuratData) {
   output$dimred_profiler <- renderPlot({
     req(GetSeuratWithModuleScore(), GetPctVarianceExplained(), input$dimredmethod_profiler, 
         input$dimredmodule_profiler)
-
+    
     if(!(input$dimredmodule_profiler %in% colnames(GetSeuratWithModuleScore()@meta.data))) return()
     
     ModuleDimRedPlot(
@@ -2786,7 +2786,7 @@ dimred <- function(input, output, session, dat, dimredMethods = "pca",
     req(GetMetadata())
     choices <- colnames(GetMetadata())
     choices <- choices[!(apply(GetMetadata(), 2, is.numeric) | choices %in% c("nCount_RNA","nFeature_RNA"))]
-
+    
     selectInput(
       inputId = session$ns("dimredfact"),
       label = "Grouping factor",
@@ -3454,7 +3454,7 @@ choosesamples <- function(input,
       sampleTypeMulti <- "samples"
       sampleTypeSingle <- "sample"
     }
-
+    
     txt <- paste0(nSamples, " ", sampleTypeMulti, " selected.")
     if(nSamples == 1) {
       txt <- paste0(nSamples, " ", sampleTypeSingle, " selected. Please select at least 6 ", sampleTypeMulti, ".")
@@ -3857,7 +3857,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
     } else {
       colNames <- c("", "Experiment", "Samples", "Description", "Source")
     }
-
+    
     if(!is.null(df) && nrow(df) > 0) {
       df <- data.frame(Checkbox = "", df)
     } else {
@@ -3884,15 +3884,15 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
       )
     )
   }, server = F)
-
+  
   
   # Allow clearing datasets selection
   output$clearExisting_existing <- renderUI({
     if((is.null(d$select_datasets_table_addExisting_rows_selected) || 
-       length(d$select_datasets_table_addExisting_rows_selected) == 0) &&
+        length(d$select_datasets_table_addExisting_rows_selected) == 0) &&
        (is.null(d$select_datasets_table_rows_selected) ||
         length(d$select_datasets_table_rows_selected) == 0)) return()
-
+    
     tagList(
       br(),
       actionLink(inputId = session$ns("clearExisting_existing"), label = "Clear selections")
@@ -4347,7 +4347,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
       d$counts_warning_msg <- "Please check data format and try again."
       return()
     }
-
+    
     d$counts_warning_msg <- NULL
     return(df)
   })
@@ -4609,7 +4609,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
     if(input$res == "seurat_res") {
       myStyle <- "border: 1px solid #eee; width: 440px; padding: 10px;"
     }
-
+    
     tagList(
       div(
         style = myStyle,
@@ -5702,7 +5702,7 @@ LoadData <- function(input, output, session, maxSamples = 10000) {
        is.null(input$res) || input$res != "seurat_res" || 
        !is.numeric(input$resMin) || !is.numeric(input$resMax) ||
        !is.numeric(input$resStep)) return()
-
+    
     # If max is less than min and min > 0
     if(input$resMax < input$resMin && input$resMin > 0) {
       if(input$resMin > 6) {

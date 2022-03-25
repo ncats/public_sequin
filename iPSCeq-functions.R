@@ -447,7 +447,7 @@ limma.exp2 <- function(fact1, fact2, coldata, cts, perm.h, batchVar = NULL,
     group.c <- relevel(group.c, ref = refLevel)
     design <- model.matrix(~ 0 + coldata[, "W_1"] + coldata[, batchVar] + group.c)
   }
-
+  
   colnames(design) <- gsub("group.c", replacement = "", x = colnames(design))
   colnames(design) <- gsub("coldata\\[, batchVar\\]*", replacement = "", x = colnames(design))
   colnames(design) <- gsub("coldata\\[, \"W_1\"\\]*", replacement = "W_1", x = colnames(design))
@@ -473,7 +473,7 @@ limma.exp2 <- function(fact1, fact2, coldata, cts, perm.h, batchVar = NULL,
 ## LIMMA - EXP 3 - classical interactions
 limma.exp3 <- function(fact1, fact2, coldata, cts, fact1.rlvl, fact2.rlvl,
                        batchVar = NULL, w1 = NULL) {
-
+  
   f1n <- length(levels(coldata[, fact1]))
   nBatchCols <- 0
   coldata[, fact1] <- relevel(x = coldata[, fact1], ref = fact1.rlvl)
@@ -522,7 +522,7 @@ limma.exp3 <- function(fact1, fact2, coldata, cts, fact1.rlvl, fact2.rlvl,
 ## LIMMA - EXP 4 - added effects blocking and paired
 limma.exp4 <- function(fact1, fact2, coldata, cts, fact1.rlvl, fact2.rlvl,
                        batchVar = NULL, w1 = NULL) {
-
+  
   f1n <- length(levels(coldata[, fact1]))
   nBatchCols <- 0
   coldata[, fact1] <- relevel(x = coldata[, fact1], ref = fact1.rlvl)
@@ -542,7 +542,7 @@ limma.exp4 <- function(fact1, fact2, coldata, cts, fact1.rlvl, fact2.rlvl,
     design <- model.matrix(~ coldata[, "W_1"] + coldata[, batchVar] + coldata[, fact1] + coldata[, fact2])
     nBatchCols <- length(levels(coldata[, batchVar]))
   }
-
+  
   rownames(design) <- rownames(coldata)
   colnames(design) <- gsub("coldata\\[, fact1\\]*", "", colnames(design))
   colnames(design) <- gsub("coldata\\[, fact2\\]*", "", colnames(design))
@@ -627,7 +627,7 @@ edger.exp1 <- function(fact, coldata, cts, perm.h, norm, batchVar = NULL,
   colnames(cont) <- perm.h
   rownames(cont) <- designLevels
   colnames(design) <- designLevels
-
+  
   dge <- DGEList(counts = cts)
   dge <- calcNormFactors(dge, method = norm)
   dge <- estimateGLMCommonDisp(dge, design)
@@ -675,7 +675,7 @@ edger.exp2 <- function(fact1, fact2, coldata, cts, perm.h, norm,
     group.c <- relevel(group.c, ref = refLevel)
     design <- model.matrix(~ 0 + coldata[, "W_1"] + coldata[, batchVar] + group.c)
   }
-
+  
   colnames(design) <- gsub("group.c", replacement = "", x = colnames(design))
   colnames(design) <- gsub("coldata\\[, batchVar\\]*", replacement = "", x = colnames(design))
   colnames(design) <- gsub("coldata\\[, \"W_1\"\\]*", replacement = "W_1", x = colnames(design))
@@ -708,7 +708,7 @@ edger.exp3 <- function(fact1, fact2, coldata, cts, fact1.rlvl, fact2.rlvl,
   nBatchCols <- 0
   coldata[, fact1] <- relevel(x = coldata[, fact1], ref = fact1.rlvl)
   coldata[, fact2] <- relevel(x = coldata[, fact2], ref = fact2.rlvl)
-
+  
   if(is.null(batchVar) & is.null(w1)) {
     design <- model.matrix(~ coldata[, fact1] * coldata[, fact2])
   } else if(is.null(batchVar)) {
@@ -758,7 +758,7 @@ edger.exp4 <- function(fact1, fact2, coldata, cts, fact1.rlvl, fact2.rlvl,
   nBatchCols <- 0
   coldata[, fact1] <- relevel(x = coldata[, fact1], ref = fact1.rlvl)
   coldata[, fact2] <- relevel(x = coldata[, fact2], ref = fact2.rlvl)
-
+  
   if(is.null(batchVar) & is.null(w1)) {
     design <- model.matrix(~ coldata[, fact1] + coldata[, fact2])
   } else if(is.null(batchVar)) {
@@ -773,7 +773,7 @@ edger.exp4 <- function(fact1, fact2, coldata, cts, fact1.rlvl, fact2.rlvl,
     design <- model.matrix(~ coldata[, "W_1"] + coldata[, batchVar] + coldata[, fact1] + coldata[, fact2])
     nBatchCols <- length(levels(coldata[, batchVar]))
   }
-
+  
   rownames(design) <- rownames(coldata)
   colnames(design) <- gsub("coldata\\[, fact1\\]*", "", colnames(design))
   colnames(design) <- gsub("coldata\\[, fact2\\]*", "", colnames(design))
@@ -1079,7 +1079,7 @@ deseq.exp3 <- function(fact1, fact2, coldata, cts, fact1.rlvl, fact2.rlvl,
   colnames(tmp1)[1] <- gsub("\\(|\\)", "", colnames(tmp1)[1])
   colnames(tmp2) <- paste0(colnames(tmp2), "_VS_", fact2.rlvl)
   design <- cbind(tmp1, tmp2, tmp3)
-
+  
   design.dds <- paste0("~ ", batchString, fact1, " * ", fact2)
   design.dds <- as.formula(design.dds)
   dds <- DESeqDataSetFromMatrix(
@@ -1130,7 +1130,7 @@ deseq.exp4 <- function(fact1, fact2, coldata, cts, fact1.rlvl, fact2.rlvl,
     "_VS_", 
     fact2.rlvl
   )
-
+  
   design.dds <- paste0("~ ", batchString, fact1, " + ", fact2)
   design.dds <- as.formula(design.dds)
   dds <- DESeqDataSetFromMatrix(
@@ -1245,7 +1245,7 @@ deseq.exp6 <- function(
   cont0 <- makeContrasts(contrasts = perm.c, levels = design0)
   colnames(cont0) <- perm.h
   rownames(cont0) <- design0Levels
-
+  
   design.dds <- paste0("~ ", batchString, me.fact)
   design.dds <- as.formula(design.dds)
   dds <- DESeqDataSetFromMatrix(
@@ -1284,7 +1284,7 @@ qcHeatMap <- function(heat, color, rows, col, nam, pal, n = NULL, keyLabel = "Ro
                       colorLabel = "Sample", colorbarLabel = F, type = "pdf") {
   if(is.null(n)) n = nrow(heat)
   n <- as.numeric(n)
-
+  
   if(is.null(colorLabel) || colorLabel == "") colorLabel <- "Sample"
   row_ha <- HeatmapAnnotation(Sample = nam, col = list(Sample = c(pal)))
   row_ha@anno_list$Sample@name <- colorLabel
@@ -1299,7 +1299,7 @@ qcHeatMap <- function(heat, color, rows, col, nam, pal, n = NULL, keyLabel = "Ro
          heatmap_row_title_gp = gpar(fontfamily = "noto-sans-jp", fontsize = 8),
          legend_title_gp = gpar(fontfamily = "noto-sans-jp", fontsize = 8),
          legend_labels_gp = gpar(fontfamily = "noto-sans-jp", fontsize = 8))
-
+  
   if (type == "pdf") {
     p <- Heatmap(
       matrix = heat,
@@ -1436,7 +1436,7 @@ dgeMAPlot <- function(dgeout2, p, l, cont) {
     "padj <=", p, "& LFC >=", l
   )
   dge$output <- ifelse(grepl("padj", dge$isDGE) & grepl("down", dge$color), "down",
-                  ifelse(grepl("padj", dge$isDGE) & grepl("up", dge$color), "up", "No differential expression"))
+                       ifelse(grepl("padj", dge$isDGE) & grepl("up", dge$color), "up", "No differential expression"))
   
   myColors <- c()
   if(sum(dge$output == "down") > 0) myColors <- c(myColors, "green")
@@ -1590,15 +1590,15 @@ GGDend <- function(clust, colorDF, leafLabels = T,
     scale_y_continuous("Height\n", breaks = yBreaks, limits = c(yMin,yMax), 
                        expand = c(0,0)) +
     theme(text = element_text(family = "noto-sans-jp"),
-      axis.ticks.x = element_blank(),
-      axis.title.x = element_blank(),
-      plot.margin = unit(c(1,1,0,1), "cm"),
-      plot.title = element_text(hjust = 0.5, size = 12),
-      panel.border = element_blank(),
-      panel.background = element_rect(fill = "white"),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      )
+          axis.ticks.x = element_blank(),
+          axis.title.x = element_blank(),
+          plot.margin = unit(c(1,1,0,1), "cm"),
+          plot.title = element_text(hjust = 0.5, size = 12),
+          panel.border = element_blank(),
+          panel.background = element_rect(fill = "white"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+    )
   if(!leafLabels) {
     theme_set(theme_classic(base_family = "noto-sans-jp", 
                             base_size = 12))
@@ -1647,15 +1647,15 @@ GGDend <- function(clust, colorDF, leafLabels = T,
       coord_cartesian(xlim = c(-1, nrow(plotDF) + 1), expand = F) +
       ylab(yLab) +
       theme(
-            text = element_text(family = "noto-sans-jp", 
-                                size = 10),
-            axis.title.x = element_blank(),
-            axis.title.y = element_text(angle = 0, vjust = 0.5, hjust = 1),
-            axis.ticks = element_blank(),
-            axis.text = element_blank(),
-            legend.position = "none",
-            line = element_blank(),
-            plot.margin = unit(c(0,1,0,1), "cm")) 
+        text = element_text(family = "noto-sans-jp", 
+                            size = 10),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(angle = 0, vjust = 0.5, hjust = 1),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        legend.position = "none",
+        line = element_blank(),
+        plot.margin = unit(c(0,1,0,1), "cm")) 
     plotList[[colname]] <- p
   }
   
@@ -1770,7 +1770,7 @@ GGTom <- function(clust, colors, distMat, plotTitle = NULL,
               axis = "l",
               rel_widths = c(1.25,0.35,3),
               rel_heights = c(1.25,0.35,3)
-              )
+    )
     
   } else {
     title_gg <- ggplot() + 
@@ -1812,8 +1812,8 @@ ColorDend <- function(dend, clusters, genes, cols) {
           attr(X,"label") <- paste0(
             attr(X,"label"),": ",
             length(genes[[which(attr(X,"label") ==
-                                    sapply(strsplit(names(genes),"-"),
-                                           function(X) X[1]))]]),
+                                  sapply(strsplit(names(genes),"-"),
+                                         function(X) X[1]))]]),
             " DE")
         }
       }
@@ -1833,10 +1833,10 @@ plot_deDotplot_ggplot <- function(
   
   # sizeFactor2 is for text labels. sizeFactor3 is for dots. These values are
   # scaled based on the number of genes/columns
-
+  
   sizeFactor2 <- sizeFactor * (1 - (length(heatGenes)/5 - 1)/30)
   sizeFactor3 <- 2 /(length(heatGenes)/5)^0.6
-
+  
   statsList <- ClustGeneStats(scvData)
   
   if(is.null(drData)) {
@@ -2632,7 +2632,7 @@ plot_GEboxplot_ggplot <- function(seuratData, scvData, gene, hcData = NULL,
   if(length(levels(myClusters)) > 1) pos <- levels(myClusters)[hcData$order]
   
   len <- length(levels(myClusters))
-
+  
   levelNums <- as.numeric(1:len)
   names(levelNums) <- as.character(pos)
   group <- factor(myClusters[rownames(expData)], levels = pos)
@@ -2641,7 +2641,7 @@ plot_GEboxplot_ggplot <- function(seuratData, scvData, gene, hcData = NULL,
     y = expData[[1]], 
     group = group
   )
-
+  
   drValue <- NULL
   rightYAxisTitle <- rightYAxisText <- element_blank()
   if(!is.null(drData)) {
@@ -2671,7 +2671,7 @@ plot_GEboxplot_ggplot <- function(seuratData, scvData, gene, hcData = NULL,
       labels = names(levelNums)
     ) +
     coord_cartesian(xlim = c(0.5, len + 0.5))
-
+  
   if(plotJitter) p2 <- p2 + geom_jitter(position = position_jitter(0.2), color = "black")
   
   p2 <- p2 +
@@ -3062,7 +3062,7 @@ SubsetMulti <- function(fullDF, subDF) {
   which(
     apply(as.matrix(fullDF[, colNames, drop = F]), 1, function(myVals) paste(myVals, collapse = "_AND_")) 
     %in%
-    apply(as.matrix(subDF), 1, function(myVals) paste(myVals, collapse = "_AND_"))
+      apply(as.matrix(subDF), 1, function(myVals) paste(myVals, collapse = "_AND_"))
   )
 }
 

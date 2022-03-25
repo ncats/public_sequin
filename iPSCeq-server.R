@@ -65,11 +65,11 @@
 
 # Change file upload size to 200 MB and sanitize errors
 options(
-    shiny.maxRequestSize = 2000 * 1024^2,
-    shiny.sanitize.errors = TRUE,
-    getClass.msg = F,
-    spinner.color = "black", 
-    spinner.color.background = "white"
+  shiny.maxRequestSize = 2000 * 1024^2,
+  shiny.sanitize.errors = TRUE,
+  getClass.msg = F,
+  spinner.color = "black", 
+  spinner.color.background = "white"
 )
 
 # Server function
@@ -112,7 +112,7 @@ iPSCeqServer <- function(input, output, session) {
     removeModal()
     updateTabsetPanel(inputId = "main_tabsetPanel", selected = "mainApp")
   })
-
+  
   output$placeholderDesc <- renderUI({
     if(!is.null(d$cts_out)) return()
     div(
@@ -235,7 +235,7 @@ iPSCeqServer <- function(input, output, session) {
     sc_dge_factor_minPct = 0.1,
     sc_dge_factor_minDiffPct = -1
   )
-
+  
   # Dataset names in row at top of app
   output$datasetNames <- renderUI({
     req(SubmitData$data_type, d$datasetNames, input$tab_structure)
@@ -714,7 +714,7 @@ iPSCeqServer <- function(input, output, session) {
   observeEvent(input$showClustPlotW03, {
     updateTabsetPanel(inputId = "clustering_tabsetPanel", selected = "clustPlotW03")
   })
-
+  
   output$dge_bulk <- renderUI({
     # if(is.null(SubmitData$goqc) || SubmitData$goqc == 0) return()
     req(SubmitData$goqc, SubmitData$data_type)
@@ -1136,7 +1136,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     )
   })
-
+  
   # Nested sidebar actionLinks for single-cell
   output$sc_showSelectResolution <- renderUI({
     req(input$sc_dge_tabsetPanel, d$resType)
@@ -1538,7 +1538,7 @@ iPSCeqServer <- function(input, output, session) {
   observeEvent(input$sc_showManuallySelectCells, {
     updateTabsetPanel(inputId = "sc_dge_tabsetPanel", selected = "sc_dge_manuallySelectCells")
     if(!is.null(clustList()) && length(clustList()) > 0 && 
-      !is.null(input$comps_manuallyselectcells_sc) && any(grepl("^Comp:", x = clustList()))) {
+       !is.null(input$comps_manuallyselectcells_sc) && any(grepl("^Comp:", x = clustList()))) {
       d$res <- input$comps_manuallyselectcells_sc
     }
   })
@@ -2512,7 +2512,7 @@ iPSCeqServer <- function(input, output, session) {
     if(SubmitData$goqc == 0) return()
     SubmitData$ddsout
   })
-    
+  
   ddstran <- eventReactive(SubmitData$goqc, {
     if(is.null(SubmitData$goqc)) return()
     if(SubmitData$goqc == 0) return()
@@ -2595,7 +2595,7 @@ iPSCeqServer <- function(input, output, session) {
     metadataLab <- "Metadata"
     if(input$dataSummary_tabsetPanel == "dataSummary_subsetCountData") countDataLab <- strong(countDataLab)
     if(input$dataSummary_tabsetPanel == "dataSummary_metadata") metadataLab <- strong(metadataLab)
-
+    
     fluidPage(
       fluidRow(
         style = "margin-left: 6px;", 
@@ -2775,7 +2775,7 @@ iPSCeqServer <- function(input, output, session) {
     d$sc_dge_byfactor <- d$cellSets <- d$addCellsOverlap <- d$addCellsClicks <- list()
     # Reset event_data("plotly_selected")
     runjs("Shiny.setInputValue('plotly_selected-A', null);") 
-
+    
     d$newCluster <- T
     if(SubmitData$data_type == "Single-cell") {
       d$newExpSetup <- F
@@ -2831,7 +2831,7 @@ iPSCeqServer <- function(input, output, session) {
       d$MD <- getMD(d$inD)
       d$inD_orig <- d$inD
       symbolMap <<- NULL
-
+      
     } else if(SubmitData$data_type == "Bulk") {
       d$cts_out <- data.frame(ddsout()[[4]])
       callModule(profiler, 
@@ -2905,12 +2905,12 @@ iPSCeqServer <- function(input, output, session) {
     if(SubmitData$data_type == "Single-cell") {
       if(is.null(d$inD)) return()
       # tagList(
-        profilerUI("profiler_sc")
+      profilerUI("profiler_sc")
       # )
     } else if(SubmitData$data_type == "Bulk") {
       if(is.null(ddsout())) return()
       # tagList(
-        profilerUI("profiler_bulk")
+      profilerUI("profiler_bulk")
       # )
     } else {
       return()
@@ -2966,7 +2966,7 @@ iPSCeqServer <- function(input, output, session) {
     ) %>%
       formatStyle(columns = "Gene", "white-space"="nowrap")
   })
-
+  
   # QC - header for metadata summary
   output$filesummarycoldata <- renderUI({
     req(d$cts_out)
@@ -3035,7 +3035,7 @@ iPSCeqServer <- function(input, output, session) {
     req(SubmitData$data_type)
     if(is.null(d$cts_out) || is.null(input$boxplot_rotate)) return()
     if(SubmitData$data_type %in% c("Bulk", "RASL") && is.null(input$countsummarylabel)) return()
-
+    
     if(SubmitData$data_type == "RASL") {
       tmp <- ddsout()[[4]]
       lab <- "log<sub>2</sub>(fold-changes)"
@@ -3243,7 +3243,7 @@ iPSCeqServer <- function(input, output, session) {
     req(d$cts_out, SubmitData$data_type)
     if(is.null(d$cts_out) | is.null(SubmitData$data_type)) return()
     if(SubmitData$data_type %in% c("Bulk", "RASL") && is.null(input$countsummarylabel)) return()
-
+    
     if(SubmitData$data_type == "RASL") {
       tmp <- ddsout()[[4]]
       lab <- "log<sub>2</sub>(fold-changes)"
@@ -3681,7 +3681,7 @@ iPSCeqServer <- function(input, output, session) {
   ### SECTION 03 - Discovery-Driven Analysis (DDA)
   ###################################################################
   ###################################################################
-
+  
   output$showCorrelationLinks <- renderUI({
     req(input$dda_tabsetPanel)
     myLab <- "Correlation"
@@ -3707,7 +3707,7 @@ iPSCeqServer <- function(input, output, session) {
     d$showClustering <- F
     updateTabsetPanel(inputId = "dda_tabsetPanel", selected = "dda_correlation")
   })
-
+  
   output$correlationLinks <- renderUI({
     req(d$showCorrelationLinks, SubmitData$data_type, input$dda_correlation_tabsetPanel)
     distanceLab <- "Distance"
@@ -3790,7 +3790,7 @@ iPSCeqServer <- function(input, output, session) {
       includeMarkdown("markdown/help/correlation_help.md")
     ))
   })
-
+  
   # DDA - reset plotly click in correlation plot
   observeEvent(input$build_cor_matrix, {
     d$corplotClick <- NULL
@@ -3865,7 +3865,7 @@ iPSCeqServer <- function(input, output, session) {
       sampCols <- sample(1:ncol(ddstran()[[1]]), size = nSamplesDownsample)
     }
     mat <- assay(ddstran()[[1]][sampRows, sampCols])
-
+    
     withProgress(message = "Creating distance matrix...", value = 0, {
       incProgress(1/3)
       sdm <- as.matrix(stats::dist(t(mat)))
@@ -3895,7 +3895,7 @@ iPSCeqServer <- function(input, output, session) {
       }
       incProgress(1/3)
     })
-
+    
     return(list(sdm = sdm, tooltips = tooltips))
   })
   
@@ -3922,7 +3922,7 @@ iPSCeqServer <- function(input, output, session) {
     d$newDistplot <- F
   })
   
-
+  
   # DDA - specify number of samples/cells for correlation heatmap
   output$cor_nSamples <- renderUI({
     req(SubmitData$data_type)
@@ -3943,7 +3943,7 @@ iPSCeqServer <- function(input, output, session) {
     tempVal <- min(500, maxSamples)
     numericInput("cor_nSamples", label = h3(lab), value = tempVal, min = 2, max = tempVal, step = 1)
   })
-
+  
   observeEvent(input$cor_nSamples, {
     if(is.finite(input$cor_nSamples) && input$cor_nSamples >= 2) return()
     if(SubmitData$data_type == "Bulk") {
@@ -3969,7 +3969,7 @@ iPSCeqServer <- function(input, output, session) {
   output$cor_all_samples <- renderUI({
     actionButton("cor_all_samples", label = "All")
   })
-
+  
   # DDA - select the number of samples you want to visualize in
   # correlation matrix for downsampling
   observeEvent(input$cor_all_samples, {
@@ -3992,12 +3992,12 @@ iPSCeqServer <- function(input, output, session) {
     updateNumericInput(session, inputId = "cor_nSamples", label = lab, value = maxSamples,
                        min = 2, max = maxSamples, step = 1)
   })
-
+  
   # # DDA - action button to submit default # cells or samples
   output$cor_default_samples <- renderUI({
     actionLink("cor_default_samples", label = "Max")
   })
-
+  
   # # DDA - random seed for downsampling cells/samples
   output$cor_seed <- renderUI({
     fluidRow(
@@ -4008,7 +4008,7 @@ iPSCeqServer <- function(input, output, session) {
       div(style = "display: inline-block; margin-left: 10px;", h5("Seed"))
     )
   })
-
+  
   # DDA - THIS LOOKS DUPLICATED AS IN LINE 3624, WE
   # SHOULD BE ABLE TO COMBINE THESE INTO ONE OBSERVEEVENT
   observeEvent(input$cor_default_samples, {
@@ -4031,7 +4031,7 @@ iPSCeqServer <- function(input, output, session) {
     }
     updateNumericInput(session, inputId = "cor_nSamples", value = min(500, maxSamples))
   })
-
+  
   # Correlation options header
   output$correlation_options_header <- renderUI({
     h3("Correlation options", style = "margin-top: 0px;")
@@ -4040,7 +4040,7 @@ iPSCeqServer <- function(input, output, session) {
   # DDA - number of genes for correlation heatmap
   output$cor_nGenes <- renderUI({
     req(SubmitData$data_type)
-
+    
     if(SubmitData$data_type == "Bulk") {
       maxGenes <- nrow(assay(ddstran()[[1]]))
     } else if(SubmitData$data_type == "RASL") {
@@ -4066,7 +4066,7 @@ iPSCeqServer <- function(input, output, session) {
   # Reset default if user inputs invalid values
   observeEvent(input$cor_nGenes, {
     if(is.finite(input$cor_nGenes) && input$cor_nGenes >= 2) return()
-
+    
     if(SubmitData$data_type == "Bulk") {
       maxGenes <- nrow(assay(ddstran()[[1]]))
     } else if(SubmitData$data_type == "RASL") {
@@ -4081,12 +4081,12 @@ iPSCeqServer <- function(input, output, session) {
     tempVal <- min(2000, maxGenes)
     updateNumericInput(session = session, inputId = "cor_nGenes", value = tempVal)
   })
-
+  
   # DDA - action button to use all genes
   output$cor_all_genes <- renderUI({
     actionLink("cor_all_genes", label = "All")
   })
-
+  
   # DDA - THIS LOOKS DUPLICATED AS IN LINE 3684, WE
   # SHOULD BE ABLE TO COMBINE THESE INTO ONE OBSERVEEVENT
   observeEvent(input$cor_all_genes, {
@@ -4105,12 +4105,12 @@ iPSCeqServer <- function(input, output, session) {
     }
     updateNumericInput(session, inputId = "cor_nGenes", value = maxGenes)
   })
-
+  
   # DDA - button to use default # genes
   output$cor_default_genes <- renderUI({
     actionLink("cor_default_genes", label = "Default")
   })
-
+  
   # DDA - THIS LOOKS DUPLICATED AS IN LINE 3712, WE
   # SHOULD BE ABLE TO COMBINE THESE INTO ONE OBSERVEEVENT
   observeEvent(input$cor_default_genes, {
@@ -4129,7 +4129,7 @@ iPSCeqServer <- function(input, output, session) {
     }
     updateNumericInput(session, inputId = "cor_nGenes", value = min(2000, maxGenes))
   })
-
+  
   # DDA - select input - correlation heatmap colors
   output$plotColors <- renderUI({
     selectInput(
@@ -4143,7 +4143,7 @@ iPSCeqServer <- function(input, output, session) {
       selected = "Default"
     )
   })
-
+  
   # DDA - action button for correlation heatmap
   output$build_cor_matrix <- renderUI({
     actionButton("build_cor_matrix", "Build heatmap", icon = icon("space-shuttle"))
@@ -4384,7 +4384,7 @@ iPSCeqServer <- function(input, output, session) {
   output$build_dist_matrix <- renderUI({
     actionButton("build_dist_matrix", "Build heatmap", icon = icon("space-shuttle"))
   })
-
+  
   # DDA - display data type (bulk or sc)
   output$dataTypeCor <- renderText({
     req(SubmitData$data_type)
@@ -4393,7 +4393,7 @@ iPSCeqServer <- function(input, output, session) {
     if(SubmitData$data_type == "RASL") dataType <- "RASL-seq"
     return(dataType)
   })
-
+  
   # THIS IS REDUNDANT TO ABOVE IN LINE 3783
   # DDA - display RNA-seq data type (single-cell or bulk)
   output$dataTypeDimRed <- renderText({
@@ -4403,7 +4403,7 @@ iPSCeqServer <- function(input, output, session) {
     if(SubmitData$data_type == "RASL") dataType <- "RASL-seq"
     return(dataType)
   })
-
+  
   # THE NEXT 3 INPUTS ARE REDUNDANT; WRAP INTO MODULE
   # DDA - display data type (bulk or sc)
   output$dataTypePCA <- renderText({
@@ -4413,7 +4413,7 @@ iPSCeqServer <- function(input, output, session) {
     if(SubmitData$data_type == "RASL") dataType <- "RASL-seq"
     return(dataType)
   })
-
+  
   # DDA - display data type (bulk or sc)
   output$dataTypeTSNE <- renderText({
     req(SubmitData$data_type)
@@ -4422,7 +4422,7 @@ iPSCeqServer <- function(input, output, session) {
     if(SubmitData$data_type == "RASL") dataType <- "RASL-seq"
     return(dataType)
   })
-
+  
   # DDA - display data type (bulk or sc)
   output$dataTypeUMAP <- renderText({
     req(SubmitData$data_type)
@@ -4431,7 +4431,7 @@ iPSCeqServer <- function(input, output, session) {
     if(SubmitData$data_type == "RASL") dataType <- "RASL-seq"
     return(dataType)
   })
-
+  
   # DDA - checkbox to show/hide row and column labels
   output$showLabels <- renderUI({
     req(SubmitData$data_type)
@@ -4449,7 +4449,7 @@ iPSCeqServer <- function(input, output, session) {
   observeEvent(input$showLabels, {
     d$correlation_showLabels = input$showLabels
   })
-
+  
   # DDA - correlation heatmap downsample message
   output$cor_downsample_msg <- renderUI({
     req(SubmitData$data_type, input$cor_nGenes, input$cor_nSamples)
@@ -4483,7 +4483,7 @@ iPSCeqServer <- function(input, output, session) {
       HTML(txt)
     }
   })
-
+  
   # DDA - color schemes for correlation matrix
   getColors <-  eventReactive(input$build_cor_matrix, {
     if (input$plotColors == "Viridis") {
@@ -4494,13 +4494,13 @@ iPSCeqServer <- function(input, output, session) {
       return(colorRampPalette(colors=rev(RColorBrewer::brewer.pal(11,"RdBu")))(100))
     }
   })
-
+  
   # DDA - header for correlation heatmap
   output$headcor <- renderUI({
     req(input$build_cor_matrix, !d$newCorplot, SubmitData$data_type)
     h3("Correlation heatmap")
   })
-
+  
   # DDA - correlation matrix
   output$corplot1 <- renderPlotly({
     req(input$build_cor_matrix, !d$newCorplot, SubmitData$data_type)
@@ -4509,7 +4509,7 @@ iPSCeqServer <- function(input, output, session) {
     if(is.null(d$correlation_showLabels)) return()
     withProgress(message = "Creating correlation heatmap...", value = 0, {
       incProgress(1/3)
-
+      
       # Add sample/cell names to tooltip
       tooltips <- paste0(
         "<b>R:</b> ", round(corout()[[1]], 3)
@@ -4520,7 +4520,7 @@ iPSCeqServer <- function(input, output, session) {
         byrow = FALSE
       )
       dimnames(tooltips) <- dimnames(corout()[[1]])
-
+      
       if(nrow(tooltips) <= 100) {
         tooltips2 <- outer(rownames(tooltips), rownames(tooltips), function(x, y) {
           paste(x, y, sep = "<br /><b>Y:</b> ")
@@ -4548,7 +4548,7 @@ iPSCeqServer <- function(input, output, session) {
         }
       }
       incProgress(1/3)
-
+      
       font <- list(
         family = "Noto Sans JP",
         size = 12,
@@ -4559,7 +4559,7 @@ iPSCeqServer <- function(input, output, session) {
         bordercolor = "transparent",
         font = font
       )
-
+      
       plot_ly(
         x = xLab,
         y = yLab,
@@ -4576,22 +4576,22 @@ iPSCeqServer <- function(input, output, session) {
           yaxis = yLayout,
           margin = myMargins,
           font = list(family = "Noto Sans JP")
-          ) %>%
+        ) %>%
         colorbar(limits = c(-1,1))
       
     })
   })
-
+  
   # DDA - download button for corplot1 (pdf)
   output$dlqccorplot1pdf <- renderUI({
     req(corout(), input$build_cor_matrix, !d$newCorplot)
-
+    
     if(is.null(input$build_cor_matrix)) return()
     if(input$build_cor_matrix == 0) return()
     if(is.null(corout())) return()
     downloadButton("dlqccorplot1pdfimg", "Download static plot (PDF)")
   })
-
+  
   # DDA - download file for corplot1 (pdf)
   output$dlqccorplot1pdfimg <- downloadHandler(
     filename =  function() {
@@ -4605,7 +4605,7 @@ iPSCeqServer <- function(input, output, session) {
       
       xLab <- colnames(corout()[[1]])
       yLab <- rownames(corout()[[1]])
-
+      
       if(input$plotColors == "Viridis") {
         cols <- viridis(100)
       } else if(input$plotColors == "Green-yellow-red") {
@@ -4613,7 +4613,7 @@ iPSCeqServer <- function(input, output, session) {
       } else {
         cols <- colorRampPalette(colors=rev(RColorBrewer::brewer.pal(11,"RdBu")))(100)
       }
-
+      
       showLabels <- F
       if(SubmitData$data_type %in% c("Bulk", "RASL")) {
         if(d$correlation_showLabels) {
@@ -4637,13 +4637,13 @@ iPSCeqServer <- function(input, output, session) {
                 axis.line = element_blank()) +
           scale_fill_gradientn(colours = cols, limits = c(-1, 1))
       }
-
+      
       pdf(file, width = 7, height = 6.5)
       print(p)
       dev.off()
     }
   )
-
+  
   # DDA - download button for corplot1 (png)
   output$dlqccorplot1png <- renderUI({
     req(corout(), input$build_cor_matrix, !d$newCorplot)
@@ -4654,7 +4654,7 @@ iPSCeqServer <- function(input, output, session) {
     if(is.null(corout())) return()
     downloadButton("dlqccorplot1pngimg", "Download static plot (PNG)")
   })
-
+  
   # DDA - download file for corplot1 (png)
   output$dlqccorplot1pngimg <- downloadHandler(
     filename =  function() {
@@ -4665,7 +4665,7 @@ iPSCeqServer <- function(input, output, session) {
       cor.mat <- data.frame(cor.mat) %>%
         rownames_to_column("samp") %>%
         gather(sample, value, -samp)
-
+      
       if (input$plotColors == "Viridis") {
         cols <- viridis(100)
       } else if (input$plotColors == "Green-yellow-red") {
@@ -4673,7 +4673,7 @@ iPSCeqServer <- function(input, output, session) {
       } else {
         cols <- colorRampPalette(colors=rev(RColorBrewer::brewer.pal(11,"RdBu")))(100)
       }
-
+      
       showLabels <- F
       if(SubmitData$data_type %in% c("Bulk", "RASL")) {
         if(d$correlation_showLabels) {
@@ -4697,24 +4697,24 @@ iPSCeqServer <- function(input, output, session) {
                 axis.line = element_blank()) +
           scale_fill_gradientn(colours = cols, limits = c(-1, 1))
       }
-
+      
       png(file, width = 800, height = 750)
       print(p)
       dev.off()
     }
   )
-
+  
   # DDA - header for correlation scatterplot
   output$corplot2Header <- renderUI({
     req(d$corplotClick)
     h3("Correlation scatterplot")
   })
-
+  
   # DDA - store correlation plot point click in object d
   observe({
     d$corplotClick <- event_data("plotly_click", source = "corplot")
   })
-
+  
   # DDA - correlation sample vs sample (cell vs cell) scatterplot
   output$corplot2 <- renderPlotly({
     req(corout(), d$corplotClick)
@@ -4741,16 +4741,16 @@ iPSCeqServer <- function(input, output, session) {
       if(is.integer(y)) y <- colnames(cts.tran)[y]
       myTitle <- paste0(x, " vs. ", y)
       if(sum(nchar(c(x,y))) > 50) myTitle <- paste0(x, " vs.\n", y)
-
+      
       # Add gene expression to tooltip
       geneLabs <- paste0("<b>Gene:</b> ", rownames(cts.tran))
       xLab <- paste0("<b>", x, ":</b> ")
       xLabs <- paste0(xLab, formatC(cts.tran[, x]))
       yLab <- paste0("<b>", y, ":</b> ")
       yLabs <- paste0(yLab, formatC(cts.tran[, y]))
-
+      
       tooltips <- paste(geneLabs, xLabs, yLabs, sep = "<br />")
-
+      
       m <- list(
         l = 50,
         r = 50,
@@ -4769,7 +4769,7 @@ iPSCeqServer <- function(input, output, session) {
         bordercolor = "transparent",
         font = font
       )
-
+      
       plot_ly(
         data = cts.tran,
         type = "scatter",
@@ -4790,7 +4790,7 @@ iPSCeqServer <- function(input, output, session) {
         )
     })
   })
-
+  
   # DDA - download button corplot2 (pdf)
   output$dlqccorplot2pdf <- renderUI({
     
@@ -4803,7 +4803,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     }
   })
-
+  
   # DDA - download file corplot2 (pdf)
   output$dlqccorplot2pdfimg <- downloadHandler(
     filename =  function() {
@@ -4820,7 +4820,7 @@ iPSCeqServer <- function(input, output, session) {
       if(is.integer(y)) y <- colnames(cts.tran)[y]
       myTitle <- paste0(y, " vs. ", x)
       if(sum(nchar(c(x,y))) > 50) myTitle <- paste0(x, " vs.\n", y)
-
+      
       pdf(file, width = 8, height = 6.5)
       p <- ggplot(cts.tran, aes(x = cts.tran[, x], y = cts.tran[, y])) +
         geom_point(color = "dodgerblue4") + theme_classic() +
@@ -4831,7 +4831,7 @@ iPSCeqServer <- function(input, output, session) {
       dev.off()
     }
   )
-
+  
   # DDA - download button corplot2 (png)
   output$dlqccorplot2png <- renderUI({
     if(is.null(d$corplotClick)) return()
@@ -4840,7 +4840,7 @@ iPSCeqServer <- function(input, output, session) {
       "Download static plot (PNG)"
     )
   })
-
+  
   # DDA - download file corplot2 (png)
   output$dlqccorplot2pngimg <- downloadHandler(
     filename =  function() {
@@ -4857,7 +4857,7 @@ iPSCeqServer <- function(input, output, session) {
       if(is.integer(y)) y <- colnames(cts.tran)[y]
       myTitle <- paste0(y, " vs. ", x)
       if(sum(nchar(c(x,y))) > 50) myTitle <- paste0(x, " vs.\n", y)
-
+      
       png(file, width = 800, height = 750)
       p <- ggplot(cts.tran, aes(x = cts.tran[, x], y = cts.tran[, y])) +
         geom_point(color = "dodgerblue4") + theme_classic() +
@@ -4868,14 +4868,14 @@ iPSCeqServer <- function(input, output, session) {
       dev.off()
     }
   )
-
+  
   # DDA - header correlation analysis
   output$headcor2 <- renderUI({
     req(SubmitData$data_type, distout())
     if(SubmitData$data_type == "Single-cell") return()
     h3("Sample distance matrix")
   })
-
+  
   # DDA - checkbox to show/hide row and column labels
   output$dist_labels <- renderUI({
     req(SubmitData$data_type, distout())
@@ -4923,13 +4923,13 @@ iPSCeqServer <- function(input, output, session) {
       HTML(txt)
     }
   })
-
+  
   # DDA - distance matrix (bulk only)
   output$corplot3 <- renderPlotly({
     req(input$build_dist_matrix, !d$newDistplot, getColors_dist(), SubmitData$data_type, distout())
     if(is.null(input$build_dist_matrix) || input$build_dist_matrix == 0 ||
        is.null(d$distance_showLabels) || SubmitData$data_type != "Bulk") return()
-
+    
     sdm <- distout()[["sdm"]]
     tooltips <- distout()[["tooltips"]]
     
@@ -4980,14 +4980,14 @@ iPSCeqServer <- function(input, output, session) {
         font = list(family = "Noto Sans JP")
       )
   })
-
+  
   # DDA - download button - sample distance matrix (PDF)
   output$dlqcorplot3pdf <- renderUI({
     req(SubmitData$data_type, distout(), getColors_dist())
     if(!(SubmitData$data_type %in% c("Bulk", "RASL"))) return()
     downloadButton("dlqcorplot3pdfimg", "Download plot (PDF)")
   })
-
+  
   # DDA - download file - sample distance matrix (PDF)
   output$dlqcorplot3pdfimg <- downloadHandler(
     filename =  function() {
@@ -4999,7 +4999,7 @@ iPSCeqServer <- function(input, output, session) {
         rownames_to_column("samp") %>%
         gather(sample, value, -samp)
       cols <- getColors_dist()
-
+      
       if(d$distance_showLabels) {
         p <- ggplot(sdm, aes(x = sample, y = samp)) +
           geom_tile(aes(fill = value)) + theme_classic() +
@@ -5024,14 +5024,14 @@ iPSCeqServer <- function(input, output, session) {
       dev.off()
     }
   )
-
+  
   # DDA - download button - sample distance matrix (PNG)
   output$dlqcorplot3png <- renderUI({
     req(SubmitData$data_type, distout(), getColors_dist())
     if(!(SubmitData$data_type %in% c("Bulk", "RASL"))) return() 
     downloadButton("dlqcorplot3pngimg", "Download plot (PNG)")
   })
-
+  
   # DDA - download file - sample distance matrix (PNG)
   output$dlqcorplot3pngimg <- downloadHandler(
     filename =  function() {
@@ -5073,11 +5073,11 @@ iPSCeqServer <- function(input, output, session) {
   ### SECTION 04 - DIFFERENTIAL GENE EXPRESSION ANALYSIS (DGE)
   ###################################################################
   ###################################################################
-
+  
   ### SECTION 03 - BULK DGE
-    
+  
   ######### HELP BUTTONS - ALL FOR BULK RNA-SEQ######################
-    
+  
   # BULK-DGE-OVER - overview help button
   observeEvent(input$overview_help_button, {
     showModal(modalDialog(
@@ -5096,7 +5096,7 @@ iPSCeqServer <- function(input, output, session) {
       includeMarkdown("markdown/help/runDGE_help.md")
     ))
   })
-
+  
   # BULK-DGE-VOL - volcano plot help button
   observeEvent(input$volcanoplots_help_button, {
     showModal(modalDialog(
@@ -5134,7 +5134,7 @@ iPSCeqServer <- function(input, output, session) {
       includeMarkdown("markdown/help/gse_help.md")
     ))
   })
-
+  
   # BULK-DGE-CLUS - clustering help button
   observeEvent(input$postdge_clustering_help_button, {
     showModal(modalDialog(
@@ -5155,7 +5155,7 @@ iPSCeqServer <- function(input, output, session) {
   })
   
   ######### OVERVIEW TAB CODE: BULK RNA-SEQ######################
-    
+  
   # BULK-DGE-OVER - select algorithm for dge
   output$dgeexpsetup <- renderUI({
     selectInput(
@@ -6047,7 +6047,7 @@ iPSCeqServer <- function(input, output, session) {
     req(SubmitData$data_type, ddsout()[[2]], CheckExpDesign(), input$dgeexpsetup, input$batchFactor)
     if(SubmitData$data_type != "Bulk") return()
     metaDF <- ddsout()[[2]]
-
+    
     if(input$dgeexpsetup == "exp1") {
       if(input$dgeexp1c == "Rest") {
         metaDF[[input$dgeexp1a]] <- as.character(metaDF[[input$dgeexp1a]])
@@ -6371,7 +6371,7 @@ iPSCeqServer <- function(input, output, session) {
         withProgress(message = "Running DESeq2...", value = 0, {
           incProgress(1/2)
           con <- paste(input$dgeexp5c, "_VS_", input$dgeexp5d, sep = "")
-
+          
           de.genes <- deseq.exp5(
             fact = input$dgeexp5a,
             fact.levl = input$dgeexp5b,
@@ -6468,7 +6468,7 @@ iPSCeqServer <- function(input, output, session) {
   dgeover0 <- eventReactive(input$godge, {
     if(d$dge_warning_msg != "") return()
     expset <- input$dgeexpsetup
-
+    
     perm <- dgeout1()[[2]]
     perm <- colnames(perm)
     cont.ls <- list()
@@ -6706,7 +6706,7 @@ iPSCeqServer <- function(input, output, session) {
   output$volplots <- renderPlotly({
     req(input$godge, dgeout1(), !d$newExpSetup, d$dgeContrast, input$vistype)
     if(!(d$dgeContrast %in% colnames(dgeout1()[[2]]))) return()
-
+    
     visType <- input$vistype
     check <- dgeout3()
     check <- nrow(check)
@@ -6724,7 +6724,7 @@ iPSCeqServer <- function(input, output, session) {
     s <- input$mytable_rows_selected
     
     group1 <- strsplit(d$dgeContrast, split = "_VS_")[[1]][1]
-
+    
     datobj <- dgeout3() %>%
       mutate(fold = ifelse(log2FoldChange > 0, paste0("up in ", group1),
                            ifelse(log2FoldChange < 0, paste0("down in ", group1), NA)))
@@ -6888,7 +6888,7 @@ iPSCeqServer <- function(input, output, session) {
         myColors <- NULL
         if(sum(data$log2FoldChange < 0) > 0) myColors = c(myColors, "#00FF00")
         if(sum(data$log2FoldChange > 0) > 0) myColors = c(myColors, "#FF0000")
-
+        
         isolate({
           p <- data %>%
             plot_ly(
@@ -6932,7 +6932,7 @@ iPSCeqServer <- function(input, output, session) {
               showarrow = F,
               font = list(color = "#00FF00", size = 18)
             )
-
+          
         })
       } else if (length(s)) {
         data <- dgeout3() %>%
@@ -6941,7 +6941,7 @@ iPSCeqServer <- function(input, output, session) {
         myColors <- NULL
         if(sum(data$log2FoldChange < 0) > 0) myColors = c(myColors, "#00FF00")
         if(sum(data$log2FoldChange > 0) > 0) myColors = c(myColors, "#FF0000")
-
+        
         isolate({
           pp <- data %>%
             plot_ly() %>%
@@ -7247,7 +7247,7 @@ iPSCeqServer <- function(input, output, session) {
       myChoices <- c("All", "Custom")
       mySelected <- "All"
     }
-
+    
     div(
       style = "width: 110px;",
       awesomeRadio(
@@ -7281,7 +7281,7 @@ iPSCeqServer <- function(input, output, session) {
   output$gene_list_filtering <- renderUI({
     if(is.null(d$dgeContrast) || is.null(input$godge) || input$godge == 0) return()
     if(is.null(input$dge_list) || input$dge_list != "DGE filtered") return()
-
+    
     if(grepl(".*_VS_.*", d$dgeContrast)) {
       group1 <- gsub("^(.*)_VS_.*", replacement = "\\1", x = d$dgeContrast)
       group2 <- gsub(".*_VS_(.*)$", replacement = "\\1", x = d$dgeContrast)
@@ -7441,95 +7441,28 @@ iPSCeqServer <- function(input, output, session) {
   
   # BULK-DGE-GSE - reactive expression for warnings for gse
   func_enrich <- eventReactive(input$submit_fe, {
-      withProgress(message = "Computing functional enrichment gene lists...", value = 0, {
-        incProgress(0.3)
-        isolate({
-          if(!is.null(input$dge_list) && input$dge_list == "DGE filtered") {
-            dge <- dgeout3()
-            if("rowname" %in% colnames(dge)) colnames(dge)[colnames(dge) == "rowname"] = "id"
-            uni_genes <- unique(dge$id)
-            if(input$dge_filter == 2) dge <- dge[dge$log2FoldChange > 0, ]
-            if(input$dge_filter == 3) dge <- dge[dge$log2FoldChange < 0, ]
-            dge <- dge[order(1/abs(dge$log2FoldChange), dge$pvalue, decreasing = F), ]
-            # load library list
-            libs <- d$enrichRLib
-            if(d$n_genes != "" & !(input$fea_all_genes)) dge <- dge[1:min(as.integer(d$n_genes), nrow(dge)), ]
-            # convert genes to a vector
-            genes <- dge %>% pull(id)
-            d$genes_debug <- genes
-            # run enrichR w/selected libraries
-            enr <- enrichr(genes, libs)
-            enr <- enr[sapply(enr, function(x) nrow(x) > 0)]
-            if (length(enr) == 0) {
-              return(NULL)
-            } else {
-              enrCheck <- sapply(enr, function(i) {
-                if(ncol(i) == 1) {
-                  if(colnames(i)[1] == "X.html.") return(FALSE)
-                }
-                return(TRUE)
-              })
-              if(all(!enrCheck)) {
-                d$gse_warning_msg <- "EnrichR is unavailable. Please try again later."
-                return()
-              }
-              
-              # return significant genes
-              enr <- getSigTerms(enr, libs)
-              enr <- enr[sapply(enr, function(x) !is.null(x))]
-              if (length(enr) == 0) {
-                return(NULL)
-              } else {
-                nam <- unlist(lapply(1:length(enr), function(x)
-                  unique(enr[[x]]$libName)))
-                names(enr) <- nam
-                incProgress(0.6)
-                # function for removing redundant go terms
-                enr <- rbindlist(enr)
-                enr <- enr[order(-score)]
-                enr.go <- enr[grepl(pattern = "GO", x = libName) & grepl(pattern = "\\(GO", x = term), , drop = F]
-                if (nrow(enr.go) > 0) {
-                  enr.go[,GOID := tstrsplit(term, "\\(GO")[2]]
-                  enr.go[,GOID := paste0('GO', GOID)]
-                  enr.go[,GOID := gsub("\\)", '', GOID)]
-                  enr.go[,term.short := tstrsplit(term, "\\(")[1]]
-                  enr.go[,term.short := trimws(term.short, which="right")]
-                  enr.go <- enr.go %>%
-                    mutate(term = paste(term.short, " (", GOID, ")", sep = "")) %>%
-                    dplyr::select(-c(term.short, GOID))
-                  enr.rest <- enr[!grepl('GO', libName),]
-                  enr <- rbind(enr.rest, enr.go)
-                }
-                enr <- enr[order(-score)]
-                enr <- enr %>%
-                  mutate(pval = round(pval, digits = 3),
-                         adjPval = round(adjPval, digits = 3),
-                         Z_score = round(Z_score, digits = 3),
-                         score = round(score, digits = 3))
-                names(enr) <- c("Library name", "Library rank", "Gene count",
-                                "Term", "Overlap", "P-value", "Adjusted p-value",
-                                "Old p-value", "Old adjusted p-value", "Z-score",
-                                "Score", "Gene list")
-                enr <- enr %>% 
-                  arrange(`P-value`)
-                enr <- enr[, -c("Old p-value", "Old adjusted p-value"), with = FALSE]
-                return(enr)
-              }
-            }
-          } else if(is.null(input$dge_list) || input$dge_list == "Custom") {
-            genes <- unlist(strsplit(input$gene_list, split = "\\s+|,\\s?"))
-            if(length(genes) == 0) return()
-            genes <- toupper(genes)
-            cts <- ddsout()[[3]]
-            inc <- attr(cts, "dimnames")[[1]][attr(cts, "dimnames")[[1]] %in% genes]
-            genes <- genes[genes %in% inc]
-            if(length(genes) == 0) return()
-            # load library list
-            libs <- d$enrichRLib
-            # run enrichR w/selected libraries
-            enr <- enrichr(genes, libs)
-            enr <- enr[sapply(enr, function(x) nrow(x) > 0)]
-            if(length(enr) == 0) return() 
+    withProgress(message = "Computing functional enrichment gene lists...", value = 0, {
+      incProgress(0.3)
+      isolate({
+        if(!is.null(input$dge_list) && input$dge_list == "DGE filtered") {
+          dge <- dgeout3()
+          if("rowname" %in% colnames(dge)) colnames(dge)[colnames(dge) == "rowname"] = "id"
+          uni_genes <- unique(dge$id)
+          if(input$dge_filter == 2) dge <- dge[dge$log2FoldChange > 0, ]
+          if(input$dge_filter == 3) dge <- dge[dge$log2FoldChange < 0, ]
+          dge <- dge[order(1/abs(dge$log2FoldChange), dge$pvalue, decreasing = F), ]
+          # load library list
+          libs <- d$enrichRLib
+          if(d$n_genes != "" & !(input$fea_all_genes)) dge <- dge[1:min(as.integer(d$n_genes), nrow(dge)), ]
+          # convert genes to a vector
+          genes <- dge %>% pull(id)
+          d$genes_debug <- genes
+          # run enrichR w/selected libraries
+          enr <- enrichr(genes, libs)
+          enr <- enr[sapply(enr, function(x) nrow(x) > 0)]
+          if (length(enr) == 0) {
+            return(NULL)
+          } else {
             enrCheck <- sapply(enr, function(i) {
               if(ncol(i) == 1) {
                 if(colnames(i)[1] == "X.html.") return(FALSE)
@@ -7540,46 +7473,113 @@ iPSCeqServer <- function(input, output, session) {
               d$gse_warning_msg <- "EnrichR is unavailable. Please try again later."
               return()
             }
+            
             # return significant genes
             enr <- getSigTerms(enr, libs)
             enr <- enr[sapply(enr, function(x) !is.null(x))]
-            if(length(enr) == 0) return()
-            nam <- unlist(lapply(1:length(enr), function(x) unique(enr[[x]]$libName)))
-            names(enr) <- nam
-            incProgress(0.6)
-            # function for removing redundant go terms
-            enr <- rbindlist(enr)
-            enr <- enr[order(-score)]
-            enr.go <- enr[grepl(pattern = "GO", x = libName) & grepl(pattern = "\\(GO", x = term), , drop = F]
-            if(nrow(enr.go) > 0) {
-              enr.go[,GOID := tstrsplit(term, "\\(GO")[2]]
-              enr.go[,GOID := paste0('GO', GOID)]
-              enr.go[,GOID := gsub("\\)", '', GOID)]
-              enr.go[,term.short := tstrsplit(term, "\\(")[1]]
-              enr.go[,term.short := trimws(term.short, which="right")]
-              enr.go <- enr.go %>%
-                mutate(term = paste(term.short, " (", GOID, ")", sep = "")) %>%
-                dplyr::select(-c(term.short, GOID))
-              enr.rest <- enr[!grepl('GO', libName),]
-              enr <- rbind(enr.rest, enr.go)
+            if (length(enr) == 0) {
+              return(NULL)
+            } else {
+              nam <- unlist(lapply(1:length(enr), function(x)
+                unique(enr[[x]]$libName)))
+              names(enr) <- nam
+              incProgress(0.6)
+              # function for removing redundant go terms
+              enr <- rbindlist(enr)
+              enr <- enr[order(-score)]
+              enr.go <- enr[grepl(pattern = "GO", x = libName) & grepl(pattern = "\\(GO", x = term), , drop = F]
+              if (nrow(enr.go) > 0) {
+                enr.go[,GOID := tstrsplit(term, "\\(GO")[2]]
+                enr.go[,GOID := paste0('GO', GOID)]
+                enr.go[,GOID := gsub("\\)", '', GOID)]
+                enr.go[,term.short := tstrsplit(term, "\\(")[1]]
+                enr.go[,term.short := trimws(term.short, which="right")]
+                enr.go <- enr.go %>%
+                  mutate(term = paste(term.short, " (", GOID, ")", sep = "")) %>%
+                  dplyr::select(-c(term.short, GOID))
+                enr.rest <- enr[!grepl('GO', libName),]
+                enr <- rbind(enr.rest, enr.go)
+              }
+              enr <- enr[order(-score)]
+              enr <- enr %>%
+                mutate(pval = round(pval, digits = 3),
+                       adjPval = round(adjPval, digits = 3),
+                       Z_score = round(Z_score, digits = 3),
+                       score = round(score, digits = 3))
+              names(enr) <- c("Library name", "Library rank", "Gene count",
+                              "Term", "Overlap", "P-value", "Adjusted p-value",
+                              "Old p-value", "Old adjusted p-value", "Z-score",
+                              "Score", "Gene list")
+              enr <- enr %>% 
+                arrange(`P-value`)
+              enr <- enr[, -c("Old p-value", "Old adjusted p-value"), with = FALSE]
+              return(enr)
             }
-            enr <- enr[order(-score)]
-            enr <- enr %>%
-              mutate(pval = round(pval, digits = 3),
-                     adjPval = round(adjPval, digits = 3),
-                     Z_score = round(Z_score, digits = 3),
-                     score = round(score, digits = 3))
-            names(enr) <- c("Library name", "Library rank", "Gene count",
-                            "Term", "Overlap", "P-value", "Adjusted p-value",
-                            "Old p-value", "Old adjusted p-value", "Z-score",
-                            "Score", "Gene list")
-            enr <- enr %>% 
-              arrange(`P-value`)
-            enr <- enr[, -c("Old p-value", "Old adjusted p-value"), with = FALSE]
-            return(enr)
           }
-        })
+        } else if(is.null(input$dge_list) || input$dge_list == "Custom") {
+          genes <- unlist(strsplit(input$gene_list, split = "\\s+|,\\s?"))
+          if(length(genes) == 0) return()
+          genes <- toupper(genes)
+          cts <- ddsout()[[3]]
+          inc <- attr(cts, "dimnames")[[1]][attr(cts, "dimnames")[[1]] %in% genes]
+          genes <- genes[genes %in% inc]
+          if(length(genes) == 0) return()
+          # load library list
+          libs <- d$enrichRLib
+          # run enrichR w/selected libraries
+          enr <- enrichr(genes, libs)
+          enr <- enr[sapply(enr, function(x) nrow(x) > 0)]
+          if(length(enr) == 0) return() 
+          enrCheck <- sapply(enr, function(i) {
+            if(ncol(i) == 1) {
+              if(colnames(i)[1] == "X.html.") return(FALSE)
+            }
+            return(TRUE)
+          })
+          if(all(!enrCheck)) {
+            d$gse_warning_msg <- "EnrichR is unavailable. Please try again later."
+            return()
+          }
+          # return significant genes
+          enr <- getSigTerms(enr, libs)
+          enr <- enr[sapply(enr, function(x) !is.null(x))]
+          if(length(enr) == 0) return()
+          nam <- unlist(lapply(1:length(enr), function(x) unique(enr[[x]]$libName)))
+          names(enr) <- nam
+          incProgress(0.6)
+          # function for removing redundant go terms
+          enr <- rbindlist(enr)
+          enr <- enr[order(-score)]
+          enr.go <- enr[grepl(pattern = "GO", x = libName) & grepl(pattern = "\\(GO", x = term), , drop = F]
+          if(nrow(enr.go) > 0) {
+            enr.go[,GOID := tstrsplit(term, "\\(GO")[2]]
+            enr.go[,GOID := paste0('GO', GOID)]
+            enr.go[,GOID := gsub("\\)", '', GOID)]
+            enr.go[,term.short := tstrsplit(term, "\\(")[1]]
+            enr.go[,term.short := trimws(term.short, which="right")]
+            enr.go <- enr.go %>%
+              mutate(term = paste(term.short, " (", GOID, ")", sep = "")) %>%
+              dplyr::select(-c(term.short, GOID))
+            enr.rest <- enr[!grepl('GO', libName),]
+            enr <- rbind(enr.rest, enr.go)
+          }
+          enr <- enr[order(-score)]
+          enr <- enr %>%
+            mutate(pval = round(pval, digits = 3),
+                   adjPval = round(adjPval, digits = 3),
+                   Z_score = round(Z_score, digits = 3),
+                   score = round(score, digits = 3))
+          names(enr) <- c("Library name", "Library rank", "Gene count",
+                          "Term", "Overlap", "P-value", "Adjusted p-value",
+                          "Old p-value", "Old adjusted p-value", "Z-score",
+                          "Score", "Gene list")
+          enr <- enr %>% 
+            arrange(`P-value`)
+          enr <- enr[, -c("Old p-value", "Old adjusted p-value"), with = FALSE]
+          return(enr)
+        }
       })
+    })
     # }
   })
   
@@ -7628,7 +7628,7 @@ iPSCeqServer <- function(input, output, session) {
       textAreaInput("gene_targ", "Paste genes", value = "" , width = "100px")
     }
   })
-
+  
   # BULK-DGE-GSE - Heatmap help button
   observeEvent(input$heatmap_help_button, {
     showModal(modalDialog(
@@ -7875,13 +7875,13 @@ iPSCeqServer <- function(input, output, session) {
   # BULK-DGE-Heatmap - cluster row selection
   output$row_type <- renderUI({
     prettyCheckbox("row_type", label = "Cluster genes", 
-                  value = T, status = "default", icon = icon("check"))
+                   value = T, status = "default", icon = icon("check"))
   })
   
   # BULK-DGE-Heatmap - cluster column selection
   output$col_type <- renderUI({
     prettyCheckbox("col_type", label = "Cluster samples",
-                  value = T, status = "default", icon = icon("check"))
+                   value = T, status = "default", icon = icon("check"))
   })
   
   # SC-DGE-Heatmap - scale genes option
@@ -8051,7 +8051,7 @@ iPSCeqServer <- function(input, output, session) {
   heatmapgenes <- reactive({
     req(SubmitData$data_type)
     if(SubmitData$data_type != "Bulk" || is.null(ddstran())) return()
-
+    
     if(is.null(input$dge_list_heatmap) || input$dge_list_heatmap == "Custom") {
       if(is.null(input$gene_list_heatmap) || input$gene_list_heatmap == "") return()
       genes <- toupper(unlist(strsplit(input$gene_list_heatmap, split = "\\s+|,\\s?")))
@@ -8493,7 +8493,7 @@ iPSCeqServer <- function(input, output, session) {
   observe({
     d$heatmap1Click <- event_data("plotly_click", source = "A")
   })
-
+  
   # BULK-DGE-GSE - count plot from heatmap
   output$heatplot2 <- renderPlotly({
     req(SubmitData$data_type)
@@ -8602,11 +8602,11 @@ iPSCeqServer <- function(input, output, session) {
         coldata = ddsout()[[2]],
         type = "Bulk"
       )
-
+      
       fact <- test[, input$heatfactor]
       fact <- factor(fact, levels = mixedsort(unique(fact), decreasing = F))
       y <- test[, "counts"]
-
+      
       pdf(file, width = 7, height = 6.5, onefile = FALSE) # open the pdf device
       qcHeatCount(
         data = test,
@@ -8649,7 +8649,7 @@ iPSCeqServer <- function(input, output, session) {
         coldata = ddsout()[[2]],
         type = "Bulk"
       )
-
+      
       fact <- test[, input$heatfactor]
       fact <- factor(fact, levels = mixedsort(unique(fact), decreasing = F))
       y <- test[, "counts"]
@@ -8882,14 +8882,11 @@ iPSCeqServer <- function(input, output, session) {
         incProgress(1/3)
         return(
           list(
-            sampleTree,
-            datColors,
-            geneTree,
-            dynamicColors,
-            mergedColors,
-            dissTOM,
-            moddf,
-            sampleDF
+            geneTree = geneTree,
+            dynamicColors = dynamicColors,
+            mergedColors = mergedColors,
+            dissTOM = dissTOM,
+            moddf = moddf
           )
         )
       })
@@ -8925,8 +8922,8 @@ iPSCeqServer <- function(input, output, session) {
         output$cluster <- as.factor(output$cluster)
         return(
           list(
-            consensusfastkmed,
-            output
+            consensusfastkmed = consensusfastkmed,
+            output = output
           )
         )
         incProgress(2/2)
@@ -8980,7 +8977,7 @@ iPSCeqServer <- function(input, output, session) {
     if(length(clustout()) != 2) return()
     
     # K-medoids
-    clustheatmap(clustout()[[1]], title = "K-medoids consensus matrix heatmap")
+    clustheatmap(clustout()[["consensusfastkmed"]], title = "K-medoids consensus matrix heatmap")
   })
   
   # Use renderUI to avoid blank area for sample dendrogram
@@ -9030,7 +9027,7 @@ iPSCeqServer <- function(input, output, session) {
     content = function(file) {
       req(clustout())
       png(file, width = 800, height = 600)
-      sample <- clustout()[[1]]
+      sample <- clustout()[["consensusfastkmed"]]
       output <- clustheatmap(sample, "K-medoids consensus matrix heatmap")
       print(output)
       dev.off()
@@ -9053,8 +9050,7 @@ iPSCeqServer <- function(input, output, session) {
   
   # BULK-DGE-CLUS - gene dendrogram for wgcna
   output$clustplotW02 <- renderPlot({
-    validate(need(input$goclust, ""))
-    req(input$goclust)
+    req(input$goclust, clustout()[["geneTree"]], clustout()[["dynamicColors"]])
     isolate({
       if (input$goclust == 0) {
         return()
@@ -9065,8 +9061,8 @@ iPSCeqServer <- function(input, output, session) {
         if (length(clustout()) == 8) {
           withProgress(message = "Creating gene dendrogram...", value = 0, {
             incProgress(1/2)
-            geneTree <- clustout()[[3]]
-            dynamicColors <- clustout()[[4]]
+            geneTree <- clustout()[["geneTree"]]
+            dynamicColors <- clustout()[["dynamicColors"]]
             datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
             incProgress(1/2)
             GGDend(geneTree, 
@@ -9119,8 +9115,8 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-gene-dendrogram.png")
     },
     content = function(file) {
-      geneTree <- clustout()[[3]]
-      dynamicColors <- clustout()[[4]]
+      geneTree <- clustout()[["geneTree"]]
+      dynamicColors <- clustout()[["dynamicColors"]]
       datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
       png(file, width = 800, height = 400)
       g <- GGDend(geneTree, 
@@ -9155,8 +9151,8 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-gene-dendrogram.pdf")
     },
     content = function(file) {
-      geneTree <- clustout()[[3]]
-      dynamicColors <- clustout()[[4]]
+      geneTree <- clustout()[["geneTree"]]
+      dynamicColors <- clustout()[["dynamicColors"]]
       datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
       pdf(file, width = 8, height = 6.5)
       g <- GGDend(geneTree, 
@@ -9195,9 +9191,9 @@ iPSCeqServer <- function(input, output, session) {
       if(length(clustout()) != 8) return()
       withProgress(message = "Creating TOM plot...", value = 0, {
         incProgress(1/2)
-        geneTree <- clustout()[[3]]
-        dynamicColors <- clustout()[[4]]
-        dissTOM <- clustout()[[6]]
+        geneTree <- clustout()[["geneTree"]]
+        dynamicColors <- clustout()[["dynamicColors"]]
+        dissTOM <- clustout()[["dissTOM"]]
         incProgress(1/2)
         GGTom(geneTree, colors = dynamicColors, distMat = dissTOM, plotTitle = NULL)
       })
@@ -9210,7 +9206,7 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-gene-modules.csv")
     },
     content = function(file) {
-      moddf <- clustout()[[7]]
+      moddf <- clustout()[["moddf"]]
       colorPalette <- c("teal","lightyellow","lavender",
                         "salmon","blue","orange","green",
                         "lightpink","gray","violet","mint","yellow")
@@ -9260,9 +9256,9 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-tom-plot.png")
     },
     content = function(file) {
-      geneTree <- clustout()[[3]]
-      dynamicColors <- clustout()[[4]]
-      dissTOM <- clustout()[[6]]
+      geneTree <- clustout()[["geneTree"]]
+      dynamicColors <- clustout()[["dynamicColors"]]
+      dissTOM <- clustout()[["dissTOM"]]
       png(file, width = 600, height = 400)
       g <- GGTom(geneTree, colors = dynamicColors, 
                  distMat = dissTOM)
@@ -9294,9 +9290,9 @@ iPSCeqServer <- function(input, output, session) {
       paste("wgcna-tom-plot.pdf")
     },
     content = function(file) {
-      geneTree <- clustout()[[3]]
-      dynamicColors <- clustout()[[4]]
-      dissTOM <- clustout()[[6]]
+      geneTree <- clustout()[["geneTree"]]
+      dynamicColors <- clustout()[["dynamicColors"]]
+      dissTOM <- clustout()[["dissTOM"]]
       pdf(file, width = 8, height = 8)
       g <- GGTom(geneTree, colors = dynamicColors, 
                  distMat = dissTOM)
@@ -9349,7 +9345,7 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       pdf(file, width = 8, height = 6)
-      consensusfastkmed <- clustout()[[1]]
+      consensusfastkmed <- clustout()[["consensusfastkmed"]]
       p <- clustheatmap(
         consensusfastkmed,
         "K-medoids consensus matrix heatmap"
@@ -9372,11 +9368,11 @@ iPSCeqServer <- function(input, output, session) {
       paste("kmed-gene-clusters.csv")
     },
     content = function(file) {
-      clustdf <- clustout()[[2]]
+      clustdf <- clustout()[["output"]]
       write.csv(clustdf, file, row.names = FALSE, col.names = TRUE)
     }
   )
-
+  
   ### SECTION 03 - SCRNA-SEQ DGE
   
   ######### HELP BUTTONS - ALL FOR SCRNA-SEQ######################
@@ -9475,7 +9471,7 @@ iPSCeqServer <- function(input, output, session) {
       includeMarkdown("markdown/help/sc_dgeCustom_help.md")
     ))
   })
-
+  
   # SC-DGE-VOL - help for volcano tab
   observeEvent(input$sc_volcanoplots_help_button, {
     showModal(modalDialog(
@@ -9570,7 +9566,7 @@ iPSCeqServer <- function(input, output, session) {
       includeMarkdown("markdown/help/sc_mergeClusters_help.md")
     ))
   })
-
+  
   # SC-DGE-CCC - help for combining clusters or cells
   observeEvent(input$sc_groupCells_help_button, {
     showModal(modalDialog(
@@ -9704,7 +9700,7 @@ iPSCeqServer <- function(input, output, session) {
     req(input$overall_res, input$select_res_factor, d$resType, d$res, seurat_only())
     if(d$resType != "seurat_res") return()
     if(grepl("^Comp:", x = d$res)) return()
-
+    
     seur <- seurat_only()
     res <- gsub("RNA_snn_", "", d$res)
     seur <- seur[[res]]
@@ -9748,7 +9744,7 @@ iPSCeqServer <- function(input, output, session) {
       length(unique(d$SCV[[1]]@Clusters))
     }
   })
-
+  
   # SC-DGE-OVER - calc the total number of clusters for ea
   # resolution
   clustList <- reactive({
@@ -9757,7 +9753,7 @@ iPSCeqServer <- function(input, output, session) {
       paste0(temp[x], ": ", numClust()[x]," clusters")))
     return(temp)
   })
-
+  
   # SC-DGE-OVER - drop-down menu for the type of boxplots per cluster
   output$deType <- renderUI({
     temp_types <- list(
@@ -9770,8 +9766,8 @@ iPSCeqServer <- function(input, output, session) {
       choices = temp_types,
       width = "100%")
   })
-
-
+  
+  
   # SC-DGE-OVER - update lasso selection tool for inter-cluster
   # DE boxplots
   observeEvent(input$clustSep_dblclick, {
@@ -9784,13 +9780,13 @@ iPSCeqServer <- function(input, output, session) {
       d$y <- NULL
     }
   })
-
+  
   # SC-DGE-OVER - header for cluster separation boxplot
   output$clustSepHeader <- renderUI({
     req(d$SCV)
     h4("Cluster separation boxplot")
   })
-
+  
   # SC-DGE-OVER - create DE boxplots by seurat resolution
   output$clustSep <- renderPlot({
     req(d$seurat_sc, d$res, input$deType, input$FDRthresh1)
@@ -9808,7 +9804,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     )
   })
-
+  
   # SC-DGE-OVER - specify FDR threshold for boxplots
   output$FDRthresh1 <- renderUI({
     req(input$deType)
@@ -9827,14 +9823,14 @@ iPSCeqServer <- function(input, output, session) {
     if(is.finite(input$FDRthresh1) && input$FDRthresh1 >= 0 && input$FDRthresh1 <= 1) return()
     updateNumericInput(session = session, inputId = "FDRthresh1", value = 0.05)
   })
-
+  
   # SC-DGE-OVER - create silhouette plots by seurat resolution
   output$sil <- renderPlot({
     req(d$res, d$seurat_sc[[d$res]])
     if(grepl("^Comp", x = d$res)) return(NULL)
     plot_sil(d$seurat_sc[[d$res]], size = 1.25)
   })
-
+  
   # SC-DGE-OVER - download handler for saving boxplots by png
   output$clustSepSave <- downloadHandler(
     filename = "Boxplots.png",
@@ -9862,7 +9858,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     }
   )
-
+  
   # SC-DGE-OVER - download handler for silhouette plot by png
   output$silSave <- downloadHandler(
     filename = "Silhouette_plots.png",
@@ -9913,7 +9909,7 @@ iPSCeqServer <- function(input, output, session) {
           silColumn <- paste0(resColumn, "_silWidth")
           names(seur_obj[[x]])[names(seur_obj[[x]]) %in% c("orig.ident", "nCount_RNA", "nFeature_RNA", resColumn, silColumn, "Sample", "sample")]
         })
-          
+        
         seur_obj <- lapply(1:length(seur_obj), function(x) {
           y <- seur_obj[[x]][, names(seur_obj[[x]]) %in% cols[[x]]]
           resColumn <- paste0("RNA_snn_", names(seurat_only())[x])
@@ -9970,7 +9966,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     })
   })
-
+  
   # SC-DGE-OVER - create x input data for scatterplot
   # using metadata
   output$mdScatterX <- renderUI({
@@ -9993,7 +9989,7 @@ iPSCeqServer <- function(input, output, session) {
       selected = mySelected
     )
   })
-
+  
   # SC-DGE-OVER - create y input data for scatterplot
   # using metadata
   output$mdScatterY <- renderUI({
@@ -10064,7 +10060,7 @@ iPSCeqServer <- function(input, output, session) {
     myChoices <- grep(pattern = "_number.of.cells$", x = myChoices, value = T, invert = T)
     if(length(myChoices) == 0) return()
     mySelected <- myChoices[1]
-
+    
     selectInput(
       inputId = "mdFactorData",
       label = "Metadata",
@@ -10072,7 +10068,7 @@ iPSCeqServer <- function(input, output, session) {
       selected = mySelected
     )
   })
-
+  
   # SC-DGE-OVER - specify absolute/relative for metadata barplot
   output$mdFactorOptsF <- renderUI({
     req(d$meta, input$mdFactorData)
@@ -10089,7 +10085,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     )
   })
-
+  
   # SC-DGE-OVER - specify log scale y for metadata boxplot
   output$mdFactorOptsN <- renderUI({
     req(d$meta, input$mdFactorData)
@@ -10125,13 +10121,13 @@ iPSCeqServer <- function(input, output, session) {
        max(nchar(as.character(unique(d$meta[[input$mdScatterX]])))) > 2) {
       xRotate <- T
     }
-
+    
     plot_mdCompare_ggplot(
       df = d$meta, x = input$mdScatterX, y = input$mdScatterY, logX = logX, 
       logY = logY, xRotate = xRotate
     )
   })
-
+  
   # SC-DGE-OVER - create barplot based on selected
   # metadata inputs
   output$mdFactor <- renderPlot({
@@ -10156,7 +10152,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     }
   })
-
+  
   # SC-DGE-OVER - download handler for scatterplot
   # using metadata
   output$mdScatterSave <- downloadHandler(
@@ -10182,7 +10178,7 @@ iPSCeqServer <- function(input, output, session) {
       ggsave(file, plot = p, width = 5, height = 5)    
     }
   )
-
+  
   # SC-DGE-OVER - create download handler for barplot
   # based on metadata
   output$mdFactorSave <- downloadHandler(
@@ -10214,9 +10210,9 @@ iPSCeqServer <- function(input, output, session) {
       ggsave(file, plot = p, width = 5, height = 5)  
     }
   )
-
+  
   ######### GENE EXPRESSION TAB CODE: SCRNA-SEQ#####################
-
+  
   # SC-DGE-GE - select gene from seurat_sc
   output$cgSelect <- renderUI({
     req(d$seurat_sc, d$res)
@@ -10255,12 +10251,12 @@ iPSCeqServer <- function(input, output, session) {
     selectizeInput("cgGene", choices = temp_choices, label = "Gene",
                    options = list(maxOptions = 1000000))
   })
-
+  
   # SC-DGE-GE - header for gene expression by cluster
   output$geneexpressionbycluster_header <- renderUI({
     h3("Gene expression by cluster")
   })
-
+  
   # SC-DGE-GE - runs hclust on output of scClustViz's DEdist function
   # in reactive so it is only run once per session.
   GEBoxplotHClust <- reactive({
@@ -10319,13 +10315,13 @@ iPSCeqServer <- function(input, output, session) {
       if(is.null(d$res)) return()
       ind <- d$res
     }
-
+    
     drData <- NULL
     if(input$geneExpIncludeDR) {
       if(is.null(DR())) return()
       drData <- data.frame(Cluster = colnames(DR()), DR = as.numeric(DR()[input$cgGene, ]))
     }
-
+    
     plot_GEboxplot_ggplot(
       seuratData = d$inD, 
       scvData = d$seurat_sc[[ind]], 
@@ -10338,10 +10334,10 @@ iPSCeqServer <- function(input, output, session) {
   })
   
   # SC-DGE-GE -download button for gene expression boxplot
-   output$geneTestSaveButton <- renderUI({
-     downloadButton("geneTestSave", label = "Save as PNG")
+  output$geneTestSaveButton <- renderUI({
+    downloadButton("geneTestSave", label = "Save as PNG")
   })
-
+  
   # SC-DGE-GE - download handler for gene expression boxplots
   output$geneTestSave <- downloadHandler(
     filename=function() {
@@ -10373,26 +10369,26 @@ iPSCeqServer <- function(input, output, session) {
       ggsave(file, plot = p, width = 5, height = 5)
     }
   )
-
+  
   # SC-DGE-GE - header for distr of goi
   output$celldistributionHeader <- renderUI({
     h3("Cell distribution of genes of interest")
   })
-
+  
   # SC-DGE-GE - goi embedding type selection
   output$GOI_EmbType <- renderUI({
     temp_embs <- hasEmb(d$inD)
     temp_embs <- temp_embs[
       sapply(temp_embs,function(X) ncol(getEmb(d$inD, X))) >= 2 &
         sapply(temp_embs,function(X) nrow(getEmb(d$inD, X))) == nrow(getMD(d$inD))
-      ]
+    ]
     temp_embs <- toupper(temp_embs)
     temp_embs <- gsub("TSNE", "tSNE", temp_embs)
     selectInput("GOI_EmbType", label = "Cell embedding",
                 choices = temp_embs,
                 selected = temp_embs[temp_embs %in% c("tSNE","UMAP")][1])
   })
-
+  
   # SC-DGE-GE - goi x-axis
   output$GOI_EmbDimX <- renderUI({
     req(input$GOI_EmbType)
@@ -10400,7 +10396,7 @@ iPSCeqServer <- function(input, output, session) {
                 choices = gsub("_", " ", colnames(getEmb(d$inD, input$GOI_EmbType))),
                 selected = gsub("_", " ", colnames(getEmb(d$inD, input$GOI_EmbType))[1]))
   })
-
+  
   # SC-DGE-GE - goi y-axis
   output$GOI_EmbDimY <- renderUI({
     req(input$GOI_EmbType)
@@ -10408,59 +10404,59 @@ iPSCeqServer <- function(input, output, session) {
                 choices = gsub("_", " ", colnames(getEmb(d$inD, input$GOI_EmbType))),
                 selected = gsub("_", " ", colnames(getEmb(d$inD, input$GOI_EmbType))[2]))
   })
-
+  
   # SC-DGE-GE - goi select gene via name
   output$GOI1select <- renderUI({
     req(d$inD_orig)
     selectizeInput("goi1", label = "Gene", choices = rownames(d$inD_orig),
                    selected = rownames(d$inD_orig)[1], multiple = F,
                    options = list(maxOptions = 1000000))
-
+    
   })
-
+  
   # SC-DGE-GE - select type of dimensional reduction plot
   output$MD_EmbType <- renderUI({
     temp_embs <- hasEmb(seurat_only())
     temp_embs <- temp_embs[
       sapply(temp_embs,function(X) ncol(getEmb(seurat_only(), X))) >= 2 &
         sapply(temp_embs,function(X) nrow(getEmb(seurat_only(), X))) == nrow(getMD(seurat_only()))
-      ]
+    ]
     selectInput("MD_EmbType",label="Cell embedding",
                 choices=toupper(temp_embs),
                 selected=toupper(temp_embs)[toupper(temp_embs) %in% c("TSNE","UMAP")][1])
   })
-
+  
   # SC-DGE-GE - dim red x-axis number
   output$MD_EmbDimX <- renderUI({
     selectInput("MD_EmbDimX", label = "x-axis",
                 choices = gsub("_", " ", colnames(getEmb(seurat_only(), input$MD_EmbType))),
                 selected = gsub("_", " ", colnames(getEmb(seurat_only(), input$MD_EmbType))[1]))
   })
-
+  
   # SC-DGE-GE - dim red y-axis number
   output$MD_EmbDimY <- renderUI({
     selectInput("MD_EmbDimY", label = "y-axis",
                 choices = gsub("_", " ", colnames(getEmb(seurat_only(), input$MD_EmbType))),
                 selected = gsub("_", " ", colnames(getEmb(seurat_only(), input$MD_EmbType))[2]))
   })
-
+  
   # SC-DGE-GE - specify clusters or goi overlay on plot
   output$plotClust1 <- renderUI({
     awesomeRadio("plotClust1",inline=F,label="Plot",selected="goi",
                  choices=list("Gene expression overlay"="goi", "Clusters"="clust"),
                  status = "success")
   })
-
+  
   # SC-DGE-GE - overlay cluster labels on plot
   output$plotLabel1 <- renderUI({
     prettyCheckbox("plotLabel1", label = "Include cluster labels (style as above)", value = T, status = "default", icon = icon("check"))
   })
-
+  
   # SC-DGE-GE - action button to plot gene exp by cluster or goi
   output$GOI1go <- renderUI({
     actionButton("GOI1go", "Search", icon = icon("search"))
   })
-
+  
   # SC-DGE-GE - specify tSNE labels
   output$tsneLabels <- renderUI({
     if (length(d$res) > 0) {
@@ -10476,7 +10472,7 @@ iPSCeqServer <- function(input, output, session) {
       awesomeRadio("tsneLabels", "Labels:", inline = T, choices = temp_choices, status = "success")
     }
   })
-
+  
   # SC-DGE-GE - tSNE plot for given cluster or goi + error msgs
   output$goiPlot1 <- renderPlot({
     req(d$inD, input$goi1, input$GOI_EmbType, input$plotClust1, 
@@ -10487,7 +10483,7 @@ iPSCeqServer <- function(input, output, session) {
     
     xDim <- as.numeric(strsplit(input$GOI_EmbDimX, split = " ")[[1]][2])
     yDim <- as.numeric(strsplit(input$GOI_EmbDimY, split = " ")[[1]][2])
-
+    
     plot_goi_ggplot(
       seuratData = d$inD, gene = input$goi1, method = tolower(input$GOI_EmbType),
       clusterLabels = input$plotLabel1, plotType = input$plotClust1, 
@@ -10501,7 +10497,7 @@ iPSCeqServer <- function(input, output, session) {
     if(is.null(input$plotClust1)) return()
     downloadButton("goiPlot1Save", label = "Save as PNG")
   })
-
+  
   # NEED TO ADJUST TEXT SIZE IN DOWNLOAD - TOO SMALL
   # SC-DGE-GE - download tSNE file based on gene name
   output$goiPlot1Save <- downloadHandler(
@@ -10525,9 +10521,9 @@ iPSCeqServer <- function(input, output, session) {
       ggsave(file, plot = p, width = 7, height = 7)
     }
   )
-
+  
   ######### DGE ANALYSIS TAB CODE: SCRNA-SEQ#####################
-
+  
   # SC-DGE-DGE - data input for dge analyis
   sc_mytab <- reactive({
     if(is.null(d$SCV) || is.null(d$res) || is.null(input$sc_contrasts) || 
@@ -10541,7 +10537,7 @@ iPSCeqServer <- function(input, output, session) {
     if(nrow(df) == 0) return()
     return(df)
   })
-
+  
   # SC-DGE-DGE - select type of dotplot comparison
   output$heatDEtype <- renderUI({
     temp <- list(
@@ -10557,7 +10553,7 @@ iPSCeqServer <- function(input, output, session) {
                  selected = "DEvsRest",
                  status = "success")
   })
-
+  
   # SC-DGE-DGE - set false discovery rate
   output$FDRthresh2 <- renderUI({
     numericInput(
@@ -10575,7 +10571,7 @@ iPSCeqServer <- function(input, output, session) {
     updateNumericInput(session = session, inputId = "FDRthresh2", value = 0.05)
   })
   
-
+  
   # SC-DGE-DGE - create a slider to specify the # of genes to show in dotplot
   # based on min and max of dge
   output$DEgeneSlider <- renderUI({
@@ -10599,7 +10595,7 @@ iPSCeqServer <- function(input, output, session) {
        input$DEgeneCount >= 1 && input$DEgeneCount <= max(sapply(DEgenes(), length))) return()
     updateNumericInput(session = session, inputId = "DEgeneCount", value = 5)
   })
-
+  
   # SC-DGE-DGE - select cluster to analyze for dge
   output$DEclustNum <- renderUI({
     req(d$resType, d$SCV)
@@ -10611,7 +10607,7 @@ iPSCeqServer <- function(input, output, session) {
     myChoices <- mixedsort(levels(Clusters(d$SCV[[ind]])))
     selectInput(inputId = "DEclustNum", label = "Cluster", choices = myChoices)
   })
-
+  
   # SC-DGE-DGE - text file for gene summary stats for selected cluster
   output$CGSsave0 <- downloadHandler(
     filename = function() {
@@ -10635,7 +10631,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     }
   )
-
+  
   # SC-DGE-DGE - download handler for text file for scClustViz analysis
   # for selected cluster
   output$deGeneSave <- downloadHandler(
@@ -10669,7 +10665,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     }
   )
-
+  
   # SC-DGE-DGE - reactive exp for de analysis for
   # selected cluster, de type and fdr
   DEgenes <- reactive({
@@ -10686,7 +10682,7 @@ iPSCeqServer <- function(input, output, session) {
                      FDRthresh = input$FDRthresh2)
     }
   })
-
+  
   # SC-DGE-DGE - download handler for dge dotplot
   output$heatmapSave <- renderUI({
     req(d$seurat_sc, d$resType, DEgenes(), input$DEgeneCount, input$DEclustNum)
@@ -10719,12 +10715,12 @@ iPSCeqServer <- function(input, output, session) {
       ggsave(file, plot = p, width = 13, height = 6)
     }
   )
-
+  
   # SC-DGE-DGE - header for dge dotplot
   output$dotplotHeader <- renderUI({
     h4("Dotplot")
   })
-
+  
   # SC-DGE-DGE - dotplot based on dge genes for selected cluster
   output$dotplotWarning <- renderUI({
     req(DEgenes(), input$DEclustNum)
@@ -10742,7 +10738,7 @@ iPSCeqServer <- function(input, output, session) {
     }
     
     nGenes <- min(input$DEgeneCount, 69)
-
+    
     plot_deDotplot_ggplot(
       scvData = d$seurat_sc[[ind]],
       deGenes = DEgenes(),
@@ -10756,38 +10752,38 @@ iPSCeqServer <- function(input, output, session) {
     req(d$SCV)
     h3("DGE table")
   })
-
+  
   # SC-DGE-DGE - header for dge table filters
   output$dge_cluster_sc_filterheader <- renderUI({
     req(d$SCV)
     h4("Filters")
   })
-
+  
   # SC-DGE-DGE - abs log2FC threshold for table
   output$sc_dgeByCluster_table_lfc <- renderUI({
     numericInput("sc_dgeByCluster_table_lfc", label = "Abs. log2 fold-change",
                  value = 0.25, min = 0)
   })
-
+  
   # SC-DGE-DGE - adj p-val threshold for table
   output$sc_dgeByCluster_table_padj <- renderUI({
     numericInput("sc_dgeByCluster_table_padj", label = "Adj. p-value",
                  value = 0.05, min = 0, max = 1)
   })
-
+  
   # SC-DGE-DGE - action button to load dge table
   output$sc_dgeByCluster_table_load <- renderUI({
     req(input$DEclustNum, d$resType, d$res, d$SCV, input$dotplotDEtype,
         seurat_only())
     actionButton("sc_dgeByCluster_table_load", label = "Load table")
   })
-
+  
   # SC-DGE-DGE - dge by cluster table
   output$dge_cluster_sc <- renderUI({
     req(sc_dge_cluster_table())
     DT::dataTableOutput("dge_cluster_sc_tbl")
   })
-
+  
   # SC-DGE-DGE - reactive expression for dge cluster table
   sc_dge_cluster_table <- eventReactive(input$sc_dgeByCluster_table_load, {
     withProgress(message = "Creating DGE table...", value = 0, {
@@ -10849,7 +10845,7 @@ iPSCeqServer <- function(input, output, session) {
         nam <- nam[!grepl(input$DEclustNum, nam)]
         allDF <- allDF %>%
           dplyr::select(-nam)
-
+        
         rest <- seur@assays$RNA@data[, Idents(seur) != input$DEclustNum]
         nam <- rownames(rest)
         meanRest <- unlist(mclapply(1:nrow(rest), function(x)
@@ -10891,7 +10887,7 @@ iPSCeqServer <- function(input, output, session) {
       return(allDF)
     })
   })
-
+  
   # SC-DGE-DGE - dge table
   output$dge_cluster_sc_tbl <- DT::renderDataTable(server = FALSE, {
     req(sc_dge_cluster_table())
@@ -10915,16 +10911,16 @@ iPSCeqServer <- function(input, output, session) {
                       emptyTable = "")
     ), class = "display")
   })
-
+  
   ######### Custom DGE tab: SCRNA-SEQ DATA ONLY ############
-
+  
   # SC-DGE-CUST - warning message if there are factors w/o at
   # least two groups with 3 or more cells
   output$sc_dge_byfactor_novars_msg <- renderText({
     req(d$sc_dge_byfactor_novars_msg)
     return(d$sc_dge_byfactor_novars_msg)
   })
-
+  
   # SC-DGE-CUST - select factor from metadata
   output$sc_dge_factor_fact <- renderUI({
     req(d$inD)
@@ -10936,28 +10932,28 @@ iPSCeqServer <- function(input, output, session) {
     myChoices <- myChoices[sapply(myChoices, function(myChoice) sum(as.vector(table(d$inD@meta.data[, myChoice])) >= 3) >= 2)]
     
     if(length(myChoices) == 0) return()
-
+    
     selectInput(
       inputId = "sc_dge_factor_fact",
       label = "Factor",
       choices = myChoices
     )
   })
-
+  
   # SC-DGE-CUST - select factor group 1 for dge
   output$sc_dge_factor_group1 <- renderUI({
     req(d$inD, input$sc_dge_factor_fact)
     if(!is.null(d$sc_dge_byfactor_novars_msg)) return()
     if(!(input$sc_dge_factor_fact %in% colnames(d$inD@meta.data))) return()
-
+    
     myChoices <- mixedsort(unique(as.character(d$inD@meta.data[, input$sc_dge_factor_fact])))
     myChoices <- myChoices[sapply(myChoices, function(myChoice) sum(d$inD@meta.data[, input$sc_dge_factor_fact] == myChoice) >= 3)]
-
+    
     if(length(myChoices) < 2) return()
     myChoices <- c("All (pairwise)" = "All", myChoices)
     selectInput("sc_dge_factor_group1", label = "Group 1", choices = myChoices)
   })
-
+  
   # SC-DGE-CUST - select factor group 2 for dge
   output$sc_dge_factor_group2 <- renderUI({
     req(d$inD, input$sc_dge_factor_fact, input$sc_dge_factor_group1)
@@ -10970,7 +10966,7 @@ iPSCeqServer <- function(input, output, session) {
     myChoices <- c("Rest", myChoices)
     selectInput("sc_dge_factor_group2", label = "Group 2", choices = myChoices, selected = "Rest")
   })
-
+  
   # SC-DGE-CUST - view optional parameters
   output$sc_dge_factor_viewOpts <- renderUI({
     req(input$sc_dge_factor_fact, input$sc_dge_factor_group1,
@@ -10978,7 +10974,7 @@ iPSCeqServer <- function(input, output, session) {
     if(!is.null(d$sc_dge_byfactor_novars_msg)) return()
     prettyCheckbox("sc_dge_factor_viewOpts", label = "View options", value = F, status = "default", icon = icon("check"))
   })
-
+  
   output$sc_dge_factor_opts <- renderUI({
     req(input$sc_dge_factor_fact, input$sc_dge_factor_group1,
         input$sc_dge_factor_group2)
@@ -11047,22 +11043,22 @@ iPSCeqServer <- function(input, output, session) {
     if(is.null(input$sc_dge_factor_test)) return()
     d$sc_dge_factor_test <- input$sc_dge_factor_test
   })
-
+  
   observe({
     if(is.null(input$sc_dge_factor_lfcThreshold)) return()
     d$sc_dge_factor_lfcThreshold <- input$sc_dge_factor_lfcThreshold
   })
-
+  
   observe({
     if(is.null(input$sc_dge_factor_minPct)) return()
     d$sc_dge_factor_minPct <- input$sc_dge_factor_minPct
   })
-
+  
   observe({
     if(is.null(input$sc_dge_factor_minDiffPct)) return()
     d$sc_dge_factor_minDiffPct <- input$sc_dge_factor_minDiffPct
   })
-
+  
   # SC-DGE-CUST - update lfc thresh, factor, min pct and min diff pct
   observeEvent(input$sc_dge_factor_resetDefault, {
     updateNumericInput(session, inputId = "sc_dge_factor_lfcThreshold", value = 0.25)
@@ -11070,7 +11066,7 @@ iPSCeqServer <- function(input, output, session) {
     updateNumericInput(session, inputId = "sc_dge_factor_minPct", value = 0.1)
     updateNumericInput(session, inputId = "sc_dge_factor_minDiffPct", value = -1)
   })
-
+  
   # SC-DGE-CUST - action button to submit parameters for dge analysis
   output$sc_dge_factor_submit <- renderUI({
     req(input$sc_dge_factor_fact, input$sc_dge_factor_group1,
@@ -11078,26 +11074,26 @@ iPSCeqServer <- function(input, output, session) {
     if(!is.null(d$sc_dge_byfactor_novars_msg)) return()
     actionButton("sc_dge_factor_submit", label = "Submit")
   })
-
+  
   # SC-DGE-CUST - action button to clear results
   output$sc_dge_factor_clear <- renderUI({
     if(!is.null(d$sc_dge_byfactor_novars_msg)) return()
     if(length(d$sc_dge_byfactor) == 0) return()
     actionButton("sc_dge_factor_clear", label = "Clear results")
   })
-
+  
   # SC-DGE-CUST - update object d factor for dge
   observeEvent(input$sc_dge_factor_clear, {
     d$sc_dge_byfactor <- NULL
   })
-
+  
   # SC-DGE-CUST - warning if comparison has already been run
   output$sc_dge_byfactor_msg <- renderText({
     req(d$sc_dge_byfactor_msg)
     if(!is.null(d$sc_dge_byfactor_novars_msg)) return()
     return(d$sc_dge_byfactor_msg)
   })
-
+  
   # SC-DGE-CUST - based on inputs run custom dge analysis
   observeEvent(input$sc_dge_factor_submit, {
     withProgress(message = "Running DGE...", value = 0, {
@@ -11122,14 +11118,14 @@ iPSCeqServer <- function(input, output, session) {
       incProgress(1/3)
     })
   })
-
+  
   # SC-DGE-CUST - header for custom dge results
   output$sc_dge_factor_results_header <- renderUI({
     if(!is.null(d$sc_dge_byfactor_novars_msg)) return()
     if(length(d$sc_dge_byfactor) == 0) return()
     h3("Differential gene expression results", style = "margin-top: 0px;")
   })
-
+  
   # SC-DGE-CUST - select factor for custom dge table
   output$sc_dge_factor_tablefact <- renderUI({
     if(!is.null(d$sc_dge_byfactor_novars_msg)) return()
@@ -11140,7 +11136,7 @@ iPSCeqServer <- function(input, output, session) {
       choices = names(d$sc_dge_byfactor)
     )
   })
-
+  
   # SC-DGE-CUST - select comparison for custom dge table
   output$sc_dge_factor_comp <- renderUI({
     req(input$sc_dge_factor_tablefact)
@@ -11153,7 +11149,7 @@ iPSCeqServer <- function(input, output, session) {
       choices = names(d$sc_dge_byfactor[[input$sc_dge_factor_tablefact]])
     )
   })
-
+  
   # SC-DGE-CUST - dge table output
   output$sc_dge_factor_results <- renderUI({
     req(input$sc_dge_factor_tablefact, input$sc_dge_factor_comp)
@@ -11162,17 +11158,17 @@ iPSCeqServer <- function(input, output, session) {
     if(is.null(d$sc_dge_byfactor[[input$sc_dge_factor_tablefact]][[input$sc_dge_factor_comp]])) return()
     DT::dataTableOutput("sc_dge_factor_results_tbl")
   })
-
+  
   # SC-DGE-CUST - dge table
   output$sc_dge_factor_results_tbl <- DT::renderDataTable(server = FALSE, {
     req(input$sc_dge_factor_tablefact, input$sc_dge_factor_comp)
     if(!is.null(d$sc_dge_byfactor_novars_msg)) return()
     if(length(d$sc_dge_byfactor) == 0) return()
     if(is.null(d$sc_dge_byfactor[[input$sc_dge_factor_tablefact]][[input$sc_dge_factor_comp]])) return()
-
+    
     DT::datatable({
       d$sc_dge_byfactor[[input$sc_dge_factor_tablefact]][[input$sc_dge_factor_comp]] %>%
-          mutate_if(., is.numeric, formatC)
+        mutate_if(., is.numeric, formatC)
     },
     rownames = F,
     extensions = 'Buttons',
@@ -11187,7 +11183,7 @@ iPSCeqServer <- function(input, output, session) {
       language = list(zeroRecords = "No differentially expressed genes for this comparison.")
     ), class = "display")
   })
-
+  
   ######### Volcano Plots TAB CODE: SCRNA-SEQ#####################
   
   # SC-DGE-VOL - Reactive function that returns  clusters from d$SCV[[d$res]]
@@ -11197,19 +11193,19 @@ iPSCeqServer <- function(input, output, session) {
     if(!(resTemp %in% names(d$SCV))) resTemp = names(d$SCV)[1]
     Clusters(d$SCV[[resTemp]])
   })
-
+  
   # DGE - header for volcano plot
   output$setScatterHeader <- renderUI({
     h3("Volcano plot")
   })
-
+  
   # SC-DGE-VOL - scatterplot comparing 2 clusters
   output$setScatter <- renderPlot({
     req(d$SCV, d$res, input$ssA, input$ssB)
     if(!(d$res %in% names(d$SCV)) || input$ssA == input$ssB ||
        !(input$ssA %in% levels(Clusters(d$SCV[[d$res]]))) ||
        !(input$ssB %in% levels(Clusters(d$SCV[[d$res]])))) return()
-
+    
     plot_compareClusts2(
       sCVd = d$SCV[[d$res]],
       clA = input$ssA,
@@ -11221,31 +11217,31 @@ iPSCeqServer <- function(input, output, session) {
       labGenes = rownames(d$SCV[[d$res]])
     )
   })
-
+  
   # SC-DGE-VOL - volcano dge table
   output$vol_cluster_scHeader <- renderUI({
     req(d$SCV)
     h3("DGE table")
   })
-
+  
   # SC-DGE-VOL - header for table filters
   output$vol_cluster_sc_filterheader <- renderUI({
     req(d$SCV)
     h4("Filters")
   })
-
+  
   # SC-DGE-VOL - abs log2fc threshold for table
   output$vol_cluster_sc_lfc <- renderUI({
     numericInput("vol_cluster_sc_lfc", label = "Abs. log2 fold-change",
                  value = 0.25, min = 0)
   })
-
+  
   # SC-DGE-VOL - adj p-val threshold for table
   output$vol_cluster_sc_padj <- renderUI({
     numericInput("vol_cluster_sc_padj", label = "Adj. p-value",
                  value = 0.05, min = 0, max = 1)
   })
-
+  
   # SC-DGE-VOL - action button to load dge table
   output$vol_cluster_sc_load <- renderUI({
     req(d$SCV, input$ssA, input$ssB, d$res, DEcombn(d$SCV[[d$res]]),
@@ -11258,7 +11254,7 @@ iPSCeqServer <- function(input, output, session) {
     if(!(input$ssB %in% names(ClustGeneStats(d$SCV[[d$res]])))) return(NULL)
     actionButton("vol_cluster_sc_load", label = "Load table")
   })
-
+  
   # SC-DGE-VOL - reactive exp to return dge table
   vol_cluster_sc_table <- eventReactive(input$vol_cluster_sc_load, {
     a <- ClustGeneStats(d$SCV[[d$res]])[[input$ssA]][,c("MGE","DR","MDGE")]  %>%
@@ -11271,12 +11267,12 @@ iPSCeqServer <- function(input, output, session) {
     names(b)[2:4] <- c(paste("MGE_", input$ssB, sep = ""),
                        paste("DR_", input$ssB, sep = ""),
                        paste("MDGE_", input$ssB, sep = ""))
-
+    
     temp <- c(paste(input$ssA, input$ssB, sep = "-"), paste(input$ssB, input$ssA, sep = "-"))
     tempName <- temp[temp %in% names(DEcombn(d$SCV[[d$res]]))]
     if(!isTruthy(tempName)) return(NULL)
     if(!(tempName %in% names(DEcombn(d$SCV[[d$res]])))) return(NULL)
-
+    
     out_table <- DEcombn(d$SCV[[d$res]])[[tempName]] %>%
       rownames_to_column(., var = "Gene")
     if (d$resType == "seurat_res") {
@@ -11295,7 +11291,7 @@ iPSCeqServer <- function(input, output, session) {
       avg <- avg %>%
         rownames_to_column(., var = "Gene")
     }
-
+    
     all <- out_table %>%
       left_join(., a, by = "Gene") %>%
       left_join(., b, by = "Gene")  %>%
@@ -11307,7 +11303,7 @@ iPSCeqServer <- function(input, output, session) {
     names(all) <- gsub("dDR", "Difference in detection rate", names(all))
     names(all) <- gsub("RNA\\.", "Avg exp cluster ", names(all))
     names(all) <- gsub("Gene", "GeneId", names(all))
-
+    
     nam <- names(all)[grepl("Avg exp cluster ", names(all))]
     nam <- nam[!grepl(input$ssA, nam)]
     nam <- nam[!grepl(input$ssB, nam)]
@@ -11329,13 +11325,13 @@ iPSCeqServer <- function(input, output, session) {
     all <- all[order(as.numeric(all$log2FC), decreasing = T), ]
     return(all)
   })
-
+  
   # SC-DGE-VOL - dge table output
   output$vol_cluster_sc <- renderUI({
     req(vol_cluster_sc_table())
     DT::dataTableOutput("vol_cluster_sc_tbl")
   })
-
+  
   # SC-DGE-VOL - dge table
   output$vol_cluster_sc_tbl <- DT::renderDataTable(server = FALSE, {
     df <- vol_cluster_sc_table()
@@ -11358,7 +11354,7 @@ iPSCeqServer <- function(input, output, session) {
       language = list(zeroRecords = "No genes passing thresholds")
     ), class = "display")
   })
-
+  
   # SC-DGE-VOL - select cluster A
   output$setScatterA <- renderUI({
     req(SCVClusters(), d$res)
@@ -11372,7 +11368,7 @@ iPSCeqServer <- function(input, output, session) {
       selected = temp_sel
     )
   })
-
+  
   # SC-DGE-VOL - select cluster B
   output$setScatterB <- renderUI({
     req(SCVClusters(), d$res, input$ssA)
@@ -11387,7 +11383,7 @@ iPSCeqServer <- function(input, output, session) {
       selected = temp_sel
     )
   })
-
+  
   # SC-DGE-VOL - select type of volcano plot
   output$scatterInput <- renderUI({
     selectInput(
@@ -11401,7 +11397,7 @@ iPSCeqServer <- function(input, output, session) {
       selected = "logGER"
     )
   })
-
+  
   # SC-DGE-VOL - select type of volcano plot to display
   output$diffLabelType <- renderUI({
     selectInput(
@@ -11410,7 +11406,7 @@ iPSCeqServer <- function(input, output, session) {
       choices = c("Largest fold-changes" = "diff", "Smallest p-values" = "de")
     )
   })
-
+  
   # SC-DGE-VOL - upate cluster B based on selected cluster A
   observeEvent(input$ssA, {
     temp_cl <- levels(SCVClusters())
@@ -11419,7 +11415,7 @@ iPSCeqServer <- function(input, output, session) {
     updateSelectInput(session, "ssB",
                       choices = temp_cl, selected = temp_sel)
   })
-
+  
   # SC-DGE-VOL - download cluster gene stats A
   output$CGSsaveA <- downloadHandler(
     filename=function() { paste0("GeneStatsCluster_",input$ssA,".txt") },
@@ -11428,7 +11424,7 @@ iPSCeqServer <- function(input, output, session) {
       write.table(outTable,file,quote=F,sep="\t",row.names=T,col.names=NA)
     }
   )
-
+  
   # SC-DGE-VOL - download cluster gene stats B
   output$CGSsaveB <- downloadHandler(
     filename=function() { paste0("GeneStatsCluster_",input$ssB,".txt") },
@@ -11437,7 +11433,7 @@ iPSCeqServer <- function(input, output, session) {
       write.table(outTable,file,quote=F,sep="\t",row.names=T,col.names=NA)
     }
   )
-
+  
   # SC-DGE-VOL - select gene expression or detection rate
   output$diffLabelChoice <- renderUI({
     req(input$scatterInput, input$diffLabelType)
@@ -11448,7 +11444,7 @@ iPSCeqServer <- function(input, output, session) {
                    status = "success")
     }
   })
-
+  
   # SC-DGE-VOL - select number of most different genes to label
   output$diffLabelSelect <- renderUI({
     req(input$diffLabelType)
@@ -11462,7 +11458,7 @@ iPSCeqServer <- function(input, output, session) {
       width = "100%"
     )
   })
-
+  
   # SC-DGE-VOL - download handler for volcano plot comp cluster
   # A and B
   output$setScatterSave <- downloadHandler(
@@ -11488,7 +11484,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     }
   )
-
+  
   # SC-DGE-VOL - download handler for comp cluster A and B data
   output$setComparisonSave <- downloadHandler(
     filename=function() {
@@ -11503,14 +11499,14 @@ iPSCeqServer <- function(input, output, session) {
                          file,quote=F,sep="\t",row.names=T,col.names=NA))
     }
   )
-
+  
   ######### GENE SET ENRICHMENT & HEATMAPS TAB CODE: SCRNA-SEQ#####################
-
+  
   # SC-DGE-GSE - title for gse + heatmap
   output$gse_title_sc <- renderText({
     "GSE & heatmap"
   })
-
+  
   # SC-DGE-GSE - select enrichr libraries
   output$enrichRLib_sc <- renderUI({
     enrichRLibs <- scan("./data/enrichrlibrary.txt", what = "character", quiet = T)
@@ -11547,7 +11543,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     )
   })
-
+  
   # SC-DGE-GSE - select input DGE filter list or user selected genes
   output$dge_list_sc <- renderUI({
     myChoices <- c("Cluster DGE", "Manual")
@@ -11593,7 +11589,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     )
   })
-
+  
   # SC-DGE-GSE - copy/paste box for user selected genes
   output$gene_list_sc <- renderUI({
     req(input$dge_list_sc)
@@ -11608,7 +11604,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     )
   })
-
+  
   # SC-DGE-GSE - select to complete gse on all, up in group 1 or group 2
   output$sc_gene_list_filtering <- renderUI({
     req(input$dge_list_sc)
@@ -11640,7 +11636,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     )
   })
-
+  
   # SC-DGE-GSE - specify # of top genes to complete gse
   output$top_n_genes_sc <- renderUI({
     req(input$dge_list_sc)
@@ -11655,7 +11651,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     )
   })
-
+  
   # SC-DGE-GSE - use all genes passing filter for gse
   output$use_all_genes_sc <- renderUI({
     req(input$dge_list_sc)
@@ -11668,7 +11664,7 @@ iPSCeqServer <- function(input, output, session) {
       icon = icon("check")
     )
   })
-
+  
   output$geneOptions_sc_ui <- renderUI({
     req(input$dge_list_sc)
     if(input$dge_list_sc == "Manual") return()
@@ -11685,7 +11681,7 @@ iPSCeqServer <- function(input, output, session) {
   observeEvent(input$all_genes_sc, {
     d$fea_all_genes <- input$all_genes_sc
   })
-
+  
   # SC-DGE-GSE - store updated gse data size in object d
   observe({
     if(is.null(gsegenes_sc())) {
@@ -11710,7 +11706,7 @@ iPSCeqServer <- function(input, output, session) {
        (is.null(input$gene_list_sc) || input$gene_list_sc == "")) return()
     h4(d$dge_info_sc, style = "margin-top: 0px; margin-right: 30px;")
   })
-
+  
   # SC-DGE-GSE - action button to submit gse
   output$submit_fe_sc <- renderUI({
     actionButton("submit_fe_sc", "Run GSE", icon = icon("space-shuttle"))
@@ -11725,7 +11721,7 @@ iPSCeqServer <- function(input, output, session) {
     }
   })
   
-
+  
   # SC-DGE-GSE - specify colors for heatmap
   output$heatColors_sc <- renderUI({
     
@@ -11741,7 +11737,7 @@ iPSCeqServer <- function(input, output, session) {
       selected = 'Default'
     )
   })
-
+  
   # SC-DGE-Heatmap - action button to build heatmap
   output$submit_list_sc <- renderUI({
     req(heattran1_sc())
@@ -11751,17 +11747,17 @@ iPSCeqServer <- function(input, output, session) {
       icon = icon("space-shuttle")
     )
   })
-
+  
   # SC-DGE-Heatmap - cluster rows
   output$row_type_sc <- renderUI({
     prettyCheckbox("row_type_sc", label = "Cluster genes",
-                  value = T, status = "default", icon = icon("check"))
+                   value = T, status = "default", icon = icon("check"))
   })
-
+  
   # SC-DGE-GSE - cluster cols
   output$col_type_sc <- renderUI({
     prettyCheckbox("col_type_sc", label = "Cluster samples",
-                  value = T, status = "default", icon = icon("check"))
+                   value = T, status = "default", icon = icon("check"))
   })
   
   # SC-DGE-Heatmap - scale genes option
@@ -11769,10 +11765,10 @@ iPSCeqServer <- function(input, output, session) {
     prettyCheckbox("scale_genes_sc", label = "Scale genes",
                    value = T, status = "default", icon = icon("check"))
   })
-
+  
   # SC-DGE-GSE - warning msgs for gse
   output$gse_warning_sc <- renderText(d$gse_warning_msg)
-
+  
   # SC-DGE-GSE - missing genes (ie not in dataset) for user selected genes in gse
   observeEvent(input$submit_fe_sc, {
     d$newExpSetup <- F
@@ -11788,7 +11784,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     }
   })
-
+  
   # SC-DGE-GSE - reactive expression for gse
   sc_func_enrich <- eventReactive(input$submit_fe_sc, {
     d$gse_warning_msg <- ""
@@ -11848,7 +11844,7 @@ iPSCeqServer <- function(input, output, session) {
       })
     })
   })
-
+  
   # SC-DGE-GSE - header for gse
   output$sc_tbl_func_enrHeader <- renderUI({
     req(input$submit_fe_sc, sc_func_enrich())
@@ -11859,7 +11855,7 @@ iPSCeqServer <- function(input, output, session) {
       h3("Gene set enrichment table", style = "margin-top: 0px;")
     }
   })
-
+  
   # SC-DGE-GSE - gse table output
   output$sc_func_enr_tbl <- DT::renderDataTable(server = FALSE, {
     if(is.null(sc_func_enrich())) return()
@@ -11877,7 +11873,7 @@ iPSCeqServer <- function(input, output, session) {
                           text = 'Download GSE analysis'))
     ), class = "display")
   })
-
+  
   # SC-DGE-GSE - warning text for specifying no sign gse
   output$sc_no_list <- renderText({
     if(d$gse_warning_msg != "") return(NULL)
@@ -11887,7 +11883,7 @@ iPSCeqServer <- function(input, output, session) {
       "There are no significant enrichments of common annotated biological features for the submitted genes."
     }
   })
-
+  
   # Single-cell heatmap help
   observeEvent(input$sc_heatmap_help_button, {
     showModal(modalDialog(
@@ -12128,7 +12124,7 @@ iPSCeqServer <- function(input, output, session) {
         input$submit_list_sc, input$dge_list_heatmap_sc)
     h3("Interactive heatmap (click on cells)")
   })
-
+  
   # SC-DGE-GSE - select factors for sample labels and legend for heatmap
   output$heatfactorlabel_sc <- renderUI({
     req(d$inD)
@@ -12146,7 +12142,7 @@ iPSCeqServer <- function(input, output, session) {
       multiple = T
     )
   })
-
+  
   # SC-DGE-GSE - color schemes for heatmaps
   heatCols_sc <-  reactive({
     if(is.null(input$heatColors_sc)) return()
@@ -12328,7 +12324,7 @@ iPSCeqServer <- function(input, output, session) {
     if(nrow(hmData) == 0 || ncol(hmData) == 0) return()
     return(list(hmData))
   })
-
+  
   # SC-DGE-GSE - store filtered top 50/user selected genes
   # in a reactive exp
   heattran2_sc <- eventReactive(input$submit_list_sc, {
@@ -12481,7 +12477,7 @@ iPSCeqServer <- function(input, output, session) {
       
       incProgress(1/4)
     })
-
+    
     return(list(
       rescaled_mat = rescaled_mat,
       rescaled_mat_unclipped = rescaled_mat_unclipped,
@@ -12505,7 +12501,7 @@ iPSCeqServer <- function(input, output, session) {
     ))
     
   })
-
+  
   # SC-DGE-GSE - update select gene from heatmap plotly
   observeEvent(input$submit_list_sc, {
     # Reset event_data("plotly_selected")
@@ -12530,17 +12526,17 @@ iPSCeqServer <- function(input, output, session) {
       sampleLabels <- apply(sampleLabelDF, 1, function(i) paste(i, collapse = "_"))
     } 
     legendLabels <- unique(sampleLabels)
-
+    
     # Legend height
     if(length(legendLabels) == 1) {
       legendHeight <- 80
     } else {
       legendHeight <- ifelse(test = (length(legendLabels) == 2), yes = 60, no = 40) * length(legendLabels)
     }
-
+    
     heatmapHeight <- max(round(800 * (nrow(heattran1_sc()[[1]]) / 30)), 267)
     if(nrow(heattran1_sc()[[1]]) > 50) heatmapHeight <- 600
-
+    
     if(input$col_type_sc) {
       if(legendHeight > heatmapHeight) {
         totalFigureHeight <- legendHeight + 120
@@ -12557,7 +12553,7 @@ iPSCeqServer <- function(input, output, session) {
     
     d$totalFigureHeight_sc <- totalFigureHeight
   })
-
+  
   # SC-DGE-GSE - heatmap of top 50/user selected genes
   output$heatplot1_sc <- renderPlotly({
     
@@ -12628,13 +12624,13 @@ iPSCeqServer <- function(input, output, session) {
   output$heatplot1_sc_ui <- renderUI({
     plotlyOutput("heatplot1_sc", width = 1000, height = d$totalFigureHeight_sc)
   })
-
+  
   # SC-DGE-GSE - download button for heatmap (PDF)
   output$dlqcheatplot1pdf_sc <- renderUI({
     req(input$submit_list_sc, !d$newHeat)
     downloadButton("dlqcheatplot1pdfimg_sc", "Download static plot (PDF)")
   })
-
+  
   # SC-DGE-GSE - download file heatmap (PDF)
   output$dlqcheatplot1pdfimg_sc <- downloadHandler(
     filename =  function() {
@@ -12660,13 +12656,13 @@ iPSCeqServer <- function(input, output, session) {
       })
     }
   )
-
+  
   # SC-DGE-GSE - download button for heatmap (PNG)
   output$dlqcheatplot1png_sc <- renderUI({
     req(input$submit_list_sc, !d$newHeat)
     downloadButton("dlqcheatplot1pngimg_sc", "Download static plot (PNG)")
   })
-
+  
   # SC-DGE-GSE - download file for heatmap (PNG)
   output$dlqcheatplot1pngimg_sc <- downloadHandler(
     filename =  function() {
@@ -12692,7 +12688,7 @@ iPSCeqServer <- function(input, output, session) {
       })
     }
   )
-
+  
   # SC-DGE-GSE - choose factor for heatmap
   output$heatfactor_sc <- renderUI({
     req(d$inD)
@@ -12710,14 +12706,14 @@ iPSCeqServer <- function(input, output, session) {
       selected = mySelected
     )
   })
-
+  
   # SC-DGE-GSE - reactive expression to store gene clicked in heatmap
   gene_selection_sc <- eventReactive(input$submit_list_sc, {
     req(input$heatfactor_sc, !d$newHeat, input$submit_list_sc)
     s <- d$heatmap1Click
     return(s)
   })
-
+  
   # SC-DGE-GSE - boxplot of counts by gene selected from heatmap
   output$heatplot2_sc <- renderPlotly({
     if(is.null(d$resType) || is.null(input$heatfactor_sc) || d$newHeat || 
@@ -12734,7 +12730,7 @@ iPSCeqServer <- function(input, output, session) {
     } else {
       gene <- rev(rownames(heattran2_sc()$rescaled_mat))[s$y]
     }
-
+    
     if (d$resType == "seurat_res") {
       res <- gsub(".*_|\\:.*", "", input$overall_res)
       if(!(res %in% names(seurat_only()))) return(NULL)
@@ -12752,7 +12748,7 @@ iPSCeqServer <- function(input, output, session) {
       coldata = meta,
       type = SubmitData$data_type
     )
-
+    
     tooltips <- paste0("<b>Sample:</b> ",
                        test$sample,
                        "<br />",
@@ -12809,13 +12805,13 @@ iPSCeqServer <- function(input, output, session) {
       )
     isolate(p)
   })
-
+  
   # SC-DGE-GSE - download button for heat counts (PDF)
   output$dlqcheatplot2pdf_sc <- renderUI({
     req(input$submit_list_sc, !d$newHeat, d$heatmap1Click)
     downloadButton("dlqcheatplot2pdfimg_sc", label = "Download static plot (PDF)")
   })
-
+  
   # SC-DGE-GSE - download file for heat counts (PDF)
   output$dlqcheatplot2pdfimg_sc <- downloadHandler(
     filename =  function() {
@@ -12852,7 +12848,7 @@ iPSCeqServer <- function(input, output, session) {
       fact <- factor(fact, levels = mixedsort(unique(fact), decreasing = F))
       
       y <- test[, "counts"]
-
+      
       pdf(file, width = 7, height = 6.5, onefile = FALSE) # open the pdf device
       qcHeatCount(
         data = test,
@@ -12865,14 +12861,14 @@ iPSCeqServer <- function(input, output, session) {
       dev.off()
     }
   )
-
+  
   # SC-DGE-GSE - download button for heat counts (PNG)
   output$dlqcheatplot2png_sc <- renderUI({
     req(input$submit_list_sc, !d$newHeat,
         d$heatmap1Click)
     downloadButton("dlqcheatplot2pngimg_sc", label = "Download static plot (PNG)")
   })
-
+  
   # SC-DGE-GSE - download file for heat counts (PNG)
   output$dlqcheatplot2pngimg_sc <- downloadHandler(
     filename =  function() {
@@ -12909,7 +12905,7 @@ iPSCeqServer <- function(input, output, session) {
       fact <- factor(fact, levels = mixedsort(unique(fact), decreasing = F))
       
       y <- test[, "counts"]
-
+      
       png(file, width = 800, height = 750)
       qcHeatCount(
         data = test,
@@ -12922,15 +12918,15 @@ iPSCeqServer <- function(input, output, session) {
       dev.off()
     }
   )
-
+  
   ######### MANUALLY SELECT CELLS FOR DGE TAB CODE: SCRNA-SEQ#####################
-
+  
   # SC-DGE-MSC - for manually select cells
   output$manuallyselectcells_header <- renderUI({
     
     h3("Manually select cells for DGE")
   })
-
+  
   # SC-DGE-MSC - select metadata to overlay onto plot
   output$tsneSelDEcol <- renderUI({
     req(d$inD, d$res)
@@ -12940,21 +12936,21 @@ iPSCeqServer <- function(input, output, session) {
     selectInput("tsneSelDEcol","Metadata overlay and filtering",
                 choices=tempChoices, selected = tempSel)
   })
-
+  
   # SC-DGE-MSC - store filtering choices in object d
   observeEvent(input$plusFilt,{
     d$filts <- unique(c(d$filts,input$tsneSelDEcol))
   })
-
+  
   # SC-DGE-MSC - store unselected filtering choices in object d
   observeEvent(input$minusFilt,{
     d$filts <- d$filts[-which(d$filts == input$tsneSelDEcol)]
   })
-
+  
   # SC-DGE-MSC - set d$filts to NULL when input$minusFiltAll is
   # selected
   observeEvent(input$minusFiltALL,{ d$filts <- NULL })
-
+  
   # SC-DGE-MSC - reactive expression for MDpicker cluster selection
   filtValues <- reactive({
     sapply(d$filts,function(MD) {
@@ -12966,7 +12962,7 @@ iPSCeqServer <- function(input, output, session) {
       return(input[[temp_inputSlot]])
     },simplify=F)
   })
-
+  
   # SC-DGE-MSC - reactive exp to store selected cells
   makeMDpicker <- reactive({
     if(is.null(d$filts)) return()
@@ -12993,7 +12989,7 @@ iPSCeqServer <- function(input, output, session) {
       })
     )
   })
-
+  
   # SC-DGE-MSC - reactive exp select cells
   plotlySelected <- reactive({
     plotlySelected <- event_data("plotly_selected")
@@ -13001,20 +12997,20 @@ iPSCeqServer <- function(input, output, session) {
     plotlySelected <- plotlySelected[!is.na(plotlySelected$key), ]
     return(plotlySelected$key)
   })
-
+  
   # SC-DGE-MSC - reactive hover select cells
   plotlyHover <- reactive({
     plotlyHover = event_data("plotly_hover")
     if(is.null(plotlyHover)) NULL else plotlyHover$key[1]
   })
-
+  
   # SC-DGE-MSC - remove selected cells & reset
   output$MDfilts <- renderUI({
     req(d$res, d$inD, d$MD, d$SCV)
     if(is.null(makeMDpicker())) return()
     makeMDpicker()
   })
-
+  
   # SC-DGE-MSC - action button to remove all filters
   output$MDfiltsRemoveAll <- renderUI({
     req(d$res, d$inD, d$SCV)
@@ -13023,55 +13019,55 @@ iPSCeqServer <- function(input, output, session) {
                    style="color: #008000; background: #fff")
     }
   })
-
+  
   # SC-DGE-MSC - action button for selecting set A of cells
   output$addCellsA <- renderUI({
     actionButton("addCellsA", "Set A: Add cells", icon("plus"),
                  style = "color: #fff; border-color: #00bfff; background:#00bfff")
   })
-
+  
   # SC-DGE-MSC - action button for removing set A cells
   output$removeCellsA <- renderUI({
     actionButton("removeCellsA", "Set A: Remove cells", icon("minus"),
                  style = "color: #fff; border-color: #00bfff")
   })
-
+  
   # SC-DGE-MSC - action button for clearing set A cells
   output$clearA <- renderUI({
     actionButton("clearA", "Set A: Clear",
                  style = "color: black; background: lightgray; border-color: lightgray")
   })
-
+  
   # SC-DGE-MSC - reset plotly-select for A cells
   observeEvent(input$clearA, {
     d$a <- NULL
     runjs("Shiny.setInputValue('plotly_selected-A', null);")
   })
-
+  
   # SC-DGE-MSC - action button for selecting set B of cells
   output$addCellsB <- renderUI({
     actionButton("addCellsB", "Set B: Add cells", icon("plus"),
                  style = "color: #fff; border-color: #00bfff; background:#00bfff")
   })
-
+  
   # SC-DGE-MSC - action button for removing set B cells
   output$removeCellsB <- renderUI({
     actionButton("removeCellsB", "Set B: Remove cells", icon("minus"),
                  style = "color: #fff; border-color: #00bfff")
   })
-
+  
   # SC-DGE-MSC - action button for clearing set B cells
   output$clearB <- renderUI({
     actionButton("clearB", "Set B: Clear",
                  style = "color: black; background: lightgray; border-color: lightgray")
   })
-
+  
   # SC-DGE-MSC - reset plotly-select for B cells
   observeEvent(input$clearB, {
     d$b <- NULL
     runjs("Shiny.setInputValue('plotly_selected-A', null);")
   })
-
+  
   # SC-DGE-MSC - select dimensionality reduction
   output$SelDE_EmbType <- renderUI({
     req(d$inD)
@@ -13085,7 +13081,7 @@ iPSCeqServer <- function(input, output, session) {
                 choices = temp_embs,
                 selected = temp_embs[temp_embs %in% c("tSNE","UMAP")][1])
   })
-
+  
   # SC-DGE-MSC - select x-axis label
   output$SelDE_EmbDimX <- renderUI({
     req(d$inD, input$SelDE_EmbType)
@@ -13093,7 +13089,7 @@ iPSCeqServer <- function(input, output, session) {
                 choices= gsub("_", " ", colnames(getEmb(d$inD,input$SelDE_EmbType))),
                 selected= gsub("_", " ", colnames(getEmb(d$inD,input$SelDE_EmbType))[1]))
   })
-
+  
   # SC-DGE-MSC - select y-axis label
   output$SelDE_EmbDimY <- renderUI({
     req(d$inD, input$SelDE_EmbType)
@@ -13101,10 +13097,10 @@ iPSCeqServer <- function(input, output, session) {
                 choices= gsub("_", " ", colnames(getEmb(d$inD,input$SelDE_EmbType))),
                 selected= gsub("_", " ", colnames(getEmb(d$inD,input$SelDE_EmbType))[2]))
   })
-
+  
   # SC-DGE-MSC - warning for manually selecting cells
   output$gse_warning_manuallyselectcells_sc <- renderText(d$gse_warning_msg)
-
+  
   # SC-DGE-MSC - plot dim reduction based on inputs for manually select cells
   output$tsneSelDE <- renderPlotly({
     req(d$inD, d$SCV, d$res, input$tsneSelDEcol, input$SelDE_EmbType,
@@ -13238,7 +13234,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     }
   })
-
+  
   # SC-DGE-MSC - reactive exp to store cell selection from filters and/or brush
   currSel <- reactive({
     temp_points <- rownames(brushedPoints(
@@ -13268,59 +13264,59 @@ iPSCeqServer <- function(input, output, session) {
       return(temp_points)
     } else { return(character()) }
   })
-
+  
   # SC-DGE-MSC - text for cells being hovered over in dim plot
   output$cellsHovered <- renderText(
     paste("Hovering over cell(s):", plotlyHover())
   )
-
+  
   # SC-DGE-MSC - cells selected by lasso
   output$plotlySelected <- renderPrint({
     plotlySelected <- event_data("plotly_selected", source = "A")
     if(is.null(plotlySelected)) "No cells selected" else plotlySelected
   })
-
+  
   # SC-DGE-MSC - stored data
   output$pData <- renderPrint({
     if(is.null(pData())) "pData is NULL" else pData
   })
-
+  
   # SC-DGE-MSC - observed cells in pop A
   observeEvent(input$addCellsA,{
     d$a <- unique(c(d$a,currSel()))
     d$a <- unique(c(d$a,plotlySelected()))
   }, ignoreInit = T)
-
+  
   # SC-DGE-MSC - removed cells in pop A
   observeEvent(input$removeCellsA,{
     d$a <- d$a[!d$a %in% currSel()]
     d$a <- d$a[!d$a %in% plotlySelected()]
   })
-
+  
   # SC-DGE-MSC - observed cells in pop B
   observeEvent(input$addCellsB,{
     d$b <- unique(c(d$b,currSel()))
     d$b <- unique(c(d$b,plotlySelected()))
   }, ignoreInit = T)
-
+  
   # SC-DGE-MSC - removed cells in pop B
   observeEvent(input$removeCellsB,{
     d$b <- d$b[!d$b %in% currSel()]
     d$b <- d$b[!d$b %in% plotlySelected()]
   })
-
+  
   # SC-DGE-MSC - if a and b are null, render no text
   observeEvent(input$go2, {
     d$a <- d$b <- NULL
     output$calcText <- renderText("")
   })
-
+  
   # SC-DGE-MSC - number of cells in pop A
   output$textSetA <- renderText(paste(length(d$a),"cells in set A."))
-
+  
   # SC-DGE-MSC - number of cells in pop B
   output$textSetB <- renderText(paste(length(d$b),"cells in set B."))
-
+  
   # SC-DGE-MSC - overlap message b/t pop A and B
   output$textOverlap <- renderText(
     if (!is.null(d$a) & !is.null(d$b) & length(intersect(d$a,d$b)) > 0) {
@@ -13328,21 +13324,21 @@ iPSCeqServer <- function(input, output, session) {
             "Cells must be assigned to a single set prior to calculation.")
     }
   )
-
+  
   # SC-DGE-MSC - name the comparison for easier id
   output$DEsetName <- renderUI({
     textInput("DEsetName","Short name for this comparison",
               value = "", placeholder="A-z0-9_ only please")
   })
-
+  
   # SC-DGE-MSC - action button to run dge
   output$calcDE <- renderUI({
     actionButton("calcDE","Calculate differential gene expression", icon("play"))
   })
-
+  
   # SC-DGE-MSC - render calculated text value
   output$calcText <- renderText(d$calcTextVal)
-
+  
   # SC-DGE-MSC - gse for manually selecting cells tab
   sc_manuallyselectcells_func_enrich <- reactive({
     if(is.null(input$comps_manuallyselectcells_sc)) return()
@@ -13377,7 +13373,7 @@ iPSCeqServer <- function(input, output, session) {
               }
             }
           }
-
+          
           uni_genes <- rownames(dge)
           d$sc_mytabTemp <- dge
           # load library list
@@ -13400,7 +13396,7 @@ iPSCeqServer <- function(input, output, session) {
               d$gse_warning_msg <- "EnrichR is unavailable. Please try again later."
               return()
             }
-
+            
             # return significant genes
             enr <- getSigTerms(enr, libs)
             enr <- enr[sapply(enr, function(x) !is.null(x))]
@@ -13444,7 +13440,7 @@ iPSCeqServer <- function(input, output, session) {
       })
     }
   })
-
+  
   # DGE - run dge for manually selected cells
   observeEvent(input$calcDE,{
     runjs("Shiny.setInputValue('plotly_selected-A', null);") # Reset event_data("plotly_selected")
@@ -13505,7 +13501,7 @@ iPSCeqServer <- function(input, output, session) {
       d$res <- newRes # Automatically update the view to show the calculated results.
     }
   }, ignoreInit = T)
-
+  
   # SC-DGE-MSC - pull top 50 filtered dge genes or user selected gene list
   heattran1_manuallyselectcells_sc <- reactive({
     req(input$sc_manuallyselectcells_gene_list_filtering, d$SCV)
@@ -13554,7 +13550,7 @@ iPSCeqServer <- function(input, output, session) {
     }
     return(list(heat.mat))
   })
-
+  
   # SC-DGE-MSC - header for downloading results
   output$manuallyselectcells_downloadGSE_header <- renderUI({
     req(input$comps_manuallyselectcells_sc, clustList())
@@ -13573,26 +13569,26 @@ iPSCeqServer <- function(input, output, session) {
                  choices = tempChoices,
                  selected = 1, status = "success")
   })
-
+  
   # SC-DGE-MSC - specify # of top genes to complete gse
   output$top_n_genes_manuallyselectcells_sc <- renderUI({
     req(input$calcDE, input$comps_manuallyselectcells_sc)
     if(d$calcTextVal != "") return()
     textInput("n_genes_manuallyselectcells_sc", label = "Top n genes", value = 100, placeholder = "ALL")
   })
-
+  
   # SC-DGE-MSC - use all genes passing filter for gse
   output$use_all_genes_manuallyselectcells_sc <- renderUI({
     req(input$calcDE, input$comps_manuallyselectcells_sc)
     if(d$calcTextVal != "") return()
     prettyCheckbox("all_genes_manuallyselectcells_sc", label = "All genes\npassing filters", value = F, status = "default", icon = icon("check"))
   })
-
+  
   # SC-DGE-MSC - reactive exp for storing data in object d
   observeEvent(input$all_genes_manuallyselectcells_sc, {
     d$fea_all_genes <- input$all_genes_manuallyselectcells_sc
   })
-
+  
   # SC-DGE-MSC - dge messages on manually selected cells
   output$dge_info_manuallyselectcells_sc <- renderUI({
     req(input$calcDE, input$comps_manuallyselectcells_sc)
@@ -13608,7 +13604,7 @@ iPSCeqServer <- function(input, output, session) {
     }
     h4(d$dge_info_manuallyselectcells_sc, style = "margin-top: 0px;")
   })
-
+  
   # SC-DGE-MSC - updated dge messages on manually selected cells
   observeEvent(input$dge_filter_manuallyselectcells_sc, {
     if(is.null(heattran1_manuallyselectcells_sc()[[1]])) {
@@ -13621,7 +13617,7 @@ iPSCeqServer <- function(input, output, session) {
       d$dge_info_manuallyselectcells_sc <- paste0("Data size: ", dims[1], geneTxt, dims[2], " samples")
     }
   }, ignoreNULL = T)
-
+  
   # SC-DGE-MSC - warning messages for dge for manually selected cells
   observeEvent(d$n_genes_manuallyselectcells_sc, {
     if(d$n_genes_manuallyselectcells_sc != "" & suppressWarnings(is.na(as.integer(na.omit(d$n_genes_manuallyselectcells_sc))))) {
@@ -13643,7 +13639,7 @@ iPSCeqServer <- function(input, output, session) {
       d$dge_info_manuallyselectcells_sc <- paste0("Data size: ", dims[1], geneTxt, dims[2], " samples")
     }
   }, ignoreNULL = T)
-
+  
   # SC-DGE-MSC - warning messages for dge for manually selected cells
   observeEvent(input$all_genes_manuallyselectcells_sc, {
     if(d$n_genes_manuallyselectcells_sc != "" & suppressWarnings(is.na(as.integer(na.omit(d$n_genes_manuallyselectcells_sc))))) {
@@ -13668,7 +13664,7 @@ iPSCeqServer <- function(input, output, session) {
       d$gse_warning_msg <- ""
     }
   }, ignoreNULL = T)
-
+  
   observe({
     if(is.null(input$enrichRLib_manuallyselectcells)) {
       d$enrichRLib_manuallyselectcells <- scan("./data/enrichrlibrary.txt", what = "character", quiet = T)[1:6]
@@ -13687,7 +13683,7 @@ iPSCeqServer <- function(input, output, session) {
     if(d$calcTextVal != "") return()
     actionButton("sc_manuallyselectcells_gseActionButton", label = "Download GSE data")
   })
-
+  
   # SC-DGE-MSC - warning messages after running gse
   observeEvent(input$sc_manuallyselectcells_gseActionButton, {
     if(!input$all_genes_manuallyselectcells_sc & d$n_genes_manuallyselectcells_sc != "" &
@@ -13707,7 +13703,7 @@ iPSCeqServer <- function(input, output, session) {
       shinyjs::runjs("$('#sc_manuallyselectcells_downenrData')[0].click();")
     }
   })
-
+  
   # SC-DGE-MSC - select enrichr libraries
   output$enrichRLib_manuallyselectcells <- renderUI({
     req(input$calcDE, input$comps_manuallyselectcells_sc)
@@ -13722,7 +13718,7 @@ iPSCeqServer <- function(input, output, session) {
       width = "600px"
     )
   })
-
+  
   # SC-DGE-MSC - download handler for gse data
   output$sc_manuallyselectcells_downenrData <- downloadHandler(
     filename = function() {
@@ -13732,7 +13728,7 @@ iPSCeqServer <- function(input, output, session) {
     content = function(file) {
       enrData <- sc_manuallyselectcells_func_enrich() %>%
         mutate_if(is.numeric, round, digits = 4)
-
+      
       write.csv(
         enrData,
         file,
@@ -13740,7 +13736,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     }
   )
-
+  
   output$manuallyselectcells_downloadGSE_ui <- renderUI({
     # req(input$comps_manuallyselectcells_sc, clustList())
     req(clustList())
@@ -13790,7 +13786,7 @@ iPSCeqServer <- function(input, output, session) {
     if(length(comps) == 0) return()
     h3("Download differential gene expression results", style = "margin-top: 0px;")
   })
-
+  
   # SC-DGE-MSC - select previous comparisons from manually selected cells DGE
   output$comps_manuallyselectcells_sc <- renderUI({
     req(clustList())
@@ -13803,7 +13799,7 @@ iPSCeqServer <- function(input, output, session) {
   observeEvent(input$comps_manuallyselectcells_sc, {
     d$res <- input$comps_manuallyselectcells_sc
   })
-
+  
   # SC-DGE-MSC - download button for manually select cells
   output$sc_manuallyselectcells_downloaddge <- renderUI({
     # req(input$calcDE)
@@ -13811,27 +13807,27 @@ iPSCeqServer <- function(input, output, session) {
     if(d$calcTextVal != "") return()
     downloadButton("sc_manuallyselectcells_downloaddgebutton", "Download DGE data")
   })
-
+  
   # SC-DGE-MSC - select abs log2fc threshold
   output$manuallyselectcells_lfc <- renderUI({
     req(input$comps_manuallyselectcells_sc, clustList())
     comps <- grep("^Comp:", x = clustList(), value = T)
     if(length(comps) == 0) return()
-
+    
     numericInput("manuallyselectcells_lfc", label = "Abs. log2 fold-change",
                  value = 0.25, min = 0)
   })
-
+  
   # SC-DGE-MSC - adj p-val threshold
   output$manuallyselectcells_padj <- renderUI({
     req(input$comps_manuallyselectcells_sc, clustList())
     comps <- grep("^Comp:", x = clustList(), value = T)
     if(length(comps) == 0) return()
-
+    
     numericInput("manuallyselectcells_padj", label = "Adj. p-value",
                  value = 0.05, min = 0, max = 1)
   })
-
+  
   # SC-DGE-MSC - download handler dge
   output$sc_manuallyselectcells_downloaddgebutton <- downloadHandler(
     filename = function() {
@@ -13861,7 +13857,7 @@ iPSCeqServer <- function(input, output, session) {
       names(all) <- gsub("pVal", "P-value", names(all))
       names(all) <- gsub("dDR", "Difference in detection rate", names(all))
       names(all) <- gsub("RNA\\.", "Avg exp cluster ", names(all))
-
+      
       nam <- names(all)[grepl("Avg exp cluster ", names(all))]
       nam <- nam[!grepl("Set A", nam)]
       nam <- nam[!grepl("Set B", nam)]
@@ -13876,7 +13872,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     }
   )
-
+  
   output$manuallyselectcells_downloadDGE_ui <- renderUI({
     req(clustList())
     comps <- grep("^Comp:", x = clustList(), value = T)
@@ -13910,16 +13906,16 @@ iPSCeqServer <- function(input, output, session) {
     actionButton("plusFilt", "Add", icon("plus"),
                  style = "color: #fff; border-color: #00bfff; background:#00bfff")
   })
-
+  
   # SC-DGE-MSC - action button to remove cell selection
   output$minusFilt <- renderUI({
     req(d$res, d$inD, d$SCV)
     actionButton("minusFilt", "Remove", icon("minus"),
                  style = "color: #fff; border-color: #00bfff")
   })
-
+  
   ######### CLUSTERING TAB CODE: SCRNA-SEQ#####################
-
+  
   # SC-DGE-CLUS - actionbutton for clustering
   output$goclust_sc <- renderUI({
     
@@ -13929,21 +13925,21 @@ iPSCeqServer <- function(input, output, session) {
       icon = icon("space-shuttle")
     )
   })
-
+  
   # SC-DGE-CLUS - warning for clustering
   output$wgcna_warning_msg_sc <- renderText(d$wgcna_warning_sc)
-
+  
   # SC-DGE-CLUS - set newCluster in object d as FALSE
   observeEvent(input$goclust_sc, {
     d$newCluster <- F
   })
-
+  
   # SC-DGE-CLUS - header for clustering analysis
   output$headclust_sc <- renderUI({
     
     h4("Clustering analysis")
   })
-
+  
   # SC-DGE-CLUS - set clustering cut-off
   observeEvent(SubmitData$data_type, {
     output$clustvarnumber_sc <- renderUI({
@@ -13955,7 +13951,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     })
   })
-
+  
   # SC-DGE-CLUS - choose clustering algorithm
   observeEvent(SubmitData$data_type, {
     output$clustalg_sc <- renderUI({
@@ -13971,7 +13967,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     })
   })
-
+  
   # SC-DGE-CLUS - set minimum gene module size
   output$min_module_size_sc <- renderUI({
     req(SubmitData$data_type, input$clustalg_sc)
@@ -13989,7 +13985,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     )
   })
-
+  
   # SC-DGE-CLUS - update min module size
   observeEvent(input$min_module_size_sc, {
     if(is.null(input$min_module_size_sc)) return()
@@ -14002,19 +13998,18 @@ iPSCeqServer <- function(input, output, session) {
       value = 30
     )
   })
-
+  
   # SC-DGE-CLUS - reactive exp for running clustering
   clustout_sc <- eventReactive(input$goclust_sc, {
     num <- input$clustvarnumber_sc
-
     if (d$resType == "seurat_res") {
-        res <- input$overall_res
-        res <- gsub(".*_|\\:.*", "", res)
-        if(!(res %in% names(seurat_only()))) return(NULL)
-        seur <- seurat_only()[grepl(res, names(seurat_only()))]
-        seur <- seur[[1]]
-        cts <- as.matrix(GetAssayData(object = seur, slot = "data"))
-        tran <- cts
+      res <- input$overall_res
+      res <- gsub(".*_|\\:.*", "", res)
+      if(!(res %in% names(seurat_only()))) return(NULL)
+      seur <- seurat_only()[grepl(res, names(seurat_only()))]
+      seur <- seur[[1]]
+      cts <- as.matrix(GetAssayData(object = seur, slot = "data"))
+      tran <- cts
     } else {
       seur <- seurat_only()
       cts <- as.matrix(GetAssayData(object = seur, slot = "data"))
@@ -14033,53 +14028,6 @@ iPSCeqServer <- function(input, output, session) {
         # Run this to check if there are gene outliers
         gsg <- goodSamplesGenes(datExpr, verbose = 3)
         gsg$allOK
-        # Create an object called "datTraits" that contains your
-        # trait data
-        datTraits <- seur@meta.data
-        datTraits <- datTraits[, grep("nCount_RNA|nFeature_RNA|silWidth|Sample", x = colnames(datTraits), invert = T), drop = F]
-        nLevels <- apply(datTraits, 2, function(col) length(unique(col)))
-        
-        # removed the max bc it makes the subsequent code throw errors
-        # if for example we have more than 12 seurat clusters
-        datTraits <- datTraits[, nLevels > 1,
-                               #& nLevels <= 12, 
-                               drop = F]
-
-        # Form a data frame analogous to expression data that will
-        # hold the clinical traits.
-        # should return TRUE if datasets align correctly, otherwise your
-        # names are out of order
-        table(rownames(datTraits) == rownames(datExpr))
-        # calculates the whole network connectivity
-        A <- adjacency(t(datExpr), type="signed")
-        k <- as.numeric(apply(A, 2, sum))-1 # standardized connectivity
-        Z.k <- scale(k)
-        thresholdZ.k <- -2.5 # often -2.5
-        outlierColor <- ifelse(Z.k < thresholdZ.k, "red", "black")
-        sampleTree <- flashClust(stats::as.dist(1-A), method = "average")
-        # convert traits to color: where red indicates high values
-        datTraits$seurat_clusters <- as.numeric(datTraits$seurat_clusters)
-        
-        if (ncol(datTraits) > 2) {
-          datTraits[c(1, 3:ncol(datTraits))] <- lapply(c(1, 3:ncol(datTraits)), function(x) as.character(names(datTraits)[x]))
-        } else {
-          datTraits$orig.ident <- as.character(as.factor(datTraits$orig.ident))
-        }
-
-        # MAY NEED TO UPDATE THIS WITH RAINBOW FOR FACTORS > 12
-        traitColors <- datTraits
-        for(i in 1:ncol(traitColors)) {
-          if(i %% 2 == 0) {
-            traitColors[, i] <- labels2colors(traitColors[, i],
-                                              colorSeq = brewer.pal(12, "Set3"))
-          } else {
-            traitColors[, i] <- labels2colors(traitColors[, i],
-                                              colorSeq = brewer.pal(12, "Paired"))
-          }
-        }
-
-        dimnames(traitColors)[[2]] <- paste(names(datTraits))
-        datColors <- data.frame(outlier = outlierColor, traitColors)
         incProgress(1/3)
         # TOM analysis - (computationally expensive)
         softPower <- 18
@@ -14164,14 +14112,11 @@ iPSCeqServer <- function(input, output, session) {
         incProgress(1/3)
         return(
           list(
-            sampleTree,
-            datColors,
-            geneTree,
-            dynamicColors,
-            mergedColors,
-            dissTOM,
-            moddf,
-            sampleDF
+            geneTree = geneTree,
+            dynamicColors = dynamicColors,
+            mergedColors = mergedColors,
+            dissTOM = dissTOM,
+            moddf = moddf
           )
         )
       })
@@ -14207,15 +14152,15 @@ iPSCeqServer <- function(input, output, session) {
         output$cluster <- as.factor(output$cluster)
         return(
           list(
-            consensusfastkmed,
-            output
+            consensusfastkmed = consensusfastkmed,
+            output = output
           )
         )
         incProgress(2/2)
       })
     }
   })
-
+  
   # SC-DGE-CLUS - output DT for custom annotations for wgcna
   observeEvent(input$goclust_sc, {
     if(input$clustalg_sc != "wgcna") {
@@ -14234,68 +14179,10 @@ iPSCeqServer <- function(input, output, session) {
     } else {
       d$wgcna_warning_sc <- NULL
     }
-
-    datColors <- clustout_sc()[[2]]
-    
-    if (d$resType == "seurat_res") {
-      res <- input$overall_res
-      res <- gsub(".*_|\\:.*", "", res)
-      if(!(res %in% names(seurat_only()))) return(NULL)
-      seur <- seurat_only()[grepl(res, names(seurat_only()))]
-      seur <- seur[[1]]
-    } else {
-      seur <- seurat_only()
-
-    }
-    coldata <- seur@meta.data
-    rowText <- coldata[clustout_sc()[[1]]$labels,
-                       colnames(coldata)[colnames(coldata) %in% colnames(datColors)]]
-    headerCallback <- c(
-      "function(thead, data, start, end, display){",
-      "  $('th', thead).css('border-bottom', '1px solid #ddd');",
-      "}"
-    )
-
-    for(i in 1:ncol(rowText)) rowText[, i] <- as.character(rowText[, i])
-    datColors <- datColors[, colnames(rowText)]
-    rownames(datColors) <- rownames(rowText)
-    for(colname in colnames(rowText)) {
-      local({
-        df <- data.frame(Group = unique(rowText[,colname]),
-                         Dummy = as.character(letters[1:length(unique(rowText[,colname]))]),
-                         Color = datColors[match(unique(rowText[,colname]),
-                                                 table = rowText[,colname]),
-                                           colname])
-        df <- df[order(df$Group), ]
-        outputName <- paste0(colname, "_legend_table_sc")
-        tableTitle <- colname
-        output[[outputName]] <- DT::renderDataTable({
-          DT::datatable(
-            df[,c("Group","Dummy")],
-            rownames = F,
-            colnames = rep.int("", times = 2),
-            escape = F, selection = "none",
-            caption = htmltools::tags$caption(
-              style = "text-align: center; color: black; margin-bottom: -1.5em;",
-              tableTitle
-            ),
-            callback = htmlwidgets::JS("$('table.dataTable.no-footer').css('border-bottom', '1.5px solid #ddd');"),
-            options = list(lengthChange = F, bFilter = F, bInfo = F, bPaginate = F,
-                           ordering = F,
-                           headerCallback = htmlwidgets::JS(headerCallback)),
-            class = "cell-border") %>%
-            formatStyle(columns = c("Group","Dummy"),
-                        color = styleEqual(df$Dummy, df$Color),
-                        backgroundColor = styleEqual(df$Dummy, df$Color),
-                        fontSize = "12px",
-                        lineHeight = "50%")
-        })
-      })
-    }
     d$sc_showClusteringLinks <- T
     updateTabsetPanel(inputId = "sc_clustering_tabsetPanel", selected = "sc_clustPlotW02")
   })
-
+  
   # SC-DGE-CLUS - header for sample dendrogram
   output$headclustplotW01_sc <- renderUI({
     req(input$goclust_sc, clustout_sc(), !d$newCluster)
@@ -14313,15 +14200,15 @@ iPSCeqServer <- function(input, output, session) {
       }
     })
   })
-
+  
   # SC-DGE-CLUS - sample dendrogram plot
   output$clustplotW01_sc <- renderPlot({
     req(input$goclust_sc, clustout_sc())
     if(input$goclust_sc == 0) return()
     if(length(clustout_sc()) != 2) return()
-
+    
     # K-medoids
-    clustheatmap(clustout_sc()[[1]], title = "K-medoids consensus matrix heatmap")
+    clustheatmap(clustout_sc()[["consensusfastkmed"]], title = "K-medoids consensus matrix heatmap")
   })
   
   # Use renderUI to avoid blank area for sample dendrogram
@@ -14331,7 +14218,7 @@ iPSCeqServer <- function(input, output, session) {
     if(length(clustout_sc()) != 2) return()
     fluidRow(column(12, align = "left", plotOutput("clustplotW01_sc", width = 900, height = 500)))
   })
-
+  
   # SC-DGE-CLUS - download button for sample dendrogram (PNG)
   output$downloadclustplotW01png_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
@@ -14346,7 +14233,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     })
   })
-
+  
   # SC-DGE-CLUS - download handler for consensus matrix
   output$downloadclustplotK01pngimg_sc <- downloadHandler(
     filename = function() {
@@ -14354,7 +14241,7 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       req(clustout_sc())
-      sample <- clustout_sc()[[1]]
+      sample <- clustout_sc()[["consensusfastkmed"]]
       png(file, width = 800, height = 600)
       output <- clustheatmap(sample, "K-medoids consensus matrix heatmap") + 
         theme(text = element_text(family = "noto-sans-jp"))
@@ -14362,7 +14249,7 @@ iPSCeqServer <- function(input, output, session) {
       dev.off()
     }
   )
-
+  
   # SC-DGE-CLUS - download button sample dendrogram (PDF)
   output$downloadclustplotW01pdf_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
@@ -14377,7 +14264,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     })
   })
-
+  
   # SC-DGE-CLUS - download handler for consensus matrix
   output$downloadclustplotK01pdfimg_sc <- downloadHandler(
     filename = function() {
@@ -14385,17 +14272,17 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       CairoPDF(file, width = 12, height = 6.5)
-      consensusfastkmed <- clustout_sc()[[1]]
+      consensusfastkmed <- clustout_sc()[["consensusfastkmed"]]
       p <- clustheatmap(
         consensusfastkmed,
         "K-medoids consensus matrix heatmap"
       ) + 
-      theme(text = element_text(family = "noto-sans-jp"))
+        theme(text = element_text(family = "noto-sans-jp"))
       print(p)
       dev.off()
     }
   )
-
+  
   # SC-DGE-CLUS - header for gene dendrogram
   output$headclustplotW02_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
@@ -14409,17 +14296,15 @@ iPSCeqServer <- function(input, output, session) {
       }
     })
   })
-
+  
   # SC-DGE-CLUS - gene dendrogram
   output$clustplotW02_sc <- renderPlot({
-    validate(need(input$goclust_sc, ""))
-    req(input$goclust_sc, clustout_sc(), !d$newCluster)
+    req(input$goclust_sc, clustout_sc()[["geneTree"]], clustout_sc()[["dynamicColors"]])
     isolate({
       withProgress(message = "Creating gene dendrogram...", value = 0, {
         incProgress(1/2)
-        geneTree <- clustout_sc()[[3]]
-        dynamicColors <- clustout_sc()[[4]]
-        mergedColors <- clustout_sc()[[5]]
+        geneTree <- clustout_sc()[["geneTree"]]
+        dynamicColors <- clustout_sc()[["dynamicColors"]]
         datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
         incProgress(1/2)
         GGDend(geneTree,
@@ -14430,14 +14315,14 @@ iPSCeqServer <- function(input, output, session) {
       })
     })
   })
-
+  
   # SC-DGE-CLUS - download button gene dendrogram (PNG)
   output$downloadclustplotW02png_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
     if(length(clustout_sc()) != 8) return()
     downloadButton("downloadclustplotW02pngimg_sc", label = "Download plot (PNG)")
   })
-
+  
   # SC-DGE-CLUS - - download file gene dendrogram (PNG)
   output$downloadclustplotW02pngimg_sc <- downloadHandler(
     filename = function() {
@@ -14445,8 +14330,8 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       png(file, width = 800, height = 400)
-      geneTree <- clustout_sc()[[3]]
-      dynamicColors <- clustout_sc()[[4]]
+      geneTree <- clustout_sc()[["geneTree"]]
+      dynamicColors <- clustout_sc()[["dynamicColors"]]
       datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
       g <- GGDend(geneTree,
                   colorDF = datColors,
@@ -14459,14 +14344,14 @@ iPSCeqServer <- function(input, output, session) {
       #ggsave(file, plot = g, width = 12, height = 8)
     }
   )
-
+  
   # SC-DGE-CLUS - download button gene dendrogram (PDF)
   output$downloadclustplotW02pdf_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
     if(length(clustout_sc()) != 8) return()
     downloadButton("downloadclustplotW02pdfimg_sc", label = "Download plot (PDF)")
   })
-
+  
   # SC-DGE-CLUS - download file gene dendrogram (PDF)
   output$downloadclustplotW02pdfimg_sc <- downloadHandler(
     filename = function() {
@@ -14474,8 +14359,8 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       CairoPDF(file, width = 12, height = 6.5)
-      geneTree <- clustout_sc()[[3]]
-      dynamicColors <- clustout_sc()[[4]]
+      geneTree <- clustout_sc()[["geneTree"]]
+      dynamicColors <- clustout_sc()[["dynamicColors"]]
       datColors <- data.frame("Dynamic tree cut" = dynamicColors, check.names = F)
       g <- GGDend(geneTree,
                   colorDF = datColors,
@@ -14488,7 +14373,7 @@ iPSCeqServer <- function(input, output, session) {
       #ggsave(file, plot = g, width = 12, height = 8)
     }
   )
-
+  
   # SC-DGE-CLUS - header for sample dendrogram
   output$headclustplotW03_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
@@ -14502,7 +14387,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     })
   })
-
+  
   # SC-DGE-CLUS - TOM plot
   output$clustplotW03_sc <- renderPlot({
     validate(need(input$goclust_sc, ""))
@@ -14513,22 +14398,22 @@ iPSCeqServer <- function(input, output, session) {
       if(length(clustout_sc()) != 8) return()
       withProgress(message = "Creating TOM plot...", value = 0, {
         incProgress(1/2)
-        geneTree <- clustout_sc()[[3]]
-        dynamicColors <- clustout_sc()[[4]]
-        dissTOM <- clustout_sc()[[6]]
+        geneTree <- clustout_sc()[["geneTree"]]
+        dynamicColors <- clustout_sc()[["dynamicColors"]]
+        dissTOM <- clustout_sc()[["dissTOM"]]
         incProgress(1/2)
         GGTom(geneTree, colors = dynamicColors, distMat = dissTOM, plotTitle = NULL)
       })
     })
   })
-
+  
   # SC-DGE-CLUS - download button TOM plot (PNG)
   output$downloadclustplotW03png_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
     if(length(clustout_sc()) != 8) return()
     downloadButton("downloadclustplotW03pngimg_sc", label = "Download plot (PNG)")
   })
-
+  
   # SC-DGE-CLUS - download file TOM plot (PNG)
   output$downloadclustplotW03pngimg_sc <- downloadHandler(
     filename = function() {
@@ -14536,23 +14421,23 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       png(file, width = 600, height = 400)
-      geneTree <- clustout_sc()[[3]]
-      dynamicColors <- clustout_sc()[[4]]
-      dissTOM <- clustout_sc()[[6]]
+      geneTree <- clustout_sc()[["geneTree"]]
+      dynamicColors <- clustout_sc()[["dynamicColors"]]
+      dissTOM <- clustout_sc()[["dissTOM"]]
       g <- GGTom(geneTree, colors = dynamicColors,
                  distMat = dissTOM)
       print(g)
       dev.off()
     }
   )
-
+  
   # SC-DGE-CLUS - download button TOM plot (PDF)
   output$downloadclustplotW03pdf_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
     if(length(clustout_sc()) != 8) return()
     downloadButton("downloadclustplotW03pdfimg_sc", label = "Download plot (PDF)")
   })
-
+  
   # SC-DGE-CLUS - download file TOM plot (PDF)
   output$downloadclustplotW03pdfimg_sc <- downloadHandler(
     filename = function() {
@@ -14560,16 +14445,16 @@ iPSCeqServer <- function(input, output, session) {
     },
     content = function(file) {
       CairoPDF(file, width = 8, height = 8)
-      geneTree <- clustout_sc()[[3]]
-      dynamicColors <- clustout_sc()[[4]]
-      dissTOM <- clustout_sc()[[6]]
+      geneTree <- clustout_sc()[["geneTree"]]
+      dynamicColors <- clustout_sc()[["dynamicColors"]]
+      dissTOM <- clustout_sc()[["dissTOM"]]
       g <- GGTom(geneTree, colors = dynamicColors,
                  distMat = dissTOM)
       print(g)
       dev.off()
     }
   )
-
+  
   # SC-DGE-CLUS - header for download gene modules
   output$headclustmoddown_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
@@ -14583,21 +14468,21 @@ iPSCeqServer <- function(input, output, session) {
       }
     })
   })
-
+  
   # SC-DGE-CLUS - download button for gene modules
   output$downloadclustmod_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
     if(length(clustout_sc()) != 8) return()
     downloadButton("downloadclustmod2_sc", label = "Download gene modules (CSV)")
   })
-
+  
   # SC-DGE-CLUS - download file for gene modules
   output$downloadclustmod2_sc <- downloadHandler(
     filename = function() {
       paste("wgcna-gene-modules-sc.csv")
     },
     content = function(file) {
-      moddf <- clustout_sc()[[7]]
+      moddf <- clustout_sc()[["moddf"]]
       colorPalette <- c("teal","lightyellow","lavender",
                         "salmon","blue","orange","green",
                         "lightpink","gray","violet","mint","yellow")
@@ -14607,85 +14492,44 @@ iPSCeqServer <- function(input, output, session) {
     }
   )
 
-  # SC-DGE-CLUS - download button for sample module
-  output$downloadclustsample_sc <- renderUI({
-    req(clustout_sc(), !d$newCluster)
-    isolate({
-      if (input$clustalg_sc == "wgcna") {
-        if (length(clustout_sc()) == 8) {
-          downloadButton(
-            "downloadclustsample2_sc",
-            "Download sample modules (CSV)"
-          )
-        }
-      }
-    })
-  })
-
-  # SC-DGE-CLUS - download file for sample module
-  output$downloadclustsample2_sc <- downloadHandler(
-    filename = function() {
-      paste("wgcna-sample-modules-sc.csv")
-    },
-    content = function(file) {
-      sampledf <- clustout_sc()[[8]]
-      metaDF <- as.data.frame(colData(ddsout()[[1]]))
-      metaDF <- metaDF[sampledf$sample, grep("nCount_RNA|nFeature_RNA|silWidth", x = colnames(metaDF), invert = T)]
-      sampledf <- cbind(sampledf, metaDF)
-      sampledf <- sampledf[, colnames(sampledf) != "outlier"]
-      write.csv(sampledf, file, row.names = FALSE)
-    }
-  )
-
   # SC-DGE-CLUS - download button for gene module
   output$downloadclustmodK_sc <- renderUI({
     req(clustout_sc(), !d$newCluster)
     if(length(clustout_sc()) != 2) return()
     downloadButton("downloadclustmodK2_sc", label = "Download clusters (CSV)")
   })
-
+  
   # SC-DGE-CLUS - download file for gene module
   output$downloadclustmodK2_sc <- downloadHandler(
     filename = function() {
       paste("kmed-gene-clusters-sc.csv")
     },
     content = function(file) {
-      clustdf <- clustout_sc()[[2]]
-      write.csv(clustdf, file, row.names = FALSE, col.names = TRUE)
-    }
-  )
-
-  # SC-DGE-CLUS - download handler for gene module
-  output$downloadclustmodM2_sc <- downloadHandler(
-    filename = function() {
-      paste("mcl-gene-clusters-sc.csv")
-    },
-    content = function(file) {
-      clustdf <- clustout_sc()[[2]]
+      clustdf <- clustout_sc()[["output"]]
       write.csv(clustdf, file, row.names = FALSE, col.names = TRUE)
     }
   )
 
   ########### COMBINE CLUSTERS OR CELLS: SCRNA-SEQ ONLY ##############
-
+  
   # SC-DGE-CCC - header for combining clusters
   output$combineClustersHeader <- renderUI({
     req(d$resType, clustList())
     h4("Combine clusters")
   })
-
+  
   # SC-DGE-CCC - header for cluster combination
   output$clustercombination_header <- renderUI({
     req(d$SCV)
     h3("Cluster combination")
   })
-
+  
   # SC-DGE-CCC - header for combining cells
   output$clustercells_header <- renderUI({
     req(d$SCV)
     h3("Combine cells")
   })
-
+  
   # SC-DGE-CCC - create a drop-down for selecting the
   # clusters you would like to combine
   output$clusters_comb <- renderUI({
@@ -14710,7 +14554,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     }
   })
-
+  
   # SC-DGE-CCC - re-create df of number of cells by cluster
   # colored by sample with recombined clusters
   recomb_seur <- reactive({
@@ -14759,7 +14603,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     }
   })
-
+  
   # SC-DGE-CCC - re-create plot of number of cells by cluster
   # for combined clusters
   output$comb_mdFactor_plotly <- renderPlotly({
@@ -14776,7 +14620,7 @@ iPSCeqServer <- function(input, output, session) {
                         Sample = colnames(d$inD),
                         "Number of Cells" = 1,
                         check.names = F)
-
+    
     if(!is.null(recomb_seur())) {
       if(ncol(recomb_seur()) > 0) {
         res <- "Number of Cells"
@@ -14803,7 +14647,7 @@ iPSCeqServer <- function(input, output, session) {
     cells <- cells %>% arrange(clus_comb)
     cells$clus_comb <- factor(cells$clus_comb, levels = mixedsort(unique(cells$clus_comb)))
     cells$hoverLabels <- paste0("Cluster: ", cells$orig_cluster, ", Cell: ", cells$Sample)
-
+    
     sum <- cells %>%
       distinct(.) %>%
       arrange(clus_comb) %>%
@@ -14815,7 +14659,7 @@ iPSCeqServer <- function(input, output, session) {
       vec <- c(sum$n[y], rep("", sum$n[y] - 1))
     }))
     cells$tex <- tex
-
+    
     font <- list(
       family = "Noto Sans JP",
       size = 12,
@@ -14846,9 +14690,9 @@ iPSCeqServer <- function(input, output, session) {
              xaxis = list(title = "Cluster", tickfont = list(size = 14), titlefont = list(size = 16)),
              legend = list(font = list(size = 14)),
              font = list(family = "Noto Sans JP")
-             )
+      )
   })
-
+  
   # SC-DGE-CCC - create col name for new metadata
   output$username <- renderUI({
     if(is.null(seurat_only()) || is.null(recomb_seur())) return()
@@ -14858,7 +14702,7 @@ iPSCeqServer <- function(input, output, session) {
       value = ""
     )
   })
-
+  
   # SC-DGE-CCC - create a note to add to metadata
   output$note <- renderUI({
     if(is.null(seurat_only()) || is.null(recomb_seur())) return()
@@ -14869,7 +14713,7 @@ iPSCeqServer <- function(input, output, session) {
       width = "200px"
     )
   })
-
+  
   # SC-DGE-CCC - specify file output name
   output$table_name <- renderUI({
     req(input$username)
@@ -14926,7 +14770,7 @@ iPSCeqServer <- function(input, output, session) {
     }
     return(sel_samps)
   })
-
+  
   # SC-DGE-CCC - action button for pushing to SQL db
   output$submit_mysql <- renderUI({
     req(input$username, input$tablename)
@@ -14941,7 +14785,7 @@ iPSCeqServer <- function(input, output, session) {
     if(is.null(recomb_seur())) return()
     downloadButton("download_seurat_comb_button", label = "Download Seurat (RDS)")
   })
-
+  
   # SC-DGE-CCC - download button to download seurat object after combining clusters
   output$download_seurat_comb_button <- downloadHandler(
     filename = function() {
@@ -14958,13 +14802,13 @@ iPSCeqServer <- function(input, output, session) {
       )
     }
   )
-
+  
   # SC-DGE-CCC - download button for metadata after combining clusters
   output$download_metadata_comb <- renderUI({
     if(is.null(recomb_seur())) return()
     downloadButton("download_metadata_comb_button", label = "Download metadata (CSV)")
   })
-
+  
   # SC-DGE-CCC - download file for metadata after combining clusters
   output$download_metadata_comb_button <- downloadHandler(
     filename = function() {
@@ -14981,7 +14825,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     }
   )
-
+  
   output$comb_buttons_ui <- renderUI({
     if(is.null(recomb_seur())) return()
     tagList(
@@ -15121,14 +14965,14 @@ iPSCeqServer <- function(input, output, session) {
       }
     }
   })
-
+  
   # SC-DGE-CCC - combine cells based on expression of goi
   output$mode = renderUI({
     req(d$inD_orig)
     awesomeRadio("mode", label = "", choices = c("Single gene", "Multiple genes"),
                  selected = "Single gene", inline = T, status = "success")
   })
-
+  
   # SC-DGE-CCC - choose metric for cell combination of multiple gois
   output$metric <- renderUI({
     req(d$inD_orig, input$gene)
@@ -15151,7 +14995,7 @@ iPSCeqServer <- function(input, output, session) {
                    selected = rownames(d$inD_orig)[1], multiple = T,
                    options = list(maxOptions = 1000000))
   })
-
+  
   output$varRange_ui <- renderUI({
     if(is.null(input$gene)) return()
     div(
@@ -15197,7 +15041,7 @@ iPSCeqServer <- function(input, output, session) {
       d$inD_goi = AddMetaData(d$inD_orig, col.name = "var", metadata = var)
     }
   }, ignoreInit = T)
-
+  
   # SC-DGE-CCC - replot combined cells based on goi(s)
   output$selectClustersByGOI <- renderPlotly({
     req(d$inD_goi, input$gene)
@@ -15251,13 +15095,13 @@ iPSCeqServer <- function(input, output, session) {
       ) %>%
       style(hoverlabel = label)
   })
-
+  
   # SC-DGE-CCC - header for new set name
   output$setNameHeader = renderUI({
     req(d$inD_goi)
     h5("New set name")
   })
-
+  
   # SC-DGE-CCC - specify name for updated combined cell dataset
   output$setName = renderUI({
     req(d$inD_goi)
@@ -15265,13 +15109,13 @@ iPSCeqServer <- function(input, output, session) {
     # textInput("setName", label = NULL, value = suggestedValue)
     textInput("setName", label = "New set name", value = suggestedValue)
   })
-
+  
   # SC-DGE-CCC - action button for creating a set to add cells to (lassoing)
   output$addSet = renderUI({
     req(d$inD_goi)
     actionButton("addSet", label = "+New set")
   })
-
+  
   # SC-DGE-CCC - updated info for: action button to add cells to
   # a given set, the total number of cells added to a set
   # and warning msgs
@@ -15305,7 +15149,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     })
   })
-
+  
   # SC-DGE-CCC - ui output for clearing all sets, adding cells
   # to a set and errors for combining cells
   output$addCells <- renderUI({
@@ -15341,14 +15185,14 @@ iPSCeqServer <- function(input, output, session) {
       })
     )
   })
-
+  
   # SC-DGE-CCC - reactive expression for lasso cell selection
   plotlySelected_GOI <- reactive({
     plotlySelected <- event_data("plotly_selected")
     if(is.null(plotlySelected)) return()
     return(plotlySelected$key[!is.na(plotlySelected$key)])
   })
-
+  
   # SC-DGE-CCC - cell selection from filters and/or brush
   currSel_GOI <- reactive({
     if(is.null(input$inclusive1) || is.null(input$inclusive2)) return()
@@ -15378,20 +15222,20 @@ iPSCeqServer <- function(input, output, session) {
       return(temp_points)
     } else { return(character()) }
   })
-
+  
   # SC-DGE-CCC - header for selecting expression range
   output$varRangeHeader = renderUI({
     req(d$inD_goi, input$gene, d$inD_goi@meta.data[["var"]])
     h4("Select range", style = "margin-top: 0px;")
   })
-
+  
   # SC-DGE-CCC - gene expression range min
   output$varRangeText1 = renderUI({
     req(d$inD_goi, input$gene, d$inD_goi@meta.data[["var"]])
     var = as.numeric(d$inD_goi@meta.data[, "var"])
     textInput("varRangeText1", label = "From (min 0)", value = 0)
   })
-
+  
   # SC-DGE-CCC - gene expression range max
   output$varRangeText2 = renderUI({
     req(d$inD_goi, input$gene, d$inD_goi@meta.data[["var"]])
@@ -15399,21 +15243,21 @@ iPSCeqServer <- function(input, output, session) {
     textInput("varRangeText2", label = paste0("To (max ", round(max(var), digits = 2), ")"),
               value = round(max(var), digits = 2))
   })
-
+  
   # SC-DGE-CCC - include lower limits in selection
   output$inclusive1 = renderUI({
     req(d$inD_goi, input$gene, d$inD_goi@meta.data[["var"]])
     prettyCheckbox("inclusive1", label = "Inclusive",
-                  value = T, status = "default", icon = icon("check"))
+                   value = T, status = "default", icon = icon("check"))
   })
-
+  
   # SC-DGE-CCC - include upper limits in selection
   output$inclusive2 = renderUI({
     req(d$inD_goi, input$gene, d$inD_goi@meta.data[["var"]])
     prettyCheckbox("inclusive2", label = "Inclusive",
-                  value = T, status = "default", icon = icon("check"))
+                   value = T, status = "default", icon = icon("check"))
   })
-
+  
   # SC-DGE-CCC - updated minimum range
   observeEvent(input$varRangeText1, {
     if(is.null(input$varRangeText1) | is.null(d$inD_goi)) return()
@@ -15423,7 +15267,7 @@ iPSCeqServer <- function(input, output, session) {
       updateTextInput(session, "varRangeText1", value = 0)
     }
   }, ignoreNULL = F)
-
+  
   # SC-DGE-CCC - updated maximum range
   observeEvent(input$varRangeText2, {
     if(is.null(input$varRangeText2) | is.null(d$inD_goi)) return()
@@ -15433,7 +15277,7 @@ iPSCeqServer <- function(input, output, session) {
       updateTextInput(session, "varRangeText2", value = round(max(as.numeric(d$inD_goi@meta.data[, "var"])), digits = 2))
     }
   }, ignoreNULL = F)
-
+  
   # SC-DGE-CCC - calculates the number of cells being combined
   observe({
     if(length(d$setNames) < 1) return()
@@ -15466,7 +15310,7 @@ iPSCeqServer <- function(input, output, session) {
       }
     }
   })
-
+  
   # SC-DGE-CCC - if the cell sets are cleared, set in object d
   observeEvent(input$clearAll, {
     for(setName in d$setNames) {
@@ -15480,7 +15324,7 @@ iPSCeqServer <- function(input, output, session) {
     d$setNames <- NULL
     runjs("Shiny.setInputValue('plotly_selected-A', null);")
   })
-
+  
   # SC-DGE-CCC - create col name for new metadata (cells combined)
   output$username2 <- renderUI({
     if(is.null(d$inD_goi) || is.null(input$gene)) return()
@@ -15490,7 +15334,7 @@ iPSCeqServer <- function(input, output, session) {
       value = ""
     )
   })
-
+  
   # SC-DGE-CCC - create a note to add to metadata (cells combined)
   output$note2 <- renderUI({
     if(is.null(d$inD_goi) || is.null(input$gene)) return()
@@ -15501,7 +15345,7 @@ iPSCeqServer <- function(input, output, session) {
       width = "200px"
     )
   })
-
+  
   # SC-DGE-CCC - specify file output name (cells combined)
   output$table_name2 <- renderUI({
     if(is.null(input$username2) || input$username2 == "" || is.null(d$datasetNames) ||
@@ -15545,13 +15389,13 @@ iPSCeqServer <- function(input, output, session) {
       value = datasets
     )
   })
-
+  
   # SC-DGE-CCC - reactive expression storing selected data
   # in combined cells
   sc_samples_used <- reactive({
     req(d$inD_goi, input$gene)
     if (is.null(d$inD_goi) || is.null(input$gene)) return()
-
+    
     if (is.null(input$save_load_selected)) {
       sel_samps <- rownames(d$selectedData$metadata)
       # specify if the end user chose samples (action button)
@@ -15562,7 +15406,7 @@ iPSCeqServer <- function(input, output, session) {
     }
     return(sel_samps)
   })
-
+  
   # SC-DGE-CCC - action button to submit combined cells to sql db
   output$submit_mysql2 <- renderUI({
     req(input$username2, input$tablename2)
@@ -15706,13 +15550,13 @@ iPSCeqServer <- function(input, output, session) {
       incProgress(1/3)
     })
   })
-
+  
   # SC-DGE-CCC - download button for seurat data after combining cells
   output$download_new_dataset_GOI = renderUI({
     if(is.null(d$cellSets) || !(is.list(d$cellSets)) || length(unlist(d$cellSets)) == 0) return()
     downloadButton("download_new_dataset_GOI_button", label = "Download Seurat (RDS)")
   })
-
+  
   # SC-DGE-CCC - download file for seurat obj after combining cells
   output$download_new_dataset_GOI_button <- downloadHandler(
     filename = function() {
@@ -15733,13 +15577,13 @@ iPSCeqServer <- function(input, output, session) {
       )
     }
   )
-
+  
   # SC-DGE-CCC - download button for metadata after combining cells
   output$download_new_metadata_GOI = renderUI({
     if(is.null(d$cellSets) || !(is.list(d$cellSets)) || length(unlist(d$cellSets)) == 0) return()
     downloadButton("download_new_metadata_GOI_button", label = "Download metadata (CSV)")
   })
-
+  
   # SC-DGE-CCC - download file for metadata after combining cells
   output$download_new_metadata_GOI_button <- downloadHandler(
     filename = function() {
@@ -15763,7 +15607,7 @@ iPSCeqServer <- function(input, output, session) {
       )
     }
   )
-
+  
   ###################################################################
   ###################################################################
   ### SECTION 05 - MORE
