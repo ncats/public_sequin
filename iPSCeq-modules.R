@@ -1845,7 +1845,7 @@ profiler <- function(input, output, session, seuratData) {
         div(
           style = "display: inline-block; float: right;",
           a(
-            "Tutorial", target = "_blank", href = "ncats-SEQUIN-tutorial.html", 
+            "Tutorial", target = "_blank", href = "popup-ncats-SEQUIN-tutorial.html#ipsc-profiler", 
             style = "color: black !important;"
           )
         )
@@ -3625,7 +3625,7 @@ LoadDataUI <- function(id) {
   )
 }
 
-LoadData <- function(input, output, session, maxSamples = Inf) {
+LoadData <- function(input, output, session, maxSamples = 10000) {
   
   # Set input$data_type and input$data_type_custom to be equal
   observeEvent(input$data_type, {
@@ -3758,7 +3758,7 @@ LoadData <- function(input, output, session, maxSamples = Inf) {
         div(
           style = "display: inline-block; float: right;",
           a(
-            "Tutorial", target = "_blank", href = "ncats-SEQUIN-tutorial.html#selection-of-data",
+            "Tutorial", target = "_blank", href = "popup-ncats-SEQUIN-tutorial.html#selection-of-data",
             style = "color: black !important;"
           )
         )
@@ -4288,7 +4288,7 @@ LoadData <- function(input, output, session, maxSamples = Inf) {
         div(
           style = "display: inline-block; float: right;",
           a(
-            "Tutorial", target = "_blank", href = "ncats-SEQUIN-tutorial.html", 
+            "Tutorial", target = "_blank", href = "popup-ncats-SEQUIN-tutorial.html#selection-of-data", 
             style = "color: black !important;"
           )
         )
@@ -4364,7 +4364,7 @@ LoadData <- function(input, output, session, maxSamples = Inf) {
         div(
           style = "display: inline-block; float: right;",
           a(
-            "Tutorial", target = "_blank", href = "ncats-SEQUIN-tutorial.html", 
+            "Tutorial", target = "_blank", href = "popup-ncats-SEQUIN-tutorial.html#selection-of-data", 
             style = "color: black !important;"
           )
         )
@@ -4723,9 +4723,9 @@ LoadData <- function(input, output, session, maxSamples = Inf) {
           cts <- count_content()
           meta <- meta_content()
           
-          # Downsample if selected or if number of cells is greater than maxSamples (default Inf)
-          if(input$downsample_select || nrow(meta) > maxSamples) {
-            nCells <- min(input$downsample_nCells, maxSamples)
+          # Downsample if selected or if number of cells is greater than 10000
+          if(input$downsample_select || nrow(meta) > 10000) {
+            nCells <- min(input$downsample_nCells, 10000)
             set.seed(seed = input$downsample_seed)
             myCells <- sample(x = rownames(meta), size = nCells)
             cts <- cts[, myCells, drop = F]
@@ -4809,9 +4809,9 @@ LoadData <- function(input, output, session, maxSamples = Inf) {
                   cts <- count_content()
                   meta <- meta_content()
                   
-                  # Downsample if selected or if number of cells is greater than maxSamples (default Inf)
-                  if(input$downsample_select || nrow(meta) > maxSamples) {
-                    nCells <- min(input$downsample_nCells, maxSamples)
+                  # Downsample if selected or if number of cells is greater than 10000
+                  if(input$downsample_select || nrow(meta) > 10000) {
+                    nCells <- min(input$downsample_nCells, 10000)
                     set.seed(seed = input$downsample_seed)
                     myCells <- sample(x = rownames(meta), size = nCells)
                     cts <- cts[, myCells, drop = F]
@@ -5259,9 +5259,9 @@ LoadData <- function(input, output, session, maxSamples = Inf) {
         cts <- count_content()
         meta <- meta_content()
         
-        # Downsample if selected or if number of cells is greater than maxSamples (default Inf)
-        if(input$downsample_select || nrow(meta) > maxSamples) {
-          nCells <- min(input$downsample_nCells, maxSamples)
+        # Downsample if selected or if number of cells is greater than 10000
+        if(input$downsample_select || nrow(meta) > 10000) {
+          nCells <- min(input$downsample_nCells, 10000)
           set.seed(seed = input$downsample_seed)
           myCells <- sample(x = rownames(meta), size = nCells)
           cts <- cts[, myCells, drop = F]
@@ -5319,9 +5319,9 @@ LoadData <- function(input, output, session, maxSamples = Inf) {
             cts <- count_content()
             meta <- meta_content()
             
-            # Downsample if selected or if number of cells is greater than maxSamples (default Inf)
-            if(input$downsample_select || nrow(meta) > maxSamples) {
-              nCells <- min(input$downsample_nCells, maxSamples)
+            # Downsample if selected or if number of cells is greater than 10000
+            if(input$downsample_select || nrow(meta) > 10000) {
+              nCells <- min(input$downsample_nCells, 10000)
               set.seed(seed = input$downsample_seed)
               myCells <- sample(x = rownames(meta), size = nCells)
               cts <- cts[, myCells, drop = F]
