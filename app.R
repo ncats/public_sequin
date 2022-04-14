@@ -1,10 +1,22 @@
-# Set local data directory for running as standalone app
+#---------------------------------------------------------------------
+# Title:         NCATS Complex Shiny Application
+# Author:        Brandon Monier
+# Author2:       Marissa Hirst
+# Author3:       Ben Ernest
+# Last Modified: 2020-03-04
+# --
+# Created:       2018-01-26 11:29:39 CDT
+#---------------------------------------------------------------------
+
+# Set these two options for using database or running as standalone.
+
+# T for standalone or F for database
+options(standalone = F)
+
+# Set local data directory for standalone app. Ignored if options("standalone") is F
 options(localDir = "example_data")
 
 ################################################################################
-# Run as standalone app or connect to existing database
-options(standalone = T)
-
 # Turn off just-in-time compilation to speed initial load time
 compiler::enableJIT(0)
 
@@ -27,7 +39,8 @@ source("iPSCeq-ui.R")
 source("iPSCeq-server.R")
 
 # load credentials required
-if(!getOption("standalone")) source("sql.R")
+if(!getOption("standalone")) source("sql.R") # Use in production
+# if(!getOption("standalone")) source("~/arc/sql.R") # Use when testing locally
 
 # load embedded fonts
 font_add_google(name = "Noto Sans JP", family = "noto-sans-jp")
