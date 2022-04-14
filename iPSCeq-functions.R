@@ -2259,7 +2259,6 @@ plot_mdBoxplotX <- function(MD,sel_clust,md_log,size) {
   temp_par <- par(no.readonly=T)
   
   par(mar=c(4,4,3,1) +.3, family = "noto-sans-jp", cex = size)
-  #par(mar=c(3,3,2,1),mgp=2:0,cex=1.1)
   if (any(MD$sel_cells)) {
     temp1 <- tapply(MD[!MD$sel_cells,2],as.factor(MD[!MD$sel_cells,1]),c)
     temp2 <- tapply(MD[MD$sel_cells,2],as.factor(MD[MD$sel_cells,1]),c)
@@ -2980,66 +2979,82 @@ DownsampleCells <- function(db, expName, nCells = 2000, mySeed = NULL) {
 }
 
 # SQL - generate a seurat object from SQL db count/metadata (sc only)
-SeuratProcess <- function(dataset, samples = NULL, nCells = NULL, mySeed = NULL) {
+SeuratProcess <- function(dataset, counts = NULL, metadata = NULL, 
+                          samples = NULL, nCells = NULL, mySeed = NULL) {
   
-  if(getOption("standalone")) {
-    metadata <- read.csv(paste0(getOption("localDir"), "/", dataset, "_meta.csv"), row = 1)
-    counts <- read.csv(paste0(getOption("localDir"), "/", dataset, "_counts.csv"), row = 1)
-    if(!is.null(nCells) && nCells < nrow(metadata)) {
-      set.seed(mySeed)
-      counts <- counts[, sample(1:ncol(counts), size = nCells)]
-    }
-    if(!is.null(samples)) {
-      rowsToKeep <- SubsetMulti(fullDF = metadata, subDF = samples)
-      counts <- counts[, rowsToKeep]
-      metadata <- metadata[rowsToKeep, , drop = F]
-    }
-  } else {
-    # connect to mysql database
-    mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
-                      dbname = scdb, host = ec_host, port = p)
-    # read the table containing info on the scRNA-seq exp
-    # in the mysql db
-    dat <- dbReadTable(mydb, "sc")
-    dat <- dat %>%
-      dplyr::filter(experiment_name %in% dataset) %>%
-      dplyr::pull(unique_table)
-    
-    metadata <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
-    
-    if(!is.null(nCells)) {
-      if(nCells < nrow(metadata)) {
-        counts <- DownsampleCells(db = mydb, expName = dat, nCells = nCells, mySeed = mySeed)
+  if(is.null(dataset) && (is.null(counts) || is.null(metadata))) {
+    stop("If 'dataset' is NULL, both 'counts' and 'metadata' must be provided.")
+  }
+  
+  if(!is.null(dataset)) {
+    if(getOption("standalone")) {
+      metadata <- read.csv(paste0(getOption("localDir"), "/", dataset, "_meta.csv"), row = 1)
+      counts <- read.csv(paste0(getOption("localDir"), "/", dataset, "_counts.csv"), row = 1)
+      myCells <- intersect(rownames(metadata), colnames(counts))
+      myCells <- colnames(counts)[colnames(counts) %in% myCells]
+      metadata <- metadata[myCells, ]
+      counts <- counts[, myCells]
+      if(!is.null(nCells) && nCells < nrow(metadata)) {
+        set.seed(mySeed)
+        counts <- counts[, sample(1:ncol(counts), size = nCells)]
+      }
+      if(!is.null(samples)) {
+        rowsToKeep <- SubsetMulti(fullDF = metadata, subDF = samples)
+        counts <- counts[, rowsToKeep]
+        metadata <- metadata[rowsToKeep, , drop = F]
+      }
+    } else {
+      # connect to mysql database
+      mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_sc, password = pwd_sc,
+                        dbname = scdb, host = ec_host, port = p)
+      # read the table containing info on the scRNA-seq exp
+      # in the mysql db
+      dat <- dbReadTable(mydb, "sc")
+      dat <- dat %>%
+        dplyr::filter(experiment_name %in% dataset) %>%
+        dplyr::pull(unique_table)
+      
+      metadata <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
+      
+      if(!is.null(nCells)) {
+        if(nCells < nrow(metadata)) {
+          counts <- DownsampleCells(db = mydb, expName = dat, nCells = nCells, mySeed = mySeed)
+        } else {
+          counts <- dbGetQuery(mydb, statement = paste0("SELECT cell_id, gene, counts FROM ", dat, "_counts WHERE counts > 0"))
+        }
       } else {
         counts <- dbGetQuery(mydb, statement = paste0("SELECT cell_id, gene, counts FROM ", dat, "_counts WHERE counts > 0"))
       }
-    } else {
-      counts <- dbGetQuery(mydb, statement = paste0("SELECT cell_id, gene, counts FROM ", dat, "_counts WHERE counts > 0"))
-    }
-    dbDisconnect(mydb)
-    
-    if(!is.null(samples)) {
-      rowsToKeep <- SubsetMulti(fullDF = metadata, subDF = samples)
-      pull_cell_id <- metadata$cell_id[rowsToKeep]
-      counts <- counts %>%
-        filter(cell_id %in% pull_cell_id) %>%
-        spread(cell_id, counts, fill = 0, convert = T) %>%
-        column_to_rownames("gene")
+      dbDisconnect(mydb)
       
-      metadata <- metadata %>%
-        filter(cell_id %in% pull_cell_id)
-      metadata <- metadata %>%
-        column_to_rownames("cell_id")
-    } else {
-      counts <- counts %>%
-        spread(cell_id, counts, fill = 0, convert = T) %>%
-        column_to_rownames("gene")
-      
-      metadata <- metadata %>%
-        column_to_rownames("cell_id")
+      if(!is.null(samples)) {
+        rowsToKeep <- SubsetMulti(fullDF = metadata, subDF = samples)
+        pull_cell_id <- metadata$cell_id[rowsToKeep]
+        counts <- counts %>%
+          filter(cell_id %in% pull_cell_id) %>%
+          spread(cell_id, counts, fill = 0, convert = T) %>%
+          column_to_rownames("gene")
+        
+        metadata <- metadata %>%
+          filter(cell_id %in% pull_cell_id)
+        metadata <- metadata %>%
+          column_to_rownames("cell_id")
+      } else {
+        counts <- counts %>%
+          spread(cell_id, counts, fill = 0, convert = T) %>%
+          column_to_rownames("gene")
+        
+        metadata <- metadata %>%
+          column_to_rownames("cell_id")
+      }
     }
   }
-  
+
+  myCells <- intersect(rownames(metadata), colnames(counts))
+  myCells <- colnames(counts)[colnames(counts) %in% myCells]
+  metadata <- metadata[myCells, , drop = F]
+  counts <- counts[, myCells, drop = F]
+
   # Replace hyphens with periods
   rownames(metadata) <- sub(pattern = "-", replacement = ".", x = rownames(metadata))
   colnames(counts) <- sub(pattern = "-", replacement = ".", x = colnames(counts))
@@ -3047,8 +3062,15 @@ SeuratProcess <- function(dataset, samples = NULL, nCells = NULL, mySeed = NULL)
   seuratData <- CreateSeuratObject(
     counts = counts, 
     assay = "RNA", 
-    meta.data = metadata[colnames(counts), , drop = F]
+    meta.data = metadata
   )
+  
+  if(length(unique(seuratData@meta.data$orig.ident)) == 1) {
+    if(length(unique(seuratData@meta.data$sample)) > 1) {
+      seuratData@meta.data$orig.ident <- seuratData@meta.data$sample
+    }
+  }
+  
   return(seuratData)
 }
 
@@ -3251,4 +3273,1605 @@ SeuratDGE <- function(seuratData, fact, group1, group2 = NULL,
     }
   }
   return(myList)
+}
+
+# Cluster Solution DE boxplots -------------
+
+#' scClustViz plot: Cluster separation boxplots
+#'
+#' This function plots metrics of cluster solution cohesion or overfitting as a
+#' function of the number of clusters found.
+#'
+#' @param sCVdL A named list of sCVdata objects, output of
+#'   \code{\link{CalcAllSCV}}.
+#' @param DEtype One of "DEneighb", "DEmarker", or "silWidth". "DEneighb" shows
+#'   number of significantly differentially expressed genes between nearest
+#'   neighbouring clusters. "DEmarker" shows number of marker genes per cluster,
+#'   significantly positively differentially expressed genes in all pairwise
+#'   comparisons with other clusters. "silWidth" shows silhouette widths with
+#'   average silhouette width as a trace across all clustering solutions. (see
+#'   \code{\link[cluster]{silhouette}}).
+#' @param FDRthresh Default=0.05. The false discovery rate threshold for
+#'   determining significance of differential gene expression.
+#' @param res Optional. Name of cluster resolution to highlight. Must be one of
+#'   \code{names(sCVdL)}.
+#' @param Xlim Optional. Passed to
+#'   \code{\link[graphics]{plot.default}(xlim=Xlim)}.
+#' @param Ylim Optional. Passed to
+#'   \code{\link[graphics]{plot.default}(ylim=Ylim)}.
+#'
+#' @examples
+#' \dontrun{
+#' plot_clustSep(sCVdL,DEtype="DEneighb",FDRthresh=0.05,res="res.0.8")
+#' }
+#'
+#' @export
+
+options(getClass.msg = F)
+
+plot_clustSep <- function(sCVdL,DEtype,FDRthresh=0.05,res,Xlim,Ylim,size) {
+  if (missing(Xlim)) { Xlim <- NULL }
+  if (missing(Ylim)) { Ylim <- NULL }
+  if (missing(res)) { res <- "" }
+  if (!res %in% c(names(sCVdL),"")) {
+    warning(paste(paste0("res = '",res,"' not found in cluster resolutions."),
+                  "Cluster resolutions are names(sCVdL):",
+                  paste(names(sCVdL),collapse=", "),sep="\n  "))
+  }
+  if (!DEtype %in% c("DEneighb","DEmarker","silWidth")) {
+    stop('DEtype must be one of "DEneighb", "DEmarker", or "silWidth".')
+  }
+  numClust <- sapply(sCVdL,function(X) length(levels(Clusters(X))))
+  for (X in unique(numClust[duplicated(numClust)])) {
+    numClust[numClust == X] <- seq(X-.25,X+.25,length.out=sum(numClust == X))
+  }
+  
+  if (is.null(Xlim)) { Xlim <- range(numClust) }
+  bpData <- sapply(sCVdL,function(X) switch(DEtype,
+                                            DEneighb=sapply(DEneighb(X,FDRthresh),nrow),
+                                            DEmarker=sapply(DEmarker(X,FDRthresh),nrow),
+                                            silWidth=Silhouette(X)[,"sil_width"]),
+                   simplify=F)
+  if (is.null(Ylim)) { Ylim <- range(unlist(bpData)) }
+  
+  if (grepl("^Comp",res)) {
+    par(mar=c(4,4,3,1) +.3, family = "noto-sans-jp", cex = size)
+    plot(x=NA,y=NA,xlim=0:1,ylim=0:1,xaxt="n",yaxt="n",xlab=NA,ylab=NA,
+         family = "noto-sans-jp", 
+         cex = size)
+    text(.5,.5,paste("Press 'View clusters at this resolution'",
+                     "to view the comparison",
+                     sub("Comp.","",res,fixed=T),sep="\n"))
+  } else {
+    par(mar=c(4,4,3,1) +.3, family = "noto-sans-jp", cex = size)
+    if (DEtype == "silWidth") {
+      plot(x=NA,y=NA,xlim=Xlim + c(-.5,.5),ylim=Ylim,xaxt="n",
+           xlab="Number of clusters",ylab="Silhouette width per cluster")
+    } else {
+      plot(x=numClust,y=sapply(bpData,median),type="l",xaxt="n",
+           xlim=Xlim + c(-.5,.5),ylim=Ylim,xlab="Number of clusters",
+           ylab=switch(DEtype,
+                       scoreDE="Distance between clusters by differential expression score",
+                       DEmarker="Positive DE genes per cluster to all other clusters",
+                       DEneighb="Positive DE genes per cluster to nearest cluster"))
+    }
+    axis(side=3,at=seq(round(min(numClust)) - 0.5,round(max(numClust)) + 0.5,by=1),
+         labels=F,tick=T,pos=par("usr")[3])
+    axis(side=1,at=seq(round(min(numClust)) - 0.5,round(max(numClust)) + 0.5,by=1),
+         labels=F,tick=T,pos=par("usr")[3])
+    axis(side=1,at=seq(round(min(numClust)),round(max(numClust)),by=1),labels=T,tick=F)
+    
+    abline(h=seq(0,max(unlist(bpData)),switch(as.character(diff(Ylim) > 1000),
+                                              "FALSE"=10,"TRUE"=100)),
+           lty=3,col=alpha(1,0.3))
+    for (i in names(bpData)[names(bpData) != res]) {
+      boxplot(bpData[[i]],add=T,at=numClust[i],yaxt="n",col=alpha("white",.5))
+    }
+    if (any(names(bpData) == res)) {
+      if (DEtype == "silWidth") {
+        boxplot(bpData[[res]],add=T,at=numClust[res],border="red")
+      } else {
+        boxplot(bpData[[res]],add=T,at=numClust[res],border="red",outline=F)
+        points(jitter(rep(numClust[res],length(bpData[[res]])),amount=.2),
+               bpData[[res]],col=alpha("red",.5),pch=20)
+      }
+    }
+    if (DEtype == "silWidth") {
+      temp_avSil <- sapply(bpData,mean)
+      lines(numClust,y=temp_avSil,type="b",col="darkred",pch=16)
+      points(numClust[res],temp_avSil[res],col="red",pch=16)
+      legend(x=par("usr")[2],y=par("usr")[4],
+             xjust=1,yjust=0.2,xpd=NA,bty="n",horiz=T,
+             legend=c("Average silhouette width",
+                      paste("Selected resolution:",res)),
+             col=c("darkred","red"),pch=c(16,0),lty=c(1,NA))
+    } else {
+      legend(x=par("usr")[2],y=par("usr")[4],
+             xjust=1,yjust=0.2,xpd=NA,bty="n",
+             legend=paste("Selected resolution:",res),
+             col="red",pch=0)
+    }
+  }
+}
+
+# Silhouette plot ------
+
+#' scClustViz plot: Silhouette plot
+#'
+#' This function is a wrapper to \code{plot(silhouette(x))}.
+#'
+#' @param sCVd An \code{\link{sCVdata}} object with a non-null \code{Silhouette}
+#'   slot.
+#'
+#' @export
+
+plot_sil <- function(sCVd, size) {
+  len <- length(levels(Clusters(sCVd)))
+  n <- nrow(Silhouette(sCVd))
+  x <- sortSilhouette(Silhouette(sCVd))
+  s <- rev(x[, "sil_width"])
+  space <- c(0, rev(diff(cli <- x[, "cluster"])))
+  space[space != 0] <- 0.5
+  axisnames <- (n < 40)
+  main <- NULL
+  
+  if (is.null(main)) {
+    main <- "Silhouette plot"
+    if (!is.null(cll <- attr(x, "call"))) {
+      if (!is.na(charmatch("silhouette", deparse(cll[[1]])))) 
+        cll[[1]] <- as.name("FF")
+      main <- paste(main, "of", sub("^FF", "", deparse(cll)))
+    }
+  }
+  smry <- summary(x)
+  k <- length(nj <- smry$clus.sizes)
+  sub <- paste("Average silhouette width : ", round(smry$avg.width, 
+                                                    digits = 2))
+  
+  par(mar=c(5.5,2,3.5,1.5) +.3, family = "noto-sans-jp",
+      cex = size)
+  plot(Silhouette(sCVd),
+       nmax.lab = 0,
+       beside = T,
+       border = NA,
+       main = NA,
+       col = hue_pal()(len),
+       do.n.k = F,
+       do.clus.stat = F) +
+    mtext(paste("n =", n), adj = 0, cex = 1.5) +
+    mtext(substitute(k ~ ~"clusters" ~ ~C[j], list(k = k)), 
+          adj = 1, cex = 1.5)
+}
+
+# tsnePlot -------------------
+
+#' scClustViz plot element: Cluster names on cluster centroid.
+#'
+#' See \code{\link{plot_tsne}} for application.
+#'
+#' @param sCVd An sCVdata object.
+#' @param cell_coord A numeric matrix where named rows are cells, and two
+#'   columns are the x and y dimensions of the cell embedding.
+#' @param lab_type One of "ClusterNames", "ClusterNamesAll", or "Clusters".
+#'   "ClusterNames" places cluster names (added to sCVdata object by
+#'   \code{\link{labelCellTypes}}) at the centroid of all points sharing that
+#'   cluster name (can span clusters). "ClusterNamesAll" places cluster names at
+#'   the centroid of each cluster. "Clusters" places cluster ID
+#'   (\code{levels(Clusters(sCVd))}) at the centroid of each cluster.
+#'   
+#' @export
+
+tsne_labels <- function(sCVd,cell_coord,lab_type) {
+  if (!lab_type %in% c("ClusterNames","ClusterNamesAll","Clusters")) {
+    stop('lab_type must be one of "ClusterNames","ClusterNamesAll","Clusters"')
+  }
+  if (lab_type == "ClusterNames") {
+    temp_labelNames <- sapply(unique(attr(Clusters(sCVd),"ClusterNames")),function(X) 
+      names(which(attr(Clusters(sCVd),"ClusterNames") == X)),simplify=F)
+    temp_labels <- apply(cell_coord,2,function(Y) 
+      tapply(Y,apply(sapply(temp_labelNames,function(X) Clusters(sCVd) %in% X),1,which),mean))
+    if (!is.matrix(temp_labels)) { temp_labels <- rbind(temp_labels) }
+    rownames(temp_labels) <- names(temp_labelNames)
+  } else if (lab_type == "ClusterNamesAll") {
+    temp_labels <- apply(cell_coord,2,function(X) tapply(X,Clusters(sCVd),mean))
+    if (!is.matrix(temp_labels)) { temp_labels <- rbind(temp_labels) }
+    rownames(temp_labels) <- attr(Clusters(sCVd),"ClusterNames")
+  } else if (lab_type == "Clusters") {
+    temp_labels <- apply(cell_coord,2,function(X) tapply(X,Clusters(sCVd),mean))
+    if (!is.matrix(temp_labels)) { temp_labels <- rbind(temp_labels) }
+    rownames(temp_labels) <- levels(Clusters(sCVd))
+  } else {
+    stop("lab_type should be one of 'ClusterNames', 'ClusterNamesAll', or 'Clusters'.")
+  }
+  return(temp_labels)
+}
+
+#' scClustViz plot: Plot cell embedding in 2D
+#'
+#' This function plots cells in two dimensions, with various overlays.
+#'
+#' @param cell_coord A numeric matrix where named rows are cells, and two
+#'   columns are the x and y dimensions of the cell embedding.
+#' @param md The overlay information. Either a factor or numeric vector matching
+#'   the rows (cells) of the \code{cell_coord} matrix. If this is a factor, the
+#'   cells will be coloured by the factor levels. If a positive numeric vector,
+#'   the cells will be coloured using the Viridis sequential colourscale
+#'   implemented in \code{\link[colorspace]{sequential_hcl}}. Otherwise a
+#'   diverging red-blue colourscale from \code{\link[colorspace]{diverging_hcl}}
+#'   will be used.
+#' @param md_title NULL or a character vector of one. If NULL, \code{md} is
+#'   assumed to be cluster assignments. Otherwise this should be the title of
+#'   the overlay represented by \code{md}.
+#' @param md_log Default=FALSE. Logical vector of length one indicating whether
+#'   \code{md} should be log-transformed. Only to be used when \code{md} is
+#'   numeric.
+#' @param label Default=NULL. The output of \code{\link{tsne_labels}} to have
+#'   cluster names overlaid on the plot.
+#' @param sel_cells Optional. A character vector of cell names (rownames of
+#'   \code{cell_coord}) to highlight in the plot.
+#' @param sel_cells_A Optional. Alternative highlighting method to sel_cells,
+#'   can be used in conjunction. Meant for indicating a selected set of cells
+#'   when building manual cell set comparisons, in conjunction with
+#'   \code{sel_cells_B}.
+#' @param sel_cells_B Optional. See \code{sel_cells_A}.
+#'
+#' @examples
+#' \dontrun{
+#' # Cluster overlay:
+#' plot_tsne(cell_coord=getEmb(input_data_obj,"tsne"),
+#'           md=Clusters(sCVdata),
+#'           md_title=NULL,
+#'           label=tsne_labels(sCVd=sCVdata,
+#'                             cell_coord=getEmb(input_data_obj,"tsne"),
+#'                             lab_type="ClusterNames"))
+#'
+#' # Metadata overlay:
+#' plot_tsne(cell_coord=getEmb(input_data_obj,"tsne"),
+#'           md=getMD(input_data_obj)$total_counts,
+#'           md_title="Library Size",
+#'           md_log=TRUE,
+#'           label=tsne_labels(sCVd=sCVdata,
+#'                             cell_coord=getEmb(input_data_obj,"tsne"),
+#'                             lab_type="ClusterNames"))
+#'
+#' # Gene expression overlay:
+#' plot_tsne(cell_coord=getEmb(input_data_obj,"tsne"),
+#'           md=getExpr(input_data_obj,Param(sCVdata,"assayType"))["Actb",],
+#'           md_title="Actb")
+#' }
+#'
+#' @export
+#' 
+
+# SCCV - updated scClustViz fxn to allow choice of color palette
+# for gene expression overlay
+plot_tsne2 <- function(cell_coord,md,md_title,md_log=F,label=NULL,
+                       sel_cells,sel_cells_A,sel_cells_B, idcol = NULL,size) {
+  if (is.null(md_title)) {
+    id <- as.factor(md)
+    idcol <- colorspace::qualitative_hcl(length(levels(id)),
+                                         palette="Dark 3")
+    if (any(is.na(id))) {
+      levels(id) <- c(levels(id),"Unselected")
+      id[is.na(id)] <- "Unselected"
+      idcol <- c(idcol,"grey80")
+    }
+    
+    par(mar=c(4,4,2.5,1) +.3, family = "noto-sans-jp", 
+        cex = size)
+  } else if (is.factor(md) | is.character(md)) {
+    id <- as.factor(md)
+    idcol <- colorspace::qualitative_hcl(length(levels(id)),palette="Dark 3")
+    
+    par(mar=c(4,4,ceiling(length(levels(id))/4)+1,1) +.3, family = "noto-sans-jp", 
+        cex = size)
+  } else if (any(md < 0)) {
+    if (md_log) {
+      warning("Can't log-scale md because it contains negative values.")
+    }
+    temp_down <- cut(c(0,md[md <= 0]),50,labels=F)[-1]
+    temp_up <- cut(c(0,md[md > 0]),50,labels=F)[-1]
+    id <- rep(NA,length(md))
+    id[md <= 0] <- temp_down
+    id[md > 0] <- temp_up + 50
+    if(is.null(idcol)) {
+      idcol <- colorspace::diverge_hcl(100,palette="Blue-Red")
+    }
+    
+    par(mar=c(4,4,2.5,1) +.3, family = "noto-sans-jp", 
+        cex = size)
+  } else{
+    if (md_log) {
+      id <- cut(log10(md),100)
+    } else {
+      id <- cut(md,100)
+    }
+    if(is.null(idcol)) {
+      idcol <- colorspace::sequential_hcl(100,palette="Viridis",rev=T)
+    }
+    
+    par(mar=c(4,4,2.5,1) +.3, family = "noto-sans-jp", 
+        cex = size)
+  }
+  if (missing(sel_cells)) { sel_cells <- character() }
+  if (nrow(cell_coord) > 1e4) {
+    temp_pch <- "."
+    temp_cex <- 2
+  } else {
+    temp_pch <- 21
+    temp_cex <- 1
+  }
+  
+  plot(x=NULL,y=NULL,xlab=gsub("_", " ", colnames(cell_coord)[1]),ylab=gsub("_", " ", colnames(cell_coord)[2]),
+       xlim=range(cell_coord[,1]),ylim=range(cell_coord[,2]))
+  if (length(sel_cells) > 0) {
+    points(cell_coord[!rownames(cell_coord) %in% sel_cells,],pch=temp_pch,cex=temp_cex,
+           col=alpha(idcol,.6)[id[!rownames(cell_coord) %in% sel_cells]],
+           bg=alpha(idcol,0.3)[id[!rownames(cell_coord) %in% sel_cells]])
+    points(cell_coord[sel_cells,],pch=temp_pch,cex=temp_cex + .5,
+           col=alpha(idcol,1)[id[rownames(cell_coord) %in% sel_cells]],
+           bg=alpha(idcol,0.6)[id[rownames(cell_coord) %in% sel_cells]])
+  } else {
+    points(cell_coord,pch=temp_pch,cex=temp_cex,col=alpha(idcol,.8)[id],bg=alpha(idcol,0.4)[id])
+  }
+  
+  if (!missing(sel_cells_A) & !missing(sel_cells_B)) {
+    points(x=cell_coord[sel_cells_A,1],
+           y=cell_coord[sel_cells_A,2],
+           pch=19,col="#a50026")
+    points(x=cell_coord[sel_cells_B,1],
+           y=cell_coord[sel_cells_B,2],
+           pch=19,col="#313695")
+    points(x=cell_coord[intersect(sel_cells_A,sel_cells_B),1],
+           y=cell_coord[intersect(sel_cells_A,sel_cells_B),2],
+           pch=19,col="#ffffbf")
+    points(x=cell_coord[intersect(sel_cells_A,sel_cells_B),1],
+           y=cell_coord[intersect(sel_cells_A,sel_cells_B),2],
+           pch=4,col="red")
+  }
+  if (!is.null(label)) {
+    text(label,labels=rownames(label),font=2,cex=size)
+  }
+  if (is.null(md_title)) {
+  } else if (is.factor(md) | is.character(md)) {
+    legend(x=par("usr")[2],y=par("usr")[4],
+           xjust=1,yjust=0.2,xpd=NA,bty="n",
+           ncol=switch(as.character(length(levels(id)) < 4),"TRUE"=length(levels(id)),"FALSE"=4),
+           legend=levels(id),pch=21,col=idcol,pt.bg=alpha(idcol,0.5))
+    mtext(md_title,side=3,adj=0,font=2,line=ceiling(length(levels(id))/4)-1,cex=size)
+  } else if (any(md < 0)) {
+    temp_x <- c(
+      seq(from=par("usr")[1] + (par("usr")[2] - par("usr")[1]) * .15,
+          to=par("usr")[1] + (par("usr")[2] - par("usr")[1]) / 2 - strwidth("0"),
+          length.out=51),
+      seq(from=par("usr")[2] - (par("usr")[2] - par("usr")[1]) / 2 + strwidth("0"),
+          to=par("usr")[2] - (par("usr")[2] - par("usr")[1]) * .15,
+          length.out=51)
+    )
+    for (i in 1:50) {
+      rect(xleft=temp_x[i],xright=temp_x[i+1],
+           ybottom=par("usr")[4] + (par("usr")[4] - par("usr")[3]) * .001,
+           ytop=par("usr")[4] + strheight(md_title),
+           col=idcol[i],border=NA,xpd=NA)
+    }
+    for (i in 52:102) {
+      rect(xleft=temp_x[i],xright=temp_x[i+1],
+           ybottom=par("usr")[4] + (par("usr")[4] - par("usr")[3]) * .001,
+           ytop=par("usr")[4] + strheight(md_title),
+           col=idcol[i-1],border=NA,xpd=NA)
+    }
+    mtext(round(min(md),2),side=3,line=0,at=temp_x[1],adj=1.1, cex = size)
+    mtext(round(max(md),2),side=3,line=0,at=temp_x[102],adj=-0.1, cex = size)
+    mtext(0,side=3,line=0,adj=.5,
+          at=par("usr")[1] + (par("usr")[2] - par("usr")[1]) / 2)
+    mtext(md_title,side=3,line=1,adj=.5,font=2, cex = size,
+          at=par("usr")[1] + (par("usr")[2] - par("usr")[1]) / 2)
+  } else {
+    if (md_log) { md_title <- paste(md_title,"(log scale)") } 
+    temp_x <- seq(from=par("usr")[1] + (par("usr")[2] - par("usr")[1]) * .15,
+                  to=par("usr")[2] - (par("usr")[2] - par("usr")[1]) * .15,
+                  length.out=101)
+    for (i in seq_along(idcol)) {
+      rect(xleft=temp_x[i],xright=temp_x[i+1],
+           ybottom=par("usr")[4] + (par("usr")[4] - par("usr")[3]) * .001,
+           ytop=par("usr")[4] + strheight(md_title),
+           col=idcol[i],border=NA,xpd=NA)
+    }
+    mtext(round(min(md),2),side=3,line=0,at=temp_x[1],adj=1.1, cex = size)
+    mtext(round(max(md),2),side=3,line=0,at=temp_x[101],adj=-0.1, cex = size)
+    mtext(md_title,side=3,line=1,at=temp_x[51],adj=.5,font=2,cex=size)
+  }
+}
+
+#' scClustViz plot: Plot an MA plot
+#'
+#' This function plots an MA plot for two different cluster comparisons.
+#'
+#' @param sCVd scClustViz object
+#' @param clA cluster A for the first comparison
+#' @param clB cluster B for the second comparison
+#' @param dataType For MA-style plots comparing difference and mean of gene
+#'   summary statistics, one of: \code{"DR"} (detection rate); \code{"MGE"}
+#'   (mean gene expression); \code{"MDGE"} (mean detected gene expression). For
+#'   volcano plots, the effect size measure can be one of: \code{"dDR"}
+#'   (difference in detection rate); \code{"logGER"} (log gene expression
+#'   ratio). To compare relationship between difference in detection rate and
+#'   log gene expression ratio, use \code{"GERvDDR"}.
+#' @param labType Default="de". A character vector indicating which genes to
+#'   highlight. One of \code{"de"} (most statistically significant genes),
+#'   \code{"diff"} (most different by dataType shown), or \code{"search"}
+#'   (specified genes).
+#' @param labGenes Only required if \code{labType="search"}. Gene names to
+#'   highlight.
+#' @param labNum Default=5. Number of genes to highlight per side.
+#'
+#' @examples
+#' \dontrun{
+#' # Cluster overlay:
+#' plot_compareClusts_MAplot2(sCVd = seurat_sc[[1]], clA = 1, clB = 2,
+#'                            dataType = "DR", labType = "de",
+#'                            labNum = 5)
+#'
+#' }
+#'
+#' @export
+#' 
+
+plot_compareClusts_MAplot2 <- function(sCVd, clA, clB, labType, labNum, labGenes,
+                                       sizeFactor = 1) {
+  
+  CGS <- compareClusts_DF(sCVd = sCVd, clA = clA, clB = clB, dataType = "MGE")
+  temp_label <- paste0("mean normalized gene expression (log", Param(sCVd,"exponent")," scale)")
+  if(Param(sCVd,"exponent") == exp(1)) {
+    temp_label <- paste0("mean normalized gene expression (natural log scale)")
+  }
+  
+  gnA <- rownames(head(CGS[order(CGS$x_diff, decreasing = T), ], labNum))
+  gnB <- rownames(tail(CGS[order(CGS$x_diff, decreasing = T), ], labNum))
+  if(labType == "de") {
+    ts <- order(CGS$FDR, na.last=T)
+    gnA <- rownames(CGS)[ts[CGS[ts, "dir"] == clA][1:labNum]]
+    gnB <- rownames(CGS)[ts[CGS[ts, "dir"] == clB][1:labNum]]
+  }
+  
+  dat <- data.frame(x = CGS$x_diff, y = CGS$y_mean, gene = rownames(CGS))
+  rownames(dat) <- dat$gene
+  dat$col <- alpha("black", 0.3)
+  clustCols <- scales::hue_pal()(2)
+  dat[gnA, "col"] <- alpha(clustCols,alpha = 0.8)[1]
+  dat[gnB, "col"] <- alpha(clustCols, alpha = 0.8)[2]
+  col <- as.character(dat$col)
+  names(col) <- as.character(dat$col)
+  datLab <- dat[c(gnA, gnB), ]
+  datLab[gnA, "col"] <- alpha(clustCols, alpha = 0.8)[1]
+  datLab[gnB, "col"] <- alpha(clustCols, alpha = 0.8)[2]
+  
+  xLab <- paste0("Difference in ", temp_label)
+  yLab <- paste0("Avg ", temp_label)
+  mainLab <- paste0("Modified MA plot of mean gene expression ", clA, " vs. ", clB)
+  subLab <- paste(
+    paste("Cosine similarity:",
+          round(scClustViz:::cosineSim(ClustGeneStats(sCVd)[[clA]][, "MGE"], 
+                                       ClustGeneStats(sCVd)[[clB]][, "MGE"]), 2)),
+    paste("Spearman's Rho:",
+          round(cor(x = ClustGeneStats(sCVd)[[clA]][, "MGE"], 
+                    y = ClustGeneStats(sCVd)[[clB]][, "MGE"],
+                    method = "spearman"), 2)),
+    sep = ", ")
+  
+  theme_set(theme_classic(base_family = "noto-sans-jp", 
+                          base_size = 12))
+  # Change the settings
+  update_geom_defaults("text", list(family = theme_get()$text$family))
+  
+  p <- ggplot(dat, aes(x = x, y = y)) +
+    geom_point(aes(color = col)) +
+    scale_color_manual(values = col) +
+    annotate("text", label = paste0("Higher in ", clA), size = 8 * sizeFactor,
+             color = clustCols[1],
+             x = Inf, y = -Inf, hjust = 1.03, vjust = -0.5,
+             family= theme_get()$text[["family"]]) +
+    annotate("text", label = paste0("Higher in ", clB), size = 8 * sizeFactor,
+             color = clustCols[2],
+             x = -Inf, y = -Inf, hjust = -0.1, vjust = -0.5,
+             family= theme_get()$text[["family"]]) +
+    labs(title = mainLab, subtitle = subLab) +
+    xlab(xLab) +
+    ylab(yLab) +
+    geom_text_repel(data = datLab, mapping = aes(x, y, label = gene, color = col),
+                    size = 5 * sizeFactor, fontface = "bold", family = "noto-sans-jp",
+                    max.overlaps = 30
+    ) +
+    geom_vline(xintercept = 0, color = "gray50") +
+    theme(
+      text = element_text(family = "noto-sans-jp"),
+      axis.text = element_text(size = 15 * sizeFactor),
+      axis.title = element_text(size = 20 * sizeFactor), 
+      plot.subtitle = element_text(size = 15 * sizeFactor),
+      plot.title = element_text(size = 25 * sizeFactor),
+      legend.position = "none"
+    )
+  print(p)
+} 
+
+
+#' scClustViz plot: Plot a scatterplot
+#'
+#' This function plots the relationship between difference in detection rate and
+#' log gene expression ratio
+#'
+#' @param sCVd scClustViz object
+#' @param clA cluster A for the first comparison
+#' @param clB cluster B for the second comparison
+#' @param dataType For MA-style plots comparing difference and mean of gene
+#'   summary statistics, one of: \code{"DR"} (detection rate); \code{"MGE"}
+#'   (mean gene expression); \code{"MDGE"} (mean detected gene expression). For
+#'   volcano plots, the effect size measure can be one of: \code{"dDR"}
+#'   (difference in detection rate); \code{"logGER"} (log gene expression
+#'   ratio). To compare relationship between difference in detection rate and
+#'   log gene expression ratio, use \code{"GERvDDR"}.
+#' @param labType Default="de". A character vector indicating which genes to
+#'   highlight. One of \code{"de"} (most statistically significant genes),
+#'   \code{"diff"} (most different by dataType shown), or \code{"search"}
+#'   (specified genes).
+#' @param labGenes Only required if \code{labType="search"}. Gene names to
+#'   highlight.
+#' @param labNum Default=5. Number of genes to highlight per side.
+#' @param labTypeDiff Default="logGER". Only required if
+#'   \code{dataType="GERvDDR"} and \code{labType="diff"}. Which axis to use for
+#'   difference calculation. One of \code{"dDR"} (difference in detection rate)
+#'   or \code{"logGER"} (log gene expression ratio).
+
+#'
+#' @examples
+#' \dontrun{
+#' # Cluster overlay:
+#' plot_compareClusts_DEscatter2(sCVd = seurat_sc[[1]], clA = 1, clB = 2,
+#'                            dataType = "DR", labType = "diff",
+#'                            labNum = 5, labTypeDiff = "logGER")
+#'
+#' }
+#'
+#' @export
+#' 
+
+plot_compareClusts_DEscatter2 <- function(sCVd,clA,clB,dataType,labType,
+                                          labTypeDiff,labNum,labGenes) {
+  CGS <- compareClusts_DF(sCVd,clA,clB,dataType)
+  temp_exp <- switch(as.character(Param(sCVd,"exponent") == exp(1)),
+                     "TRUE"="(natural log scale)",
+                     "FALSE"=paste0("(log",Param(sCVd,"exponent")," scale)"))
+  if (labType == "diff") {
+    gnA <- rownames(head(CGS[order(CGS[[labTypeDiff]],decreasing=T),],labNum))
+    gnB <- rownames(tail(CGS[order(CGS[[labTypeDiff]],decreasing=T),],labNum))
+  } else if (labType == "de") {
+    ts <- order(CGS$FDR,na.last=T)
+    gnA <- rownames(CGS)[ts[CGS[ts,"dir"] == clA][1:labNum]]
+    gnB <- rownames(CGS)[ts[CGS[ts,"dir"] == clB][1:labNum]]
+  }
+  clustCols <- scales::hue_pal()(2)
+  
+  dat <- data.frame(x = CGS$dDR, y = CGS$logGER, gene = rownames(CGS))
+  rownames(dat) <- dat$gene
+  dat$col <- alpha("black",0.3)
+  dat[gnA, "col"] <- alpha(clustCols,alpha=.8)[1]
+  dat[gnB, "col"] <- alpha(clustCols,alpha=.8)[2]
+  col <- as.character(dat$col)
+  names(col) <- as.character(dat$col)
+  datLab <- dat[c(gnA,gnB), ]
+  datLab[gnA, "col"] <- alpha(clustCols,alpha=.8)[1]
+  datLab[gnB, "col"] <- alpha(clustCols,alpha=.8)[2]
+  
+  xLab <- "Difference in detection rate"
+  yLab <- paste0("Gene expression ratio ", temp_exp)
+  mainLab <- paste0("Expression difference effect sizes (",clA," vs. ",clB,")")
+  
+  theme_set(theme_classic(base_family = "noto-sans-jp", 
+                          base_size = 12))
+  # Change the settings
+  update_geom_defaults("text", list(family = theme_get()$text$family))
+  
+  p <- ggplot(dat, aes(x = x, y = y)) +
+    geom_point(aes(color = col)) +
+    scale_color_manual(values = col) +
+    annotate("text", label = paste0("Higher in ", clA), size = 4,
+             color = clustCols[1],
+             x = Inf, y = -Inf, hjust = 1.03, vjust = -0.5,
+             family= theme_get()$text[["family"]]) +
+    annotate("text", label = paste0("Higher in ", clB), size = 4,
+             color = clustCols[2],
+             x = -Inf, y = -Inf, hjust = -0.1, vjust = -0.5,
+             family= theme_get()$text[["family"]]) +
+    theme(text = element_text(family = "noto-sans-jp"),
+          legend.position = "none") +
+    geom_text_repel(data = datLab, mapping = aes(x, y, label = gene, color = col),
+                    size = 4, fontface = "bold", family = "noto-sans-jp"
+    ) +
+    labs(title = mainLab) +
+    xlab(xLab) +
+    ylab(yLab) +
+    geom_vline(xintercept = 0, color = "gray50")  
+  print(p)
+}
+
+#' scClustViz plot: Plot volcano plot
+#'
+#' This function plots a volcano plot comparing cluster A to B.
+#'
+#' @param sCVd scClustViz object
+#' @param clA cluster A for the first comparison
+#' @param clB cluster B for the second comparison
+#' @param dataType For MA-style plots comparing difference and mean of gene
+#'   summary statistics, one of: \code{"DR"} (detection rate); \code{"MGE"}
+#'   (mean gene expression); \code{"MDGE"} (mean detected gene expression). For
+#'   volcano plots, the effect size measure can be one of: \code{"dDR"}
+#'   (difference in detection rate); \code{"logGER"} (log gene expression
+#'   ratio). To compare relationship between difference in detection rate and
+#'   log gene expression ratio, use \code{"GERvDDR"}.
+#' @param labType Default="de". A character vector indicating which genes to
+#'   highlight. One of \code{"de"} (most statistically significant genes),
+#'   \code{"diff"} (most different by dataType shown), or \code{"search"}
+#'   (specified genes).
+#' @param labGenes Only required if \code{labType="search"}. Gene names to
+#'   highlight.
+#' @param labNum Default=5. Number of genes to highlight per side.
+#' @param labTypeDiff Default="logGER". Only required if
+#'   \code{dataType="GERvDDR"} and \code{labType="diff"}. Which axis to use for
+#'   difference calculation. One of \code{"dDR"} (difference in detection rate)
+#'   or \code{"logGER"} (log gene expression ratio).
+
+#'
+#' @examples
+#' \dontrun{
+#' # Cluster overlay:
+#' plot_compareClusts_DEscatter2(sCVd = seurat_sc[[1]], clA = 1, clB = 2,
+#'                            dataType = "DR", labType = "diff",
+#'                            labNum = 5, labTypeDiff = "logGER")
+#'
+#' }
+#'
+#' @export
+
+plot_compareClusts_volcano2 <- function(sCVd, clA, clB, dataType, labType, 
+                                        labNum, labGenes, sizeFactor = 1) {
+  CGS <- compareClusts_DF(sCVd = sCVd, clA = clA, clB = clB, dataType = dataType)
+  CGS <- CGS[!is.na(CGS$FDR), ]
+  CGS$FDR <- -log10(CGS$FDR)
+  CGS$FDR[CGS$FDR == Inf] <- 300 # Min positive non-zero value is 1e-300
+  
+  temp_exp <- paste0("(log", Param(sCVd,"exponent"), " scale)")
+  if(Param(sCVd,"exponent") == exp(1)) {
+    temp_exp <- "(natural log scale)"
+  }
+  
+  gnA <- rownames(head(CGS[order(CGS[[dataType]], decreasing = T), ], labNum))
+  gnB <- rownames(tail(CGS[order(CGS[[dataType]], decreasing = T), ], labNum))
+  if(labType == "de") {
+    ts <- order(CGS$FDR, decreasing = T, na.last = T)
+    gnA <- rownames(CGS)[ts[CGS[ts, "dir"] == clA][1:labNum]]
+    gnB <- rownames(CGS)[ts[CGS[ts, "dir"] == clB][1:labNum]]
+  }
+  
+  clustCols <- scales::hue_pal()(2)
+  dat <- data.frame(x = CGS[[dataType]], y = CGS$FDR, gene = rownames(CGS))
+  rownames(dat) <- dat$gene
+  dat$col <- alpha("black", 0.3)
+  dat[gnA, "col"] <- alpha(clustCols, alpha = 0.8)[1]
+  dat[gnB, "col"] <- alpha(clustCols, alpha = 0.8)[2]
+  col <- as.character(dat$col)
+  names(col) <- as.character(dat$col)
+  datLab <- dat[c(gnA, gnB), ]
+  xLab <- "Difference in detection rate"
+  if(dataType == "logGER") xLab <- paste0("Gene expression ratio ", temp_exp)
+  yLab <- "-log10 FDR-adjusted p-value"
+  mainLab <- paste0("Volcano plot of DE genes ", clA, " vs. ", clB)
+  
+  theme_set(theme_classic(base_family = "noto-sans-jp", 
+                          base_size = 12))
+  # Change the settings
+  update_geom_defaults("text", list(family = theme_get()$text$family))
+  
+  p <- ggplot(dat, aes(x = x, y = y)) +
+    geom_point(aes(color = col)) +
+    scale_color_manual(values = col) +
+    annotate("text", label = paste0("Higher in ", clA), size = 8 * sizeFactor,
+             color = clustCols[1],
+             x = Inf, y = -Inf, hjust = 1.03, vjust = -0.5,
+             family= theme_get()$text[["family"]]) +
+    annotate("text", label = paste0("Higher in ", clB), size = 8 * sizeFactor,
+             color = clustCols[2],
+             x = -Inf, y = -Inf, hjust = -0.1, vjust = -0.5,
+             family= theme_get()$text[["family"]]) +
+    geom_text_repel(
+      data = datLab, mapping = aes(x, y, label = gene, color = col),
+      size = 5 * sizeFactor, fontface = "bold", family = "noto-sans-jp",
+      max.overlaps = 30
+    ) +
+    labs(title = mainLab) +
+    xlab(xLab) +
+    ylab(yLab) +
+    geom_vline(xintercept = 0, color = "gray50") +
+    theme(
+      text = element_text(family = "noto-sans-jp"),
+      axis.text = element_text(size = 15 * sizeFactor),
+      axis.title = element_text(size = 20 * sizeFactor),
+      plot.title = element_text(size = 25 * sizeFactor),
+      legend.position = "none"
+    )
+  print(p)
+}
+
+#' scClustViz plot: Plot to compare cell metadata
+#'
+#' This function makes scatter/boxplots comparing cellular metadata.
+#'
+#' @param MD A dataframe of cellular metadata. See \code{\link{getMD}}.
+#' @param mdX A character vector of one refering to the variable name from
+#'   \code{MD} to plot on the x-axis.
+#' @param mdY A character vector of one refering to the variable name from
+#'   \code{MD} to plot on the y-axis.
+#' @param sel_cells Optional. A character vector of cell names (rownames of
+#'   \code{MD}) to highlight in the plot.
+#' @param sel_clust Optional. The name of the selected cluster
+#'   (\code{sel_cells}) to include in the legend. If
+#'   \code{\link{labelCellTypes}} has been run, pass the appropriate element of
+#'   \code{attr(Clusters(sCV),"ClusterNames")} to this argument to show both
+#'   cluster number and cell type label in the legend.
+#' @param md_log Optional. A character vector indicating which axes should be
+#'   log scaled. \code{c("x","y")} to log-scale both axes.
+#'
+#' @examples
+#' \dontrun{
+#' plot_mdCompare(MD=getMD(input_data_obj),
+#'                mdX="total_counts",
+#'                mdY="total_features",
+#'                sel_cells=names(Clusters(sCVdata))[Clusters(sCVdata) == "1"],
+#'                sel_clust="1",
+#'                md_log="x")
+#' }
+#'
+#' @export
+
+plot_mdCompare <- function(MD,mdX,mdY,sel_cells,sel_clust,md_log,size) {
+  if (missing(sel_cells)) { sel_cells <- "" }
+  if (missing(sel_clust)) { sel_clust <- "" }
+  if (missing(md_log)) { md_log <- "" }
+  MD <- data.frame(MD[,c(mdX,mdY)])
+  MD$sel_cells <- rownames(MD) %in% sel_cells
+  if ("x" %in% md_log & !(is.factor(MD[,1]) | is.character(MD[,1]))) {
+    tempLX <- "x"
+    if (any(MD[,1] <= 0)) {
+      names(MD)[1] <- paste(names(MD)[1],
+                            paste0("(log scale: ",sum(MD[,1] <= 0),
+                                   " values <= 0 omitted)"))
+      MD <- MD[MD[,1] > 0,]
+    } else {
+      names(MD)[1] <- paste(names(MD)[1],"(log scale)")
+    }
+  } else {
+    tempLX <- ""
+  }
+  if ("y" %in% md_log & !(is.factor(MD[,2]) | is.character(MD[,2]))) { 
+    tempLY <- "y" 
+    if (any(MD[,2] <= 0)) {
+      names(MD)[2] <- paste(names(MD)[2],
+                            paste0("(log scale: ",sum(MD[,2] <= 0),
+                                   " values <= 0 omitted)"))
+      MD <- MD[MD[,2] > 0,]
+    } else {
+      names(MD)[2] <- paste(names(MD)[2],"(log scale)")
+    } 
+  } else {
+    tempLY <- ""
+  }
+  md_log <- paste(c(tempLX,tempLY),collapse="")
+  
+  if ((is.factor(MD[,1]) | is.character(MD[,1])) &
+      (is.factor(MD[,2]) | is.character(MD[,2]))) {
+    plot(x=NA,y=NA,xlim=0:1,ylim=0:1,xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+    text(.5,.5,"This figure is not designed to compare to categorical variables.")
+  } else if (is.factor(MD[,1]) | is.character(MD[,1])) {
+    plot_mdBoxplotX(MD,sel_clust,md_log,size)
+  } else if (is.factor(MD[,2]) | is.character(MD[,2])) {
+    plot_mdBoxplotY(MD,sel_clust,md_log,size)
+  } else {
+    plot_mdScatter(MD,sel_clust,md_log,size)
+  }
+  
+}
+
+#' scClustViz plot: Plot to view cellular metadata by cluster
+#'
+#' This function makes boxplots / stacked barplots of cellular metadata
+#' separated by cluster.
+#'
+#' @param MD A dataframe of cellular metadata. See \code{\link{getMD}}.
+#' @param sel A character vector of one refering to the variable name from
+#'   \code{MD} to plot.
+#' @param cl A factor of cluster assignments. See \code{\link{Cluster}}.
+#' @param opt Default="absolute". A character vector of plotting options. One of
+#'   \code{"absolute"}, \code{"relative"}, or \code{"y"}. \code{"y"} sets
+#'   log-scales the data for postive numerical metadata. For categorical
+#'   metadata, \code{"absolute"} plots a stacked barplot of raw counts, whereas
+#'   \code{"relative"} plots the proportion of each cluster represented by each
+#'   category.
+#'
+#' @examples
+#' \dontrun{
+#' plot_mdPerClust(MD=getMD(input_data_obj),
+#'                 sel="cyclonePhases",
+#'                 cl=Clusters(sCVdata),
+#'                 opt="relative")
+#' }
+#'
+#' @export
+
+plot_mdPerClust <- function(MD,sel,cl,opt="absolute",inp,size) {
+  MD <- MD[sel]
+  MD$cl <- as.factor(cl)
+  if ("y" %in% opt & !(is.factor(MD[,1]) | is.character(MD[,1]))) { 
+    if (any(MD[,1] <= 0)) {
+      names(MD)[1] <- paste(names(MD)[1],
+                            paste0("(log scale: ",sum(MD[,1] <= 0),
+                                   " values <= 0 omitted)"))
+      MD <- MD[MD[,1] > 0,]
+    } else {
+      names(MD)[1] <- paste(names(MD)[1],"(log scale)")
+    } 
+  }
+  if (is.factor(MD[,1]) | is.character(MD[,1])) {
+    plot_mdBarplot(MD,opt,size)
+  } else {
+    plot_mdBoxplot(MD,opt,inp,size)
+  }
+}
+
+# DE gene dotplot
+
+#' scClustViz plot helper function: Return DE genes per cluster
+#'
+#' This function returns a named numeric vector of FDR-corrected p-values for
+#' statistically significant differentially expressed genes for a set comparison
+#' type and FDR threshold. For \code{"DEmarker"}, the returned value is the max
+#' of all comparisons.
+#'
+#' @param sCVd The sCVdata object.
+#' @param DEtype One of: \code{"DEvsRest"} - see \code{\link{DEvsRest}};
+#'   \code{"DEneighb"} - see \code{\link{DEneighb}}; \code{"DEmarker"} - see
+#'   \code{\link{DEmarker}}.
+#' @param FDRthresh A numeric vector of length 1 setting a false discovery rate
+#'   threshold for statistical significance.
+#'
+#' @examples
+#' \dontrun{
+#' dotplotDEgenes(sCVdata,
+#'                DEtype="DEneighb",
+#'                FDRthresh=0.01)
+#' }
+#'
+#' @export
+
+dotplotDEgenes <- function(sCVd,DEtype,FDRthresh) {
+  if (missing(FDRthresh)) { FDRthresh <- 1 }
+  if (DEtype == "DEvsRest") {
+    return(lapply(DEvsRest(sCVd),function(X) {
+      temp <- X[which(X$FDR <= FDRthresh),"FDR",drop=F]
+      out <- unlist(temp,use.names=F)
+      names(out) <- rownames(temp)
+      return(sort(out))
+    }))
+  } else if (DEtype == "DEneighb") {
+    outL <- lapply(DEneighb(sCVd,FDRthresh), function(X) {
+      if (nrow(X) < 1) { return(numeric(0)) }
+      out <- X[,grep("^FDR_",names(X))]
+      names(out) <- rownames(X)
+      return(sort(out))
+    })
+    names(outL) <- levels(Clusters(sCVd))
+    return(outL)
+  } else if (DEtype == "DEmarker") {
+    outL <- lapply(DEmarker(sCVd,FDRthresh), function(X) {
+      if (nrow(X) < 1) { return(numeric(0)) }
+      out <- apply(X[,grep("^FDR_",names(X)),drop=F],1,max)
+      return(sort(out))
+    })
+    return(outL)
+  }
+}
+
+#' scClustViz plot: Plot gene expression dotplots.
+#'
+#' This function makes dotplots (a heatmap analogue) showing gene expression for
+#' a set of genes across all clusters.
+#'
+#' When generated in an interactive context (i.e. RStudio), this can sometimes
+#' result in a \code{figure margins too large} error. See example for suggested
+#' dimensions of the graphic device.
+#'
+#' @param sCVd The sCVdata object.
+#' @param DEgenes The output of \code{\link{dotplotDEgenes}}.
+#' @param DEnum Single integer representing the maximum number of DE genes per
+#'   cluster to include in the dotplot.
+#'
+#' @examples
+#' \dontrun{
+#' pdf("filepath.pdf",width=11,height=7)
+#' plot_deDotplot(sCVd=sCVdata,
+#'                DEgenes=dotplotDEgenes(sCVdata,
+#'                                       DEtype="DEneighb",
+#'                                       FDRthresh=0.01)
+#'                DEnum=5)
+#' dev.off()
+#' }
+#'
+#' @export
+
+plot_deDotplot <- function(sCVd,DEgenes,DEnum,size) {
+  # ^ Setup ----
+  heatGenes <- unique(unlist(lapply(DEgenes,function(X) names(X)[1:DEnum])))
+  heatGenes <- heatGenes[!is.na(heatGenes)]
+  
+  if (is.null(heatGenes)) {
+    plot(x=NA,y=NA,xlim=0:1,ylim=0:1,xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+    text(.5,.5,
+         "No genes were statistically significant at the current false discovery rate")
+    return(invisible())
+  }
+  
+  temp_DR <- sapply(ClustGeneStats(sCVd),function(X) X[heatGenes,"DR"])
+  if (is.vector(temp_DR)) {
+    temp_DR <- matrix(temp_DR,1,dimnames=list(NULL,names(temp_DR))) 
+  }
+  temp_MDGE <- sapply(ClustGeneStats(sCVd),function(X) X[heatGenes,"MDGE"])
+  if (is.vector(temp_MDGE)) {
+    temp_MDGE <- matrix(temp_MDGE,1,dimnames=list(NULL,names(temp_MDGE))) 
+  }
+  rownames(temp_DR) <- rownames(temp_MDGE) <- heatGenes
+  
+  if (nrow(temp_DR) > 1) {
+    hG <- hclust(stats::dist(temp_DR),"complete")
+  } else {
+    hG <- list(order=1)
+  }
+  
+  hC <- hclust(stats::as.dist(DEdist(sCVd)),"single")
+  
+  clustCols <- colorspace::qualitative_hcl(length(levels(Clusters(sCVd))),palette="Dark 3")
+  
+  dC <- dendrapply(as.dendrogram(hC),function(X) {
+    if (is.leaf(X)) {
+      attr(X,"edgePar") <- list(
+        lwd=2,
+        col=clustCols[which(attr(X,"label") == levels(Clusters(sCVd)))]
+      )
+      attr(X,"nodePar") <- list(
+        pch=NA,lab.font=2,lab.cex=size,
+        lab.col=clustCols[which(attr(X,"label") == levels(Clusters(sCVd)))])
+      if (attr(X,"label") != "Unselected") {
+        if (attr(X,"label") %in% names(DEgenes)) {
+          attr(X,"label") <- paste0(attr(X,"label"),": ",
+                                    length(DEgenes[[attr(X,"label")]])," DE")
+        } else {
+          attr(X,"label") <- paste0(
+            attr(X,"label"),": ",
+            length(DEgenes[[which(attr(X,"label") ==
+                                    sapply(strsplit(names(DEgenes),"-"),
+                                           function(X) X[1]))]]),
+            " DE")
+        }
+      }
+    }
+    return(X)
+  })
+  
+  if ("genes" %in% names(ClustGeneStats(sCVd)[[1]])) {
+    tempLabCol <- ClustGeneStats(sCVd)[[1]][heatGenes,"genes"]
+  } else {
+    tempLabCol <- rownames(ClustGeneStats(sCVd)[[1]][heatGenes,])
+  }
+  DR <- temp_DR[hG$order,hC$order,drop=F]
+  temp <- range(sapply(ClustGeneStats(sCVd),function(X) X[,"MDGE"]))
+  temp <- seq(temp[1],temp[2],length.out=101)
+  MDGE <- findInterval(as.vector(temp_MDGE[hG$order,hC$order]),
+                       vec=temp,all.inside=T)
+  
+  # ^ Plot dotplot ----
+  temp_par <- par(no.readonly=T)
+  if (length(levels(Clusters(sCVd))) <= 1) {
+    plot(x=NA,y=NA,xlim=0:1,ylim=0:1,xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+    text(.5,.5,paste("Heatmap cannot be computed",
+                     "with less than two clusters.",sep="\n"))
+  } else if (length(heatGenes) < 1) {
+    plot(x=NA,y=NA,xlim=0:1,ylim=0:1,xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+    text(.5,.5,paste("There are no differentially expressed genes at",
+                     "false discovery rate threshold."))
+  } else {
+    layout(matrix(c(0,2,3,1),2),widths=c(1,5),heights=c(1,5))
+    par(mar=c(9,0,0,.5))
+    plot(x=NULL,y=NULL,xlim=c(0.5,nrow(DR)+.5),ylim=c(0.5,ncol(DR)+.5),
+         xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab=NA,ylab=NA,bty="n")
+    abline(v=1:nrow(DR),col="grey90")
+    symbols(x=rep(1:nrow(DR),ncol(DR)),
+            y=as.vector(sapply(1:ncol(DR),function(X) rep(X,nrow(DR)))),
+            circles=as.vector(DR)/2,inches=F,add=T,xpd=NA,
+            fg=colorspace::sequential_hcl(100,palette="Viridis",rev=T)[MDGE],
+            bg=colorspace::sequential_hcl(100,palette="Viridis",rev=T)[MDGE])
+    axis(side=1,at=1:nrow(DR),lwd=0,labels=tempLabCol[hG$order],las=2,cex.axis=size)
+    
+    # Legend:
+    tx0 <- par("usr")[1]
+    tx <- (par("usr")[2] - par("usr")[1])
+    ty0 <- par("usr")[3]
+    ty <- par("usr")[4] - par("usr")[3]
+    segments(x0=tx0 - seq(.15,.03,length.out=1000) * tx,
+             y0=ty0 - 0.02 * ty,y1=ty0 - 0.05 * ty,
+             col=colorspace::sequential_hcl(1000,palette="Viridis",rev=T),xpd=NA)
+    text(x=tx0 - c(.15,.09,.03) * tx,
+         y=ty0 - c(0.035,0.02,0.035) * ty,
+         labels=c(round(min(temp_MDGE),2),
+                  "Mean detected expression",
+                  round(max(temp_MDGE),2)),pos=2:4,xpd=NA)
+    symbols(x=tx0 - c(.15,.09,.03) * tx,
+            y=ty0 - rep(.14,3) * ty,add=T,xpd=NA,
+            circles=c(0.25,0.5,0.75)/2,inches=F,bg="black")
+    text(x=tx0 - c(.149,.089,0.029,.09) * tx,
+         y=ty0 - c(rep(.23,3),.26) * ty,xpd=NA,
+         labels=c("25%","50%","75%","Detection Rate"))
+    
+    
+    par(mar=c(9,0,0,7))
+    plot(dC,horiz=T,xpd=NA,
+         ylim=c(0.5,length(hC$order)+.5),yaxs="i",yaxt="n")
+    
+    par(mar=c(0,0,0,.5))
+    if (class(hG) == "hclust") {
+      plot(as.dendrogram(hG),leaflab="none",
+           xlim=c(0.5,length(hG$order)+.5),xaxs="i",yaxt="n")
+    }
+  }
+  par(temp_par)
+}
+
+#' geneSearch: 
+#'
+#' This function generates boxplots comparing normalized gene abundance across
+#' all clusters.
+#'
+#' @param txt The gene of interest.
+#' @param st The search type: For this app, only gene list not regex.
+#' @param CGS The gene stats by cluster from seurat_sc.
+#'
+#' @examples
+#' \dontrun{
+#' geneSearch(txt = "A2M", 
+#'            st = "",
+#'            CGS = ClustGeneStats(d$SCV[[d$res]])[[1]])
+#' }
+#'
+#' @export
+
+geneSearch <- function(txt,st,CGS) {
+  if (length(txt) < 1) { txt <- ""}
+  geneNames <- rownames(CGS)
+  names(geneNames) <- toupper(CGS$genes)
+  temp <- switch(st,
+                 comma={
+                   temp_in <- strsplit(txt,split="[\\s,]",perl=T)[[1]]
+                   temp_out <- geneNames[toupper(temp_in)]
+                   names(temp_out) <- CGS[temp_out,"genes"]
+                   temp_out
+                 },
+                 regex={
+                   temp_in <- grep(txt,names(geneNames),ignore.case=T)
+                   temp_out <- geneNames[temp_in]
+                   names(temp_out) <- CGS[temp_out,"genes"]
+                   temp_out
+                 })
+  temp <- temp[!is.na(temp)]
+  if (length(temp) > 0) {
+    return(temp)
+  } else {
+    return(switch(st,
+                  comma={
+                    temp_in <- strsplit(txt,split="[\\s,]",perl=T)[[1]]
+                    return(geneNames[which(toupper(geneNames) %in% toupper(temp_in))])
+                  },
+                  regex=grep(txt,geneNames,value=T,ignore.case=T)))
+  }
+}
+
+# Gene expression boxplots
+
+#' scClustViz plot: Compare gene expression across clusters
+#'
+#' This function generates boxplots comparing normalized gene abundance across
+#' all clusters.
+#'
+#' @param nge The gene expression matrix, see \code{\link{getExprs}}.
+#' @param sCVd The sCVdata object.
+#' @param gene The gene to display.
+#' @param geneName Optional. A named character vector of length one. The element
+#'   is the full gene name, and the name is the gene symbol.
+#' @param opts Default=\code{c("sct","dr")}. A character vector with plotting
+#'   options. If it includes \code{"sct"}, data points will be overlaid as a
+#'   jitter over the boxplot. If it includes \code{"dr"}, detection rate per
+#'   cluster will be plotted as a small black bar over each boxplot, with the
+#'   corresponding axis on the right.
+#'
+#' @examples
+#' \dontrun{
+#' plot_GEboxplot(getExpr(input_data_obj),
+#'                sCVd=sCVdata,
+#'                gene="Actb")
+#' }
+#'
+#' @export
+
+plot_GEboxplot <- function(nge,sCVd,gene,geneName,opts=c("sct","dr"),size) {
+  if (gene == "") {
+    plot(x=NA,y=NA,xlim=0:1,ylim=0:1,xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+    text(.5,.5,paste("Select a gene by either clicking on the plot above",
+                     "or searching for genes of interest in the search bar above,",
+                     "then pick the gene from the list just above this figure",
+                     "to see a comparison of that gene's expression across all clusters.",
+                     sep="\n"))
+  } else {
+    # ^ setup -----
+    hC <- hclust(stats::as.dist(DEdist(sCVd)),"single")
+    temp_ylab <- switch(as.character(Param(sCVd,"exponent") == exp(1)),
+                        "TRUE"="(natural log scale)",
+                        "FALSE"=paste0("(log",Param(sCVd,"exponent")," scale)"))
+    temp_pos <- switch(as.character(length(levels(Clusters(sCVd))) > 1),
+                       "TRUE"=hC$order,"FALSE"=1)
+    if ("sct" %in% opts) {
+      len <- length(levels(Clusters(sCVd)))
+      bxpCol <- hue_pal()(len)
+    } else {
+      len <- length(levels(Clusters(sCVd)))
+      bxpCol <- hue_pal()(len)
+    }
+    
+    # ^ plot boxplot -----
+    temp_par <- par(no.readonly=T)
+    layout(matrix(2:1,nrow=2),heights=c(1,4))
+    par(mar=c(6.5,4.5,0,4), family = "noto-sans-jp", cex = size)
+    suppressWarnings(boxplot(
+      vector("list",length(levels(Clusters(sCVd))[levels(Clusters(sCVd)) != "Unselected"])),
+      ylim=range(nge[gene,]),xaxt="n",xlab=NA,
+      ylab=paste(gene,"normalized gene expression", temp_ylab),
+      cex.lab = 0.75
+    ))
+    mtext(levels(Clusters(sCVd))[temp_pos], side=1, line=1, at=seq_along(temp_pos), cex = size)
+    mtext("Clusters, ordered by heatmap dendrogram", side=1, line=3, cex = size)
+    if (missing(geneName)) { geneName <- NULL }
+    if (is.null(geneName)) { 
+      mtext(paste(gene,collapse="\n"),side = 1,line = 5, cex = size) 
+    } else {
+      mtext(paste(paste0(names(geneName),": ",geneName), collapse="\n"),
+            side=1,line=2,cex = size) 
+    }
+    for (i in temp_pos) {
+      if ("sct" %in% opts) {
+        points(jitter(rep(which(temp_pos == i),
+                          sum(Clusters(sCVd) %in% levels(Clusters(sCVd))[i])),
+                      amount=.2),
+               nge[gene,Clusters(sCVd) %in% levels(Clusters(sCVd))[i]],
+               pch=".",cex=3,
+               col= "black")
+      }
+      boxplot(nge[gene,Clusters(sCVd) %in% levels(Clusters(sCVd))[i]],add=T,
+              at=which(temp_pos == i),col=bxpCol[i],outline=F)
+    }
+    if ("dr" %in% opts) {
+      points(x=seq_along(ClustGeneStats(sCVd)),
+             y=sapply(ClustGeneStats(sCVd)[temp_pos],function(X) X[gene,"DR"]) * 
+               max(nge[gene,]) + min(nge[gene,]),
+             pch="-",cex=2)
+      axis(side=4,at=seq(0,1,.25) * max(nge[gene,]) + min(nge[gene,]),
+           labels=paste0(seq(0,1,.25) * 100,"%"), cex.axis = 1)
+      mtext(side=4,line=3, text="- Gene detection rate per cluster", cex = size)
+    }
+    if (length(temp_pos) > 1) { 
+      par(mar=c(0,4.5,1,3) +.3, family = "noto-sans-jp", cex = size)
+      plot(as.dendrogram(hC),leaflab="none") 
+    }
+    par(temp_par)
+  }
+}
+
+#' scClustViz plot: Compare gene expression across clusters
+#'
+#' This function extracts cluster comparison data for selected
+#' clusters A and B based on data type.
+#'
+#' @param sCVd scClustViz object
+#' @param clA cluster A for the first comparison
+#' @param clB cluster B for the second comparison
+#' @param dataType For MA-style plots comparing difference and mean of gene
+#'   summary statistics, one of: \code{"DR"} (detection rate); \code{"MGE"}
+#'   (mean gene expression); \code{"MDGE"} (mean detected gene expression). For
+#'   volcano plots, the effect size measure can be one of: \code{"dDR"}
+#'   (difference in detection rate); \code{"logGER"} (log gene expression
+#'   ratio). To compare relationship between difference in detection rate and
+#'   log gene expression ratio, use \code{"GERvDDR"}.
+#'
+#' @examples
+#' \dontrun{
+#' compareClusts_DF(sCVd = seurat_sc[[1]], clA = 1, clB = 1, dataType = "DR")
+#' }
+#'
+#' @export
+
+compareClusts_DF <- function(sCVd,clA,clB,dataType) {
+  if (dataType %in% c("MGE","MDGE","DR")) {
+    loc1 <- c(paste(clA,clB,sep="-"),paste(clB,clA,sep="-"))
+    loc <- loc1[loc1 %in% names(DEcombn(sCVd))]
+    loc1 <- which(loc1 %in% names(DEcombn(sCVd)))
+    if (loc1 == 2) { loc1 <- -1 }
+    if ("Wstat" %in% colnames(DEcombn(sCVd)[[loc]])) {
+      tempW <- DEcombn(sCVd)[[loc]]$Wstat - 
+        DEcombn(sCVd)[[loc]]$Wstat[which.max(DEcombn(sCVd)[[loc]]$pVal)]
+    } else {
+      tempW <- DEcombn(sCVd)[[loc]]$logGER
+    }
+    temp <- data.frame(x_diff=ClustGeneStats(sCVd)[[clA]][,dataType] - 
+                         ClustGeneStats(sCVd)[[clB]][,dataType],
+                       y_mean=rowMeans(cbind(ClustGeneStats(sCVd)[[clA]][,dataType],
+                                             ClustGeneStats(sCVd)[[clB]][,dataType])),
+                       logGER=NA,FDR=NA,dir=NA)
+    rownames(temp) <- rownames(ClustGeneStats(sCVd)[[clA]])
+    temp[rownames(DEcombn(sCVd)[[loc]]),"logGER"] <- DEcombn(sCVd)[[loc]]$logGER
+    temp[rownames(DEcombn(sCVd)[[loc]]),"FDR"] <- DEcombn(sCVd)[[loc]]$FDR
+    temp[rownames(DEcombn(sCVd)[[loc]]),"dir"] <- c(clB,clA)[(tempW * loc1 > 0) + 1]
+    return(temp)
+  } else if (dataType %in% c("GERvDDR","logGER","dDR")) {
+    loc1 <- which(c(paste(clA,clB,sep="-"),paste(clB,clA,sep="-")) %in% names(DEcombn(sCVd)))
+    if (loc1 == 2) { loc1 <- -1 }
+    loc <- which(names(DEcombn(sCVd)) %in% c(paste(clA,clB,sep="-"),paste(clB,clA,sep="-")))
+    temp <- DEcombn(sCVd)[[loc]][,c("logGER","dDR","FDR")]
+    temp <- as.data.frame(mapply("*",temp,c(loc1,loc1,1))) 
+    rownames(temp) <- rownames(DEcombn(sCVd)[[loc]])
+    if ("Wstat" %in% colnames(DEcombn(sCVd)[[loc]])) {
+      tempW <- DEcombn(sCVd)[[loc]]$Wstat - 
+        DEcombn(sCVd)[[loc]]$Wstat[which.max(DEcombn(sCVd)[[loc]]$pVal)]
+    } else {
+      tempW <- DEcombn(sCVd)[[loc]]$logGER
+    }
+    temp$dir <- c(clB,clA)[(tempW * loc1 > 0) + 1]
+    return(temp)
+  } 
+}
+
+#' scClustViz plot: Volcano and MA-style plots to compare clusters
+#'
+#' This function generates scatterplots inspired by volcano and MA plots for
+#' comparing gene expression between pairs of clusters.
+#'
+#' @param sCVd The sCVdata object.
+#' @param clA Cluster identifier for side A of the comparison.
+#' @param clB Cluster identifier for side B of the comparison.
+#' @param dataType For MA-style plots comparing difference and mean of gene
+#'   summary statistics, one of: \code{"DR"} (detection rate); \code{"MGE"}
+#'   (mean gene expression); \code{"MDGE"} (mean detected gene expression). For
+#'   volcano plots, the effect size measure can be one of: \code{"dDR"}
+#'   (difference in detection rate); \code{"logGER"} (log gene expression
+#'   ratio). To compare relationship between difference in detection rate and
+#'   log gene expression ratio, use \code{"GERvDDR"}.
+#' @param labType Default="de". A character vector indicating which genes to
+#'   highlight. One of \code{"de"} (most statistically significant genes),
+#'   \code{"diff"} (most different by dataType shown), or \code{"search"}
+#'   (specified genes).
+#' @param labGenes Only required if \code{labType="search"}. Gene names to
+#'   highlight.
+#' @param labNum Default=5. Number of genes to highlight per side.
+#' @param labTypeDiff Default="logGER". Only required if
+#'   \code{dataType="GERvDDR"} and \code{labType="diff"}. Which axis to use for
+#'   difference calculation. One of \code{"dDR"} (difference in detection rate)
+#'   or \code{"logGER"} (log gene expression ratio).
+#'
+#' @examples
+#' \dontrun{
+#' plot_compareClusts(sCVdata,
+#'                    clA="1",
+#'                    clB="2",
+#'                    dataType="GERvDDR",
+#'                    labType="search",
+#'                    labGenes="Actb")
+#' }
+#'
+#' @export
+
+plot_compareClusts2 <- function(sCVd, clA, clB, dataType,
+                                labType = "de", labGenes,
+                                labNum = 5, labTypeDiff = "logGER",
+                                sizeFactor = 1) {
+  if(dataType == "MGE") {
+    plot_compareClusts_MAplot2(
+      sCVd = sCVd, 
+      clA = clA, 
+      clB = clB, 
+      labType = labType, 
+      labNum = labNum, 
+      labGenes = labGenes,
+      sizeFactor = sizeFactor
+    )
+  } else {
+    plot_compareClusts_volcano2(
+      sCVd = sCVd, 
+      clA = clA, 
+      clB = clB, 
+      dataType = dataType, 
+      labType = labType, 
+      labNum = labNum, 
+      labGenes = labGenes,
+      sizeFactor = sizeFactor
+    )
+  }
+}
+
+# Add one or more experiments to list
+CreateDataList <- function(
+  datasets = NULL, 
+  dataType = "Bulk", 
+  userDataCounts = NULL, 
+  userDataMeta = NULL, 
+  userDataName = NULL, 
+  nSamples = NULL, 
+  seed = NULL,
+  subsetMetaList = NULL) {
+  
+  userDataReady <- (
+    !is.null(userDataCounts) && !is.null(userDataMeta) && !is.null(userDataName)
+  )
+  if(is.null(datasets) && !userDataReady) {
+    stop("You must provide either 'datasets' or all three of 'userDataCounts', 'userDataMeta', and 'userDataName'.")
+  }
+  if(!dataType %in% c("Bulk", "Single-cell")) {
+    stop("'dataType' must be either 'Bulk' or 'Single-cell'.")
+  }
+  if(!is.null(datasets)) names(datasets) <- datasets
+  datasetList <- list()
+  if(dataType == "Bulk") {
+    for(dataset in datasets) {
+      if(getOption("standalone")) {
+        metaDF <- read.csv(paste0(getOption("localDir"), "/", dataset, "_meta.csv"), row = 1)
+        countsMatrix <- read.csv(paste0(getOption("localDir"), "/", dataset, "_counts.csv"), row = 1)
+      } else {
+        mydb <- dbConnect(RMariaDB::MariaDB(), user = usr_bulk, password = pwd_bulk,
+                          dbname = bdb, host = ec_host, port = p)
+        dat <- dbReadTable(mydb, "bulk") %>%
+          dplyr::filter(experiment_name %in% dataset) %>%
+          dplyr::pull(unique_table)
+        metaDF <- dbReadTable(mydb, name = paste(dat, "_meta", sep = ""))
+        countsMatrix <- dbReadTable(mydb, name = paste(dat, "_counts", sep = ""))
+        dbDisconnect(mydb)
+        
+        countsMatrix <- countsMatrix %>%
+          spread(sample_id, counts, convert = T) %>%
+          column_to_rownames("gene")
+        
+        metaDF <- metaDF %>%
+          column_to_rownames("sample_id")
+      }
+      
+      # "-" in counts sample names gets converted to "." in data.frame()
+      # which causes errors. Converting "-" in sample names to "_" in
+      # counts and metadata
+      for(colname in colnames(metaDF)) {
+        if(is.character(metaDF[, colname]) | is.factor(metaDF[, colname])) {
+          metaDF[, colname] <- gsub("-", replacement = "_", x = metaDF[, colname])
+        }
+      }
+      commonSamples <- intersect(colnames(countsMatrix), rownames(metaDF))
+      countsMatrix <- countsMatrix[, commonSamples, drop = F]
+      metaDF <- metaDF[commonSamples, , drop = F]
+      
+      datasetList[[dataset]][["counts"]] = countsMatrix
+      datasetList[[dataset]][["metadata"]] = metaDF
+    }
+    
+    if(userDataReady) {
+      mySamples <- intersect(rownames(userDataMeta), colnames(userDataCounts))
+      mySamples <- colnames(userDataCounts)[colnames(userDataCounts) %in% mySamples]
+      userDataMeta <- userDataMeta[mySamples, ]
+      userDataCounts <- userDataCounts[, mySamples]
+      datasetList[[userDataName]][["counts"]] <- userDataCounts
+      datasetList[[userDataName]][["metadata"]] <- userDataMeta
+    }
+    
+    if(!is.null(subsetMetaList)) {
+      for(dataset in names(subsetMetaList)) {
+        rowsToKeep <- SubsetMulti(
+          fullDF = datasetList[[dataset]][["metadata"]], 
+          subDF = subsetMetaList[[dataset]]
+        )
+        datasetList[[dataset]][["metadata"]] <- datasetList[[dataset]][["metadata"]][rowsToKeep, , drop = F]
+        datasetList[[dataset]][["counts"]] <- datasetList[[dataset]][["counts"]][, rowsToKeep, drop = F]
+      }
+    }
+    
+  } else {
+    if(!is.null(datasets)) {
+      datasetList <- lapply(datasets, function(dataset) {
+        SeuratProcess(
+          dataset = dataset,
+          # samples = NULL,
+          samples = subsetMetaList[[dataset]], # will be NULL if no subset list provided
+          nCells = nSamples,
+          mySeed = seed
+        )
+      })
+    }
+
+    if(userDataReady) {
+      myCells <- intersect(rownames(userDataMeta), colnames(userDataCounts))
+      myCells <- colnames(userDataCounts)[colnames(userDataCounts) %in% myCells]
+      userDataMeta <- userDataMeta[myCells, ]
+      userDataCounts <- userDataCounts[, myCells]
+      if(!is.null(nSamples) && nrow(userDataMeta) > nSamples) {
+        set.seed(seed = seed)
+        mySamples <- sample(x = rownames(userDataMeta), size = nSamples)
+        userDataCounts <- userDataCounts[, mySamples, drop = F]
+        userDataMeta <- userDataMeta[mySamples, , drop = F]
+      }
+
+      # datasetList[[userDataName]] <- CreateSeuratObject(
+      #   counts = userDataCounts, 
+      #   assay = "RNA", 
+      #   meta.data = userDataMeta
+      # )
+      datasetList[[userDataName]] <- SeuratProcess(
+        dataset = NULL,
+        counts = userDataCounts,
+        metadata = userDataMeta,
+        samples = subsetMetaList[[userDataName]], # will be NULL if no subset list provided
+        nCells = nSamples,
+        mySeed = seed
+      )
+    }
+  }
+  
+  return(datasetList)
+}
+
+AddUserMadeMeta <- function(dataList, userMadeMeta) {
+  if("sample_DUP" %in% colnames(userMadeMeta) && !("sample" %in% colnames(userMadeMeta))) {
+    colnames(userMadeMeta)[colnames(userMadeMeta) == "sample_DUP"] <- "sample"
+  }
+  rownames(userMadeMeta) <- userMadeMeta$Sample
+  dataList$counts <- dataList$counts[, rownames(userMadeMeta)]
+  dataList$metadata <- dataList$metadata[rownames(userMadeMeta), ]
+  if("clus_comb" %in% colnames(userMadeMeta)) {
+    dataList$metadata$seurat_clusters <- userMadeMeta$clus_comb
+  }
+  if("Set" %in% colnames(userMadeMeta)) {
+    dataList$metadata$Set <- userMadeMeta$Set
+  }
+  return(dataList)
+}
+
+# Merge Seurat objects in list to list with only 'counts' and 'metadata'
+MergeSeurat <- function(seuratList) {
+  if(length(seuratList) == 1) {
+    return(
+      list(
+        counts = t(FetchData(
+          object = seuratList[[1]], 
+          vars = rownames(seuratList[[1]]),
+          slot = "counts"
+        )),
+        metadata = seuratList[[1]]@meta.data
+      )
+    )
+  }
+  
+  for(dataset in names(seuratList)) {
+    seuratList[[dataset]] <- RenameCells(
+      object = seuratList[[dataset]],
+      new.names = paste0(colnames(seuratList[[dataset]]), ".", dataset)
+    )
+    metaColNamesTmp <- colnames(seuratList[[dataset]]@meta.data)
+    metaColNamesTmp <- metaColNamesTmp[!metaColNamesTmp %in% c("nCount_RNA","nFeature_RNA")]
+    for(i in metaColNamesTmp) {
+      seuratList[[dataset]]@meta.data[[i]] <- paste0(seuratList[[dataset]]@meta.data[[i]], ".", dataset)
+    }
+    
+    # seuratList[[dataset]]@meta.data[, metaColNamesTmp] <- 
+    #   lapply(seuratList[[dataset]]@meta.data[, metaColNamesTmp], function(myCol) {
+    #     paste0(myCol, ".", dataset)
+    #   })
+    seuratList[[dataset]]@meta.data$Dataset <- dataset
+  }
+  dataMerged <- list(
+    counts = t(FetchData(
+      object = seuratList[[1]], 
+      vars = rownames(seuratList[[1]]),
+      slot = "counts"
+    )),
+    metadata = seuratList[[1]]@meta.data
+  )
+  
+  for(dataset in names(seuratList)[-1]) {
+    first <- dataMerged[["counts"]]
+    nxt <- t(FetchData(
+      object = seuratList[[dataset]], 
+      vars = rownames(seuratList[[dataset]]),
+      slot = "counts"
+    ))
+    genes <- rownames(first)[rownames(first) %in% rownames(nxt)]
+    first <- first %>%
+      data.frame(.) %>%
+      rownames_to_column("gene") %>%
+      filter(gene %in% genes)
+    nxt <- nxt %>%
+      data.frame(.) %>%
+      rownames_to_column("gene") %>%
+      filter(gene %in% genes)
+    
+    dataMerged[["counts"]] <- first %>%
+      left_join(., nxt, by = "gene") %>%
+      column_to_rownames("gene")
+    
+    colnamesMergedOnly <- colnames(dataMerged[["metadata"]])
+    colnamesMergedOnly <- colnamesMergedOnly[!colnamesMergedOnly %in% colnames(seuratList[[dataset]]@meta.data)]
+    if(length(colnamesMergedOnly) > 0) {
+      for(colname in colnamesMergedOnly) seuratList[[dataset]]@meta.data[[colname]] <- dataset
+    }
+    colnamesNewOnly <- colnames(seuratList[[dataset]]@meta.data)
+    colnamesNewOnly <- colnamesNewOnly[!colnamesNewOnly %in% colnames(dataMerged[["metadata"]])]
+    if(length(colnamesNewOnly) > 0) {
+      for(colname in colnamesNewOnly) dataMerged[["metadata"]][, colname] <- dataMerged[["metadata"]][["Dataset"]]
+    }
+    dataMerged[["metadata"]] <- rbind(
+      dataMerged[["metadata"]],
+      seuratList[[dataset]]@meta.data[, colnames(dataMerged[["metadata"]])]
+    )
+  }
+  return(dataMerged)
+}
+
+# Merge bulk datasets in list to a list with only 'counts' and 'metadata'
+MergeBulk <- function(datasetList) {
+  if(length(datasetList) == 1) return(datasetList[[1]])
+  
+  for(dataset in names(datasetList)) {
+    colnames(datasetList[[dataset]][["counts"]]) <-
+      paste0(colnames(datasetList[[dataset]][["counts"]]), ".", dataset)
+    rownames(datasetList[[dataset]][["metadata"]]) <-
+      paste0(rownames(datasetList[[dataset]][["metadata"]]), ".", dataset)
+    datasetList[[dataset]][["metadata"]]$Dataset <- dataset
+  }
+  
+  dataMerged <- datasetList[[1]]
+  for(dataset in names(datasetList)[-1]) {
+    first <- dataMerged[["counts"]]
+    nxt <- datasetList[[dataset]][["counts"]]
+    genes <- rownames(first)[rownames(first) %in% rownames(nxt)]
+    first <- first %>%
+      rownames_to_column("gene") %>%
+      filter(gene %in% genes)
+    nxt <- nxt %>%
+      rownames_to_column("gene") %>%
+      filter(gene %in% genes)
+    dataMerged[["counts"]] <- first %>%
+      left_join(., nxt, by = "gene") %>%
+      column_to_rownames("gene")
+    
+    colnamesMergedOnly <- colnames(dataMerged[["metadata"]])
+    colnamesMergedOnly <- colnamesMergedOnly[!colnamesMergedOnly %in% colnames(datasetList[[dataset]][["metadata"]])]
+    if(length(colnamesMergedOnly) > 0) {
+      for(colname in colnamesMergedOnly) datasetList[[dataset]][["metadata"]][[colname]] <- dataset
+    }
+    colnamesNewOnly <- colnames(datasetList[[dataset]][["metadata"]])
+    colnamesNewOnly <- colnamesNewOnly[!colnamesNewOnly %in% colnames(dataMerged[["metadata"]])]
+    if(length(colnamesNewOnly) > 0) {
+      for(colname in colnamesNewOnly) dataMerged[["metadata"]][[colname]] <- dataMerged[["metadata"]][, "Dataset"]
+    }
+    dataMerged[["metadata"]] <- rbind(
+      dataMerged[["metadata"]],
+      datasetList[[dataset]][["metadata"]][, colnames(dataMerged[["metadata"]])]
+    )
+  }
+  
+  return(dataMerged)
 }
