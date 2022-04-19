@@ -11,7 +11,7 @@
 # Set these two options for using database or running as standalone.
 
 # T for standalone or F for database
-options(standalone = F)
+options(standalone = T)
 
 # Set local data directory for standalone app. Ignored if options("standalone") is F
 options(localDir = "example_data")
