@@ -9058,7 +9058,7 @@ iPSCeqServer <- function(input, output, session) {
         validate(
           need(input$goclust != "", "")
         )
-        if (length(clustout()) == 8) {
+        if (length(clustout()) == 5) {
           withProgress(message = "Creating gene dendrogram...", value = 0, {
             incProgress(1/2)
             geneTree <- clustout()[["geneTree"]]
