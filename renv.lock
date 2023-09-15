@@ -3,6 +3,26 @@
     "Version": "4.3.1",
     "Repositories": [
       {
+        "Name": "BioCsoft",
+        "URL": "https://bioconductor.org/packages/3.17/bioc"
+      },
+      {
+        "Name": "BioCann",
+        "URL": "https://bioconductor.org/packages/3.17/data/annotation"
+      },
+      {
+        "Name": "BioCexp",
+        "URL": "https://bioconductor.org/packages/3.17/data/experiment"
+      },
+      {
+        "Name": "BioCworkflows",
+        "URL": "https://bioconductor.org/packages/3.17/workflows"
+      },
+      {
+        "Name": "BioCbooks",
+        "URL": "https://bioconductor.org/packages/3.17/books"
+      },
+      {
         "Name": "CRAN",
         "URL": "https://packagemanager.posit.co/cran/latest"
       }
@@ -515,14 +535,14 @@
     },
     "KernSmooth": {
       "Package": "KernSmooth",
-      "Version": "2.23-21",
+      "Version": "2.23-22",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
         "stats"
       ],
-      "Hash": "6314fc110e09548ba889491db6ae67fb"
+      "Hash": "2fecebc3047322fa5930f74fae5de70f"
     },
     "MASS": {
       "Package": "MASS",
@@ -580,11 +600,12 @@
     },
     "Matrix": {
       "Package": "Matrix",
-      "Version": "1.5-4.1",
+      "Version": "1.6-1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
+        "grDevices",
         "graphics",
         "grid",
         "lattice",
@@ -592,7 +613,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "38082d362d317745fb932e13956dccbb"
+      "Hash": "cb6855ac711958ca734b75e631b2035d"
     },
     "MatrixGenerics": {
       "Package": "MatrixGenerics",
@@ -3048,9 +3069,9 @@
     },
     "mgcv": {
       "Package": "mgcv",
-      "Version": "1.8-42",
+      "Version": "1.9-0",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "Matrix",
         "R",
@@ -3061,7 +3082,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "3460beba7ccc8946249ba35327ba902a"
+      "Hash": "086028ca0460d0c368028d3bda58f31b"
     },
     "mime": {
       "Package": "mime",
@@ -3108,9 +3129,9 @@
     },
     "nlme": {
       "Package": "nlme",
-      "Version": "3.1-162",
+      "Version": "3.1-163",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
         "graphics",
@@ -3118,7 +3139,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "0984ce8da8da9ead8643c5cbbb60f83e"
+      "Hash": "8d1938040a05566f4f7a14af4feadd6b"
     },
     "nnet": {
       "Package": "nnet",
@@ -3451,9 +3472,9 @@
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "presto",
       "RemoteUsername": "immunogenomics",
-      "RemoteRef": "HEAD",
+      "RemoteRepo": "presto",
+      "RemoteRef": "master",
       "RemoteSha": "31dc97fed5e2e7fc323ae4af62f72181cc51d9a3",
       "Requirements": [
         "Matrix",
@@ -3470,7 +3491,7 @@
         "tidyr",
         "utils"
       ],
-      "Hash": "d3fa552970edc057bd8b4e00e6c60bdf"
+      "Hash": "fac5c65845cf95c995a3928de2f7ef09"
     },
     "prettyunits": {
       "Package": "prettyunits",
@@ -3947,13 +3968,13 @@
       "Package": "scClustViz",
       "Version": "1.3.12",
       "Source": "GitHub",
-      "Remotes": "immunogenomics/presto",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "scClustViz",
       "RemoteUsername": "BaderLab",
-      "RemoteRef": "HEAD",
+      "RemoteRepo": "scClustViz",
+      "RemoteRef": "master",
       "RemoteSha": "6707c89589c1793ebb7e042d40ce80331e96fe6e",
+      "Remotes": "immunogenomics/presto",
       "Requirements": [
         "TeachingDemos",
         "colorspace",
@@ -3963,7 +3984,7 @@
         "scales",
         "shiny"
       ],
-      "Hash": "681c9f6e154818ff8643e7ea542406a3"
+      "Hash": "d34fbd0947a3d3eaf677f7fe7b1d7507"
     },
     "scales": {
       "Package": "scales",
@@ -4271,16 +4292,16 @@
     },
     "spatial": {
       "Package": "spatial",
-      "Version": "7.3-16",
+      "Version": "7.3-17",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
         "graphics",
         "stats",
         "utils"
       ],
-      "Hash": "1f7d528460600aeab2c2fcc5b3f5bab6"
+      "Hash": "1229a01b4ec059e9f2396724f2ec9010"
     },
     "spatstat.data": {
       "Package": "spatstat.data",
@@ -4418,9 +4439,9 @@
     },
     "survival": {
       "Package": "survival",
-      "Version": "3.5-5",
+      "Version": "3.5-7",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "Matrix",
         "R",
@@ -4430,7 +4451,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "d683341b1fa2e8d817efde27d6e6d35b"
+      "Hash": "b8e943d262c3da0b0febd3e04517c197"
     },
     "sys": {
       "Package": "sys",
