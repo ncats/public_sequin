@@ -113,7 +113,7 @@ llvmlite==0.40.0
 locket==1.0.0
 lz4==4.3.2
 Markdown==3.4.4
-markdown-it-py==2.1.0
+markdown-it-py==2.2.0
 MarkupSafe==2.1.1
 matplotlib==3.7.2
 matplotlib-inline==0.1.6
