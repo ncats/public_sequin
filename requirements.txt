@@ -36,7 +36,7 @@ comm==0.1.4
 conjure-python-client==2.4.0
 contextvars==2.4
 contourpy==1.0.6
-cryptography==41.0.3
+cryptography==41.0.4
 cycler==0.11.0
 Cython==0.29.33
 dask==2022.12.1
