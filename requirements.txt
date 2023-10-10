@@ -61,7 +61,7 @@ fqdn==1.5.1
 fsspec==2022.11.0
 funcx==2.0.1
 gitdb==4.0.10
-GitPython==3.1.35
+GitPython==3.1.37
 globus-compute-common==0.2.0
 globus-compute-sdk==2.3.2
 globus-nexus-client==0.4.1
