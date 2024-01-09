@@ -55,7 +55,7 @@ executing==1.2.0
 fair-research-login==0.3.1
 fastjsonschema==2.16.2
 fcsparser==0.2.4
-fonttools==4.42.1
+fonttools==4.43.0
 foundry-ml==0.5.1
 fqdn==1.5.1
 fsspec==2022.11.0
