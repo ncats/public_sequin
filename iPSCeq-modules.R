@@ -3921,6 +3921,7 @@ LoadData <- function(input, output, session, maxSamples = Inf) {
   # SC-DGE-OVER - create seurat object for downstream analysis
   seurat_only <- reactive({
     # req(SubmitData$data_type, d$resType)
+    options(Seurat.object.assay.version = "v3")
     if(is.null(input$data_type) || input$data_type != "Single-cell" || 
        is.null(input$res) || is.null(ddsout())) return()
     withProgress(message = "Building Seurat analysis...", value = 0, {
