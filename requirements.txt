@@ -229,7 +229,7 @@ stack-data==0.6.2
 starlette==0.28.0
 statsmodels==0.13.5
 stdlib-list==0.8.0
-streamlit==1.26.0
+streamlit==1.30.0
 streamlit-javascript==0.1.5
 tables==3.8.0
 tblib==1.7.0
