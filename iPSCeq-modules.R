@@ -2948,6 +2948,15 @@ LoadData <- function(input, output, session, maxSamples = Inf) {
       d$counts_warning_msg <- "Please check data format and try again."
       return()
     }
+    
+    # check if values in the count matrix are positive integers, needed for creation of deseq oject
+    for ( i in 1:ncol(df) ) {
+      if ( !is.integer(df[[i]]) || any(df[[i]] < 0) ) {
+        d$counts_warning_msg <- "Numeric values should be positive integers"
+        return()
+      }
+    }
+    
     colClasses <- unlist(lapply(df, class))
     if(!all(colClasses %in% c("integer", "numeric"))) {
       d$counts_warning_msg <- "Please check data format and try again."
