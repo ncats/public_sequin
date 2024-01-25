@@ -10382,11 +10382,11 @@ iPSCeqServer <- function(input, output, session) {
       sapply(temp_embs,function(X) ncol(getEmb(d$inD, X))) >= 2 &
         sapply(temp_embs,function(X) nrow(getEmb(d$inD, X))) == nrow(getMD(d$inD))
     ]
-    temp_embs <- toupper(temp_embs)
-    temp_embs <- gsub("TSNE", "tSNE", temp_embs)
+    #temp_embs <- toupper(temp_embs)
+    #temp_embs <- gsub("TSNE", "tSNE", temp_embs)
     selectInput("GOI_EmbType", label = "Cell embedding",
                 choices = temp_embs,
-                selected = temp_embs[temp_embs %in% c("tSNE","UMAP")][1])
+                selected = temp_embs[temp_embs %in% c("tsne","umap")][1])
   })
   
   # SC-DGE-GE - goi x-axis
