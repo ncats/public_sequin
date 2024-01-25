@@ -14104,10 +14104,10 @@ iPSCeqServer <- function(input, output, session) {
         rownames(moddf) <- seq_len(nrow(moddf))
         moddf$gene <- as.character(moddf$gene)
         moddf$module <- as.factor(moddf$module)
-        sampleDF <- data.frame(
-          sample = sampleTree$labels,
-          outlier = datColors$outlier
-        )
+        #sampleDF <- data.frame(
+        #  sample = sampleTree$labels,
+        #  outlier = datColors$outlier
+        #)
         disableWGCNAThreads()
         incProgress(1/3)
         return(
