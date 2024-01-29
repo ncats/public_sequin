@@ -1,3 +1,6 @@
+# Set a mirror to download packages from
+options(repos = c(CRAN = "https://mirrors.nics.utk.edu/cran"))
+
 # Install renv and BiocManager
 install.packages("renv")
 install.packages("BiocManager")
