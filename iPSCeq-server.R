@@ -12091,24 +12091,24 @@ iPSCeqServer <- function(input, output, session) {
   })
   
   # SC-DGE-GSE - store updated gse data size in object d
-  observe({
-    if(is.null(heattran1_sc()[[1]])) {
-      if(!is.null(input$dge_list_heatmap_sc) && input$dge_list_heatmap_sc %in% c("Cluster DGE", "Custom DGE")) {
-        d$dge_info_heatmap_sc <- "No DE genes."
-      } else if(!is.null(input$dge_list_heatmap_sc) && input$dge_list_heatmap_sc == "Manual") {
-        d$dge_info_heatmap_sc <- "No genes found in data."
-      } 
-    } else {
-      dims <- dim(heattran1_sc()[[1]])
-      geneTxt <- " genes, "
-      cellsTxt <- paste0(dims[2], " cells")
-      if(dims[1] == 1) geneTxt <- " gene, "
-      if(!is.null(input$col_type_sc) && input$col_type_sc && dims[2] > 5000) {
-        cellsTxt <- "5000 cells (downsampled)"
-      }
-      d$dge_info_heatmap_sc <- paste0("Data size: ", dims[1], geneTxt, cellsTxt)
-    }
-  })
+  #observe({
+  #  if(is.null(heattran1_sc()[[1]])) {
+  #    if(!is.null(input$dge_list_heatmap_sc) && input$dge_list_heatmap_sc %in% c("Cluster DGE", "Custom DGE")) {
+  #      d$dge_info_heatmap_sc <- "No DE genes."
+  #    } else if(!is.null(input$dge_list_heatmap_sc) && input$dge_list_heatmap_sc == "Manual") {
+  #      d$dge_info_heatmap_sc <- "No genes found in data."
+  #    } 
+  #  } else {
+  #    dims <- dim(heattran1_sc()[[1]])
+  #    geneTxt <- " genes, "
+  #    cellsTxt <- paste0(dims[2], " cells")
+  #    if(dims[1] == 1) geneTxt <- " gene, "
+  #    if(!is.null(input$col_type_sc) && input$col_type_sc && dims[2] > 5000) {
+  #      cellsTxt <- "5000 cells (downsampled)"
+  #    }
+  #    d$dge_info_heatmap_sc <- paste0("Data size: ", dims[1], geneTxt, cellsTxt)
+  #  }
+  #})
   
   # SC-DGE-GSE - output msgs after running gse
   output$dge_info_heatmap_sc <- renderUI({
