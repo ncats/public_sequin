@@ -35,13 +35,13 @@ Installation steps:
 
 4. From Rstudio (packages will be installed in public_sequin directory and will not interfere with user's default R environment)
 
-```r
-setwd("/path/to/public_sequin") # Use your local repo directory
-source("install_1.R") # install renv and BioConductor
-rstudioapi::openProject('sctl-rshiny-complex.Rproj') # activates the project
-source("install_2.R") # install the rest of dependencies
-# no need to restart Rstudio
-```
+   ```r
+   setwd("/path/to/public_sequin") # Use your local repo directory
+   source("install_1.R") # install renv and BioConductor
+   rstudioapi::openProject('sctl-rshiny-complex.Rproj') # activates the project
+   source("install_2.R") # install the rest of dependencies
+   # no need to restart Rstudio
+   ```
 
 5. From R, launch SEQUIN.
 
@@ -51,11 +51,11 @@ source("install_2.R") # install the rest of dependencies
    ```
 6. From Rstudio, launch SEQUIN
 
-```r
-setwd("/path/to/public_sequin") # Use your local repo directory
-rstudioapi::openProject('sctl-rshiny-complex.Rproj') # activates the project if needed
-shiny::runApp(launch.browser = T)
-```
+   ```r
+   setwd("/path/to/public_sequin") # Use your local repo directory
+   rstudioapi::openProject('sctl-rshiny-complex.Rproj') # activates the project if needed
+   shiny::runApp(launch.browser = T)
+   ```
 
 When you're finished using SEQUIN, deactivate the project to return to the default R environment.
 
