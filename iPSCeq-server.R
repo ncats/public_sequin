@@ -13075,11 +13075,11 @@ iPSCeqServer <- function(input, output, session) {
     temp_embs <- temp_embs[
       sapply(temp_embs,function(X) ncol(getEmb(d$inD,X))) >= 2 &
         sapply(temp_embs,function(X) nrow(getEmb(d$inD,X))) == nrow(getMD(d$inD))]
-    temp_embs <- toupper(temp_embs)
-    temp_embs <- gsub("TSNE", "tSNE", temp_embs)
+    #temp_embs <- toupper(temp_embs)
+    #temp_embs <- gsub("TSNE", "tSNE", temp_embs)
     selectInput("SelDE_EmbType",label="Embedding",
                 choices = temp_embs,
-                selected = temp_embs[temp_embs %in% c("tSNE","UMAP")][1])
+                selected = temp_embs[temp_embs %in% c("tsne","umap")][1])
   })
   
   # SC-DGE-MSC - select x-axis label
