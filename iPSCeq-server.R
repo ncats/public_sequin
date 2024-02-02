@@ -64,6 +64,9 @@
 #           |-  Session info
 
 # Change file upload size to 200 MB and sanitize errors
+
+error_log <- "error_log.txt"
+
 options(
   shiny.maxRequestSize = 2000 * 1024^2,
   shiny.sanitize.errors = TRUE,
@@ -12090,8 +12093,16 @@ iPSCeqServer <- function(input, output, session) {
     d$fea_all_genes <- input$all_genes_heatmap_sc
   })
   
-  # SC-DGE-GSE - store updated gse data size in object d
-  observe({
+
+# Function to write errors to the log file
+write_error_to_log <- function(message, block_name) {
+  error_message <- paste(Sys.time(), " Error in ", block_name, ":", message, "\n")
+  cat(error_message, file = error_log, append = TRUE)
+}
+
+# SC-DGE-GSE - store updated gse data size in object d
+observe({
+  tryCatch({
     if(is.null(heattran1_sc()[[1]])) {
       if(!is.null(input$dge_list_heatmap_sc) && input$dge_list_heatmap_sc %in% c("Cluster DGE", "Custom DGE")) {
         d$dge_info_heatmap_sc <- "No DE genes."
@@ -12108,15 +12119,26 @@ iPSCeqServer <- function(input, output, session) {
       }
       d$dge_info_heatmap_sc <- paste0("Data size: ", dims[1], geneTxt, cellsTxt)
     }
+  }, 
+  error = function(e) {
+    write_error_to_log(as.character(e), "SC-DGE-GSE_Heatmap observe")
   })
-  
-  # SC-DGE-GSE - output msgs after running gse
-  output$dge_info_heatmap_sc <- renderUI({
+})
+
+# SC-DGE-GSE - output msgs after running gse
+output$dge_info_heatmap_sc <- renderUI({
+  tryCatch({
     if(!is.null(input$dge_list_heatmap_sc) && input$dge_list_heatmap_sc == "Manual" &&
        (is.null(input$gene_list_heatmap_sc) || input$gene_list_heatmap_sc == "")) return()
     if(is.null(d$dge_info_heatmap_sc) || d$dge_info_heatmap_sc == "") return()
     h4(d$dge_info_heatmap_sc, style = "margin-top: 0px; margin-right: 30px;")
+  }, 
+  error = function(e) {
+    write_error_to_log(as.character(e), "SC-DGE-GSE_Heatmap renderUI")
+    NULL  # Return NULL to not hang up
   })
+})
+
   
   # SC-DGE-GSE - text header for heatmaps
   output$headheat_sc <- renderUI({
@@ -12279,7 +12301,7 @@ iPSCeqServer <- function(input, output, session) {
       if(is.null(sc_mytab_heatmap()) || nrow(sc_mytab_heatmap()) == 0 ) return()
       dge <- sc_mytab_heatmap()
       if(d$n_genes_heatmap_sc != "") {
-        if(!(input$all_genes_heatmap_sc)) {
+        if(!is.null(input$all_genes_heatmap_sc) && !(input$all_genes_heatmap_sc)) {
           if(suppressWarnings(is.na(as.integer(na.omit(d$n_genes_heatmap_sc))))) return()
           dge <- dge[1:min(as.integer(d$n_genes_heatmap_sc), nrow(dge)), , drop = F]
         }
