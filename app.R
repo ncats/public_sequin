@@ -46,5 +46,8 @@ if(!getOption("standalone")) source("sql.R") # Use in production
 font_add_google(name = "Noto Sans JP", family = "noto-sans-jp")
 showtext_auto(enable = TRUE)
 
+# load log functions
+source("iPSCeq-log.R")
+
 # Run shiny ----
 shinyApp(iPSCeqUI, iPSCeqServer)

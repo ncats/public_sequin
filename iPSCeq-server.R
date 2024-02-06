@@ -65,8 +65,6 @@
 
 # Change file upload size to 200 MB and sanitize errors
 
-error_log <- "error_log.txt"
-
 options(
   shiny.maxRequestSize = 2000 * 1024^2,
   shiny.sanitize.errors = TRUE,
@@ -12093,13 +12091,6 @@ iPSCeqServer <- function(input, output, session) {
     d$fea_all_genes <- input$all_genes_heatmap_sc
   })
   
-
-# Function to write errors to the log file
-write_error_to_log <- function(message, block_name) {
-  error_message <- paste(Sys.time(), " Error in ", block_name, ":", message, "\n")
-  cat(error_message, file = error_log, append = TRUE)
-}
-
 # SC-DGE-GSE - store updated gse data size in object d
 observe({
   tryCatch({
@@ -12121,7 +12112,8 @@ observe({
     }
   }, 
   error = function(e) {
-    write_error_to_log(as.character(e), "SC-DGE-GSE_Heatmap observe")
+    write_error_to_log(as.character(e), "iPSCeq-server.R SC-DGE-GSE Heatmap observe")
+    NULL
   })
 })
 
@@ -12134,7 +12126,7 @@ output$dge_info_heatmap_sc <- renderUI({
     h4(d$dge_info_heatmap_sc, style = "margin-top: 0px; margin-right: 30px;")
   }, 
   error = function(e) {
-    write_error_to_log(as.character(e), "SC-DGE-GSE_Heatmap renderUI")
+    write_error_to_log(as.character(e), "iPSCeq-server.R SC-DGE-GSE Heatmap output$dge_info_heatmap_sc")
     NULL  # Return NULL to not hang up
   })
 })
