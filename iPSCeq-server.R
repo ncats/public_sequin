@@ -12112,7 +12112,7 @@ observe({
     }
   }, 
   error = function(e) {
-    write_error_to_log(as.character(e), "iPSCeq-server.R SC-DGE-GSE Heatmap observe")
+    write_error_to_log(as.character(e), "iPSCeq-server.R SC-DGE-GSE Heatmap-gse-data-size observe")
     NULL
   })
 })
