@@ -13,7 +13,7 @@ Access the public app [here](https://sequin.ncats.io/).
 To install SEQUIN locally, you will need the following tools installed:
 
 * [git](https://git-scm.com/)
-* [R](https://cloud.r-project.org/) (>= 4.0.4)
+* [R](https://cloud.r-project.org/) (>= 4.3.2)
 * [rtools4](https://cran.r-project.org/bin/windows/Rtools/rtools40.html) (only needed in Windows)
 * [RStudio](https://www.rstudio.com/) (optional but highly recommended)
 
@@ -24,7 +24,7 @@ Installation steps:
    git clone https://github.com/ncats/public_sequin.git
    ```
 
-2. From R, run the installation script to activate the SEQUIN project and install all required R packages.
+2. From R, run the installation script to activate the SEQUIN project and install all required R packages (packages will be installed in the user's default directory for R libraries).
 
    ```r
    setwd("/path/to/public_sequin") # Use your local repo directory
@@ -33,11 +33,28 @@ Installation steps:
    
 3. After installation, restart R.
 
-4. From R, launch SEQUIN.
+4. From Rstudio (packages will be installed in public_sequin directory and will not interfere with user's default R environment)
+
+   ```r
+   setwd("/path/to/public_sequin") # Use your local repo directory
+   source("install_1.R") # install renv and BioConductor
+   rstudioapi::openProject('sctl-rshiny-complex.Rproj') # activates the project
+   source("install_2.R") # install the rest of dependencies
+   # no need to restart Rstudio
+   ```
+
+5. From R, launch SEQUIN.
 
    ```r
    setwd("/path/to/public_sequin") # Use your local repo directory
    shiny::runApp(launch.browser = T) # Opens SEQUIN in browser
+   ```
+6. From Rstudio, launch SEQUIN
+
+   ```r
+   setwd("/path/to/public_sequin") # Use your local repo directory
+   rstudioapi::openProject('sctl-rshiny-complex.Rproj') # activates the project if needed
+   shiny::runApp(launch.browser = T)
    ```
 
 When you're finished using SEQUIN, deactivate the project to return to the default R environment.

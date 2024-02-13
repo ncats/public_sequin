@@ -1,13 +1,3 @@
-# Set a mirror to download packages from
-options(repos = c(CRAN = "https://mirrors.nics.utk.edu/cran"))
-
-# Install renv and BiocManager
-install.packages("renv")
-install.packages("BiocManager")
-
-# Activate project
-renv::activate()
-
 # Install latest versions of packages from renv.lock
 lockfile <- renv:::renv_lockfile_read("renv.lock")
 biocPackages <- names(lockfile$Packages)[sapply(lockfile$Packages, function(pkg) pkg$Source == "Bioconductor")]
