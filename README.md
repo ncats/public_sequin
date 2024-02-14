@@ -51,7 +51,8 @@ Installation can then be performed either in R or RStudio.
    setwd("/path/to/public_sequin") # Use your local repo directory
    source("install_1.R") # install renv and BioConductor
    rstudioapi::openProject('sctl-rshiny-complex.Rproj') # activates the project; be sure to save your current workspace when prompted if you have something to save
-   source("install_2.R") # install the rest of dependencies
+   y # after project activation renv will ask you to install BiocManager locally
+   source("install_2.R") # install the rest of dependencies, input Y in the terminal each time Rstudio asks you if you want to install packages
    # no need to restart Rstudio
    ```
 
