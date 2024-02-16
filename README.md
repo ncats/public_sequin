@@ -2,7 +2,7 @@ SEQUIN is an R/Shiny application for analysis and visualization of bulk and sing
 
 For complete details, please see our [manuscript](https://www.biorxiv.org/content/10.1101/2022.02.23.481646v1) or [tutorial.](https://htmlpreview.github.io/?https://github.com/ncats/public_sequin/blob/main/www/ncats-SEQUIN-tutorial.html)
 
-For bug reports, please [submit an issue](https://github.com/ncats/public_sequin/issues) or email either [Ben Ernest](mailto:ben.ernest@ranchobiosciences.com) or [Marissa Hirst](mailto:marissa.hirst@ranchobiosciences.com). We are also very open to ideas for improvements. 
+For bug reports, please [submit an issue](https://github.com/ncats/public_sequin/issues) or email either [Andrew Weisman](mailto:andrew.weisman@nih.gov) or [Andrei Bombin](mailto:andrei.bombin@axleinfo.com). We are also very open to ideas for improvements. 
 
 ### Access SEQUIN in the web
 
@@ -14,42 +14,49 @@ To install SEQUIN locally, you will need the following tools installed:
 
 * [git](https://git-scm.com/)
 * [R](https://cloud.r-project.org/) (>= 4.3.2)
-* [rtools4](https://cran.r-project.org/bin/windows/Rtools/rtools40.html) (only needed in Windows)
+* [rtools4](https://cran.r-project.org/bin/windows/Rtools) (only needed in Windows and its version must be the same as the installed version of R)
 * [RStudio](https://www.rstudio.com/) (optional but highly recommended)
 
-Installation steps:
+Further, you must have cloned the public SEQUIN repository:
 
-1. In the terminal, clone the repo.
    ```bash
    git clone https://github.com/ncats/public_sequin.git
    ```
 
-2. From R, run the installation script to activate the SEQUIN project and install all required R packages (packages will be installed in the user's default directory for R libraries).
+Installation can then be performed either in R or RStudio.
+
+#### Instructions for R
+
+1. Run the installation script to activate the SEQUIN project and install all required R packages (packages will be installed in the user's default directory for R libraries):
 
    ```r
    setwd("/path/to/public_sequin") # Use your local repo directory
    source("install_sequin.R")
    ```
-   
-3. After installation, restart R.
 
-4. From Rstudio (packages will be installed in public_sequin directory and will not interfere with user's default R environment)
+1. After installation, restart R.
 
-   ```r
-   setwd("/path/to/public_sequin") # Use your local repo directory
-   source("install_1.R") # install renv and BioConductor
-   rstudioapi::openProject('sctl-rshiny-complex.Rproj') # activates the project
-   source("install_2.R") # install the rest of dependencies
-   # no need to restart Rstudio
-   ```
-
-5. From R, launch SEQUIN.
+1. Launch SEQUIN using:
 
    ```r
    setwd("/path/to/public_sequin") # Use your local repo directory
    shiny::runApp(launch.browser = T) # Opens SEQUIN in browser
    ```
-6. From Rstudio, launch SEQUIN
+
+#### Instructions for RStudio
+
+1. Run the installation scripts to activate the SEQUIN project and install all required R packages (packages will be installed in the `public_sequin` directory and will not interfere with user's default R environment):
+
+   ```r
+   setwd("/path/to/public_sequin") # Use your local repo directory
+   source("install_1.R") # install renv and BioConductor
+   rstudioapi::openProject('sctl-rshiny-complex.Rproj') # activates the project; be sure to save your current workspace when prompted if you have something to save
+   y # after project activation renv will ask you to install BiocManager locally
+   source("install_2.R") # install the rest of dependencies, input Y in the terminal each time Rstudio asks you if you want to install packages
+   # no need to restart Rstudio
+   ```
+
+1. Launch SEQUIN using:
 
    ```r
    setwd("/path/to/public_sequin") # Use your local repo directory
