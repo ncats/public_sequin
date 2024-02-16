@@ -8377,7 +8377,7 @@ iPSCeqServer <- function(input, output, session) {
         Colv = heattran2()$colDend,
         revC = T,
         width = 1000,
-        height = heattran2()$heatmapHeight,
+        height = 1000,
         subplot_heights = heattran2()$subplotHeights
       ) %>%
         colorbar(
@@ -10852,7 +10852,7 @@ iPSCeqServer <- function(input, output, session) {
         rest <- seur@assays$RNA@data[, Idents(seur) != input$DEclustNum]
         nam <- rownames(rest)
         meanRest <- unlist(mclapply(1:nrow(rest), function(x)
-          meanLogX(rest[x], ncell = ncol(seur), ex = exp(1)), mc.cores = 12))
+          meanLogX(rest[x], ncell = ncol(seur), ex = exp(1)), mc.cores = 1))
         meanRest <- exp(1)^meanRest
         names(meanRest) <- nam
         allDF <- data.frame(GeneId = allDF$GeneId,
