@@ -92,6 +92,8 @@ Or using rstudioapi, to make sure that all files and libraries are well separate
 setwd("/path/to/public_sequin")
 rstudioapi::openProject('sctl-rshiny-complex.Rproj')
 shiny::runApp(launch.browser = T)
+```
+
 ### Local data
 
 Set the local directory where SEQUIN will read and write data by opening `app.R` and editing the first line.
