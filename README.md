@@ -21,6 +21,10 @@ Further, you must have cloned the public SEQUIN repository:
 
    ```bash
    git clone https://github.com/ncats/public_sequin.git
+   # to switch on development branch use
+   git fetch origin sequin_dev_ab
+   git checkout sequin_dev_ab
+   git pull origin sequin_dev_ab
    ```
 
 Installation can then be performed either in R or RStudio.
@@ -69,6 +73,11 @@ When you're finished using SEQUIN, deactivate the project to return to the defau
 ```r
 renv::deactivate()
 ```
+Alternatively, to avoid a conflict between Sequin and files for your other Rstudio sessions, you can close the project with:
+
+```r
+rstudioapi::executeCommand('closeProject')
+```
 
 To launch SEQUIN at a later time, restore the project and run the app.
 ```r
@@ -77,6 +86,12 @@ renv::restore()
 shiny::runApp(launch.browser = T)
 ```
 
+Or using rstudioapi, to make sure that all files and libraries are well separated.
+
+```r
+setwd("/path/to/public_sequin")
+rstudioapi::openProject('sctl-rshiny-complex.Rproj')
+shiny::runApp(launch.browser = T)
 ### Local data
 
 Set the local directory where SEQUIN will read and write data by opening `app.R` and editing the first line.
