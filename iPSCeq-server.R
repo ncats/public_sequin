@@ -10851,8 +10851,15 @@ iPSCeqServer <- function(input, output, session) {
         
         rest <- seur@assays$RNA@data[, Idents(seur) != input$DEclustNum]
         nam <- rownames(rest)
-        meanRest <- unlist(mclapply(1:nrow(rest), function(x)
+        # check OS and adopt for it
+        if (Sys.info()["sysname"] == "Windows") {
+          meanRest <- unlist(mclapply(1:nrow(rest), function(x)
           meanLogX(rest[x], ncell = ncol(seur), ex = exp(1)), mc.cores = 1))
+        } else {
+          ncores = detectCores() - 2
+          meanRest <- unlist(mclapply(1:nrow(rest), function(x)
+          meanLogX(rest[x], ncell = ncol(seur), ex = exp(1)), mc.cores = ncores))
+        }
         meanRest <- exp(1)^meanRest
         names(meanRest) <- nam
         allDF <- data.frame(GeneId = allDF$GeneId,
