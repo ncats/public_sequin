@@ -20,7 +20,11 @@ To install SEQUIN locally, you will need the following tools installed:
 Further, you must have cloned the public SEQUIN repository:
 
    ```bash
-   git clone https://github.com/ncats/public_sequin.git
+   git clone https://github.com/ncats/public_sequin.git # clones the repository
+   # to switch on development branch use
+   git fetch origin sequin_dev_ab # fetch development branch
+   git checkout sequin_dev_ab # switch to development branch
+   git pull origin sequin_dev_ab # update development branch
    ```
 
 Installation can then be performed either in R or RStudio.
@@ -42,6 +46,18 @@ Installation can then be performed either in R or RStudio.
    setwd("/path/to/public_sequin") # Use your local repo directory
    shiny::runApp(launch.browser = T) # Opens SEQUIN in browser
    ```
+1. When you're finished using SEQUIN, deactivate the project to return to the default R environment.
+
+   ```r
+   renv::deactivate()
+   ```
+
+1. To launch SEQUIN at a later time, restore the project and run the app.
+   ```r
+   setwd("/path/to/public_sequin")
+   renv::restore()
+   shiny::runApp(launch.browser = T)
+   ```
 
 #### Instructions for RStudio
 
@@ -56,26 +72,19 @@ Installation can then be performed either in R or RStudio.
    # no need to restart Rstudio
    ```
 
-1. Launch SEQUIN using:
+1. When you're finished using SEQUIN, close the project to return to the default R environment.
 
    ```r
-   setwd("/path/to/public_sequin") # Use your local repo directory
-   rstudioapi::openProject('sctl-rshiny-complex.Rproj') # activates the project if needed
-   shiny::runApp(launch.browser = T)
+   rstudioapi::executeCommand('closeProject')
    ```
 
-When you're finished using SEQUIN, deactivate the project to return to the default R environment.
+1. To launch SEQUIN at a later time, restore the project and run the app.
 
-```r
-renv::deactivate()
-```
-
-To launch SEQUIN at a later time, restore the project and run the app.
-```r
-setwd("/path/to/public_sequin")
-renv::restore()
-shiny::runApp(launch.browser = T)
-```
+   ```r
+   setwd("/path/to/public_sequin")
+   rstudioapi::openProject('sctl-rshiny-complex.Rproj')
+   shiny::runApp(launch.browser = T)
+   ```
 
 ### Local data
 
