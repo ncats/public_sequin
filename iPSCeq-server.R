@@ -8356,6 +8356,12 @@ iPSCeqServer <- function(input, output, session) {
   # BULK-DGE-GSE - heatmap
   output$heatplot1 <- renderPlotly({
     if(is.null(heattran2())) return()
+    nGenes = nrow(heattran2()$rescaled_mat)
+    if (nGenes > 1 & nGenes < 17) {
+      curHeight = 1000
+    } else {
+      curHeight = heattran2()$heatmapHeight
+    }
     isolate({
       p <- heatmaply(
         x = heattran2()$rescaled_mat,
@@ -8377,7 +8383,7 @@ iPSCeqServer <- function(input, output, session) {
         Colv = heattran2()$colDend,
         revC = T,
         width = 1000,
-        height = heattran2()$heatmapHeight,
+        height = curHeight,
         subplot_heights = heattran2()$subplotHeights
       ) %>%
         colorbar(
