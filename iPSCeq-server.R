@@ -64,9 +64,6 @@
 #           |-  Session info
 
 # Change file upload size to 200 MB and sanitize errors
-
-error_log <- "error_log.txt"
-
 options(
   shiny.maxRequestSize = 2000 * 1024^2,
   shiny.sanitize.errors = TRUE,
@@ -2486,7 +2483,7 @@ iPSCeqServer <- function(input, output, session) {
   ###################################################################
   
   # LoadData module. SubmitData is a reactiveValues-type object.
-  SubmitData <- callModule(module = LoadData, id = "load_data", maxSamples = 10000)
+  SubmitData <- callModule(module = LoadData, id = "load_data")
   
   observeEvent(SubmitData$data_type, {
     d$cts_out <- d$selectedData <- d$datasetNames <- NULL
@@ -8356,12 +8353,6 @@ iPSCeqServer <- function(input, output, session) {
   # BULK-DGE-GSE - heatmap
   output$heatplot1 <- renderPlotly({
     if(is.null(heattran2())) return()
-    nGenes = nrow(heattran2()$rescaled_mat)
-    if (nGenes > 1 & nGenes < 17) {
-      curHeight = 1000
-    } else {
-      curHeight = heattran2()$heatmapHeight
-    }
     isolate({
       p <- heatmaply(
         x = heattran2()$rescaled_mat,
@@ -8383,7 +8374,7 @@ iPSCeqServer <- function(input, output, session) {
         Colv = heattran2()$colDend,
         revC = T,
         width = 1000,
-        height = curHeight,
+        height = heattran2()$heatmapHeight,
         subplot_heights = heattran2()$subplotHeights
       ) %>%
         colorbar(
@@ -8469,8 +8460,8 @@ iPSCeqServer <- function(input, output, session) {
       paste("qc-heatmap.png")
     },
     content = function(file) {
-      png(file, width = 1200, height = 850, family = "noto-sans-jp")
-      p <- qcHeatMap(
+      png(filename = file, width = 1200, height = 850, family = "noto-sans-jp")
+      qcHeatMap(
         heat = heattran2()$rescaled_mat,
         color = heattran2()$cols,
         rows = heattran2()$rowDend,
@@ -8778,35 +8769,6 @@ iPSCeqServer <- function(input, output, session) {
         dds_mat <- as.matrix(dds_mat)
         gene.names <- sort(rownames(dds_mat))
         datExpr <- t(dds_mat)
-        # Create an object called "datTraits" that contains your
-        # trait data
-        if(SubmitData$data_type == "Bulk") {
-          datTraits <- colData(ddsout()[[1]])
-        } else {
-          datTraits <- ddsout()[[2]]
-        }
-        nLevels <- apply(datTraits, 2, function(col) length(unique(col)))
-        datTraits <- datTraits[, nLevels > 1 & nLevels <= 12, drop = F]
-        A <- adjacency(t(datExpr),type="signed") # this calculates the whole network connectivity
-        k <- as.numeric(apply(A,2,sum))-1 # standardized connectivity
-        Z.k <- scale(k)
-        thresholdZ.k <- -2.5 # often -2.5
-        outlierColor <- ifelse(Z.k<thresholdZ.k,"red","black")
-        sampleTree <- flashClust(stats::as.dist(1-A), method = "average")
-        
-        traitColors <- datTraits
-        for(i in 1:ncol(traitColors)) {
-          if(i %% 2 == 0) {
-            traitColors[, i] <- labels2colors(traitColors[, i], 
-                                              colorSeq = brewer.pal(12, "Set3"))
-          } else {
-            traitColors[, i] <- labels2colors(traitColors[, i],
-                                              colorSeq = brewer.pal(12, "Paired"))
-          }
-        }
-        
-        dimnames(traitColors)[[2]] <- paste(names(datTraits))
-        datColors <- data.frame(outlier = outlierColor, traitColors)
         incProgress(1/3)
         # TOM analysis - (computationally expensive)
         softPower <- 18
@@ -8883,10 +8845,6 @@ iPSCeqServer <- function(input, output, session) {
         rownames(moddf) <- seq_len(nrow(moddf))
         moddf$gene <- as.character(moddf$gene)
         moddf$module <- as.factor(moddf$module)
-        sampleDF <- data.frame(
-          sample = sampleTree$labels,
-          outlier = datColors$outlier
-        )
         disableWGCNAThreads()
         incProgress(1/3)
         return(
@@ -10391,11 +10349,11 @@ iPSCeqServer <- function(input, output, session) {
       sapply(temp_embs,function(X) ncol(getEmb(d$inD, X))) >= 2 &
         sapply(temp_embs,function(X) nrow(getEmb(d$inD, X))) == nrow(getMD(d$inD))
     ]
-    #temp_embs <- toupper(temp_embs)
-    #temp_embs <- gsub("TSNE", "tSNE", temp_embs)
+    temp_embs <- toupper(temp_embs)
+    temp_embs <- gsub("TSNE", "tSNE", temp_embs)
     selectInput("GOI_EmbType", label = "Cell embedding",
                 choices = temp_embs,
-                selected = temp_embs[temp_embs %in% c("tsne","umap")][1])
+                selected = temp_embs[temp_embs %in% c("tSNE","UMAP")][1])
   })
   
   # SC-DGE-GE - goi x-axis
@@ -10857,15 +10815,8 @@ iPSCeqServer <- function(input, output, session) {
         
         rest <- seur@assays$RNA@data[, Idents(seur) != input$DEclustNum]
         nam <- rownames(rest)
-        # check OS and adopt for it
-        if (Sys.info()["sysname"] == "Windows") {
-          meanRest <- unlist(mclapply(1:nrow(rest), function(x)
-          meanLogX(rest[x], ncell = ncol(seur), ex = exp(1)), mc.cores = 1))
-        } else {
-          ncores = detectCores() - 2
-          meanRest <- unlist(mclapply(1:nrow(rest), function(x)
-          meanLogX(rest[x], ncell = ncol(seur), ex = exp(1)), mc.cores = ncores))
-        }
+        meanRest <- unlist(mclapply(1:nrow(rest), function(x)
+          meanLogX(rest[x], ncell = ncol(seur), ex = exp(1)), mc.cores = 12))
         meanRest <- exp(1)^meanRest
         names(meanRest) <- nam
         allDF <- data.frame(GeneId = allDF$GeneId,
@@ -12106,16 +12057,8 @@ iPSCeqServer <- function(input, output, session) {
     d$fea_all_genes <- input$all_genes_heatmap_sc
   })
   
-
-# Function to write errors to the log file
-write_error_to_log <- function(message, block_name) {
-  error_message <- paste(Sys.time(), " Error in ", block_name, ":", message, "\n")
-  cat(error_message, file = error_log, append = TRUE)
-}
-
-# SC-DGE-GSE - store updated gse data size in object d
-observe({
-  tryCatch({
+  # SC-DGE-GSE - store updated gse data size in object d
+  observe({
     if(is.null(heattran1_sc()[[1]])) {
       if(!is.null(input$dge_list_heatmap_sc) && input$dge_list_heatmap_sc %in% c("Cluster DGE", "Custom DGE")) {
         d$dge_info_heatmap_sc <- "No DE genes."
@@ -12132,26 +12075,15 @@ observe({
       }
       d$dge_info_heatmap_sc <- paste0("Data size: ", dims[1], geneTxt, cellsTxt)
     }
-  }, 
-  error = function(e) {
-    write_error_to_log(as.character(e), "SC-DGE-GSE_Heatmap observe")
   })
-})
-
-# SC-DGE-GSE - output msgs after running gse
-output$dge_info_heatmap_sc <- renderUI({
-  tryCatch({
+  
+  # SC-DGE-GSE - output msgs after running gse
+  output$dge_info_heatmap_sc <- renderUI({
     if(!is.null(input$dge_list_heatmap_sc) && input$dge_list_heatmap_sc == "Manual" &&
        (is.null(input$gene_list_heatmap_sc) || input$gene_list_heatmap_sc == "")) return()
     if(is.null(d$dge_info_heatmap_sc) || d$dge_info_heatmap_sc == "") return()
     h4(d$dge_info_heatmap_sc, style = "margin-top: 0px; margin-right: 30px;")
-  }, 
-  error = function(e) {
-    write_error_to_log(as.character(e), "SC-DGE-GSE_Heatmap renderUI")
-    NULL  # Return NULL to not hang up
   })
-})
-
   
   # SC-DGE-GSE - text header for heatmaps
   output$headheat_sc <- renderUI({
@@ -12314,7 +12246,7 @@ output$dge_info_heatmap_sc <- renderUI({
       if(is.null(sc_mytab_heatmap()) || nrow(sc_mytab_heatmap()) == 0 ) return()
       dge <- sc_mytab_heatmap()
       if(d$n_genes_heatmap_sc != "") {
-        if(!is.null(input$all_genes_heatmap_sc) && !(input$all_genes_heatmap_sc)) {
+        if(!(input$all_genes_heatmap_sc)) {
           if(suppressWarnings(is.na(as.integer(na.omit(d$n_genes_heatmap_sc))))) return()
           dge <- dge[1:min(as.integer(d$n_genes_heatmap_sc), nrow(dge)), , drop = F]
         }
@@ -12706,7 +12638,7 @@ output$dge_info_heatmap_sc <- renderUI({
     content = function(file) {
       withProgress(message = "Preparing for download...", value = 0, {
         incProgress(1/2)
-        png(file, width = 900, height = 900, family = "noto-sans-jp")
+        png(filename = file, width = 900, height = 900, family = "noto-sans-jp")
         qcHeatMap(
           heat = heattran2_sc()$rescaled_mat,
           color = heattran2_sc()$cols,
@@ -13110,11 +13042,11 @@ output$dge_info_heatmap_sc <- renderUI({
     temp_embs <- temp_embs[
       sapply(temp_embs,function(X) ncol(getEmb(d$inD,X))) >= 2 &
         sapply(temp_embs,function(X) nrow(getEmb(d$inD,X))) == nrow(getMD(d$inD))]
-    #temp_embs <- toupper(temp_embs)
-    #temp_embs <- gsub("TSNE", "tSNE", temp_embs)
+    temp_embs <- toupper(temp_embs)
+    temp_embs <- gsub("TSNE", "tSNE", temp_embs)
     selectInput("SelDE_EmbType",label="Embedding",
                 choices = temp_embs,
-                selected = temp_embs[temp_embs %in% c("tsne","umap")][1])
+                selected = temp_embs[temp_embs %in% c("tSNE","UMAP")][1])
   })
   
   # SC-DGE-MSC - select x-axis label
@@ -14139,10 +14071,6 @@ output$dge_info_heatmap_sc <- renderUI({
         rownames(moddf) <- seq_len(nrow(moddf))
         moddf$gene <- as.character(moddf$gene)
         moddf$module <- as.factor(moddf$module)
-        #sampleDF <- data.frame(
-        #  sample = sampleTree$labels,
-        #  outlier = datColors$outlier
-        #)
         disableWGCNAThreads()
         incProgress(1/3)
         return(
@@ -14214,6 +14142,7 @@ output$dge_info_heatmap_sc <- renderUI({
     } else {
       d$wgcna_warning_sc <- NULL
     }
+
     d$sc_showClusteringLinks <- T
     updateTabsetPanel(inputId = "sc_clustering_tabsetPanel", selected = "sc_clustPlotW02")
   })

@@ -8,6 +8,7 @@
 #---------------------------------------------------------------------
 
 iPSCeqUI <- tagList(
+  tags$head(includeHTML(("google-analytics.html"))),
   useShinyjs(),
   withMathJax(),
   # .css file to style app
