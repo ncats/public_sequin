@@ -1141,10 +1141,10 @@
     },
     "R.utils": {
       "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "Repository": "https://cran.rstudio.com",
       "description": {
         "Package": "R.utils",
-        "Version": "2.12.2",
+        "Version": "2.12.3",
         "Depends": "R (>= 2.14.0), R.oo",
         "Imports": "methods, utils, tools, R.methodsS3",
         "Suggests": "datasets, digest (>= 0.6.10)",
@@ -1158,10 +1158,10 @@
         "URL": "https://henrikbengtsson.github.io/R.utils/,\nhttps://github.com/HenrikBengtsson/R.utils",
         "BugReports": "https://github.com/HenrikBengtsson/R.utils/issues",
         "NeedsCompilation": "no",
-        "Packaged": "2022-11-11 18:51:45 UTC; hb",
+        "Packaged": "2023-11-17 05:13:25 UTC; henrik",
         "Repository": "CRAN",
-        "Date/Publication": "2022-11-11 22:00:03 UTC",
-        "Built": "R 4.3.1; ; 2023-08-15 01:03:57 UTC; windows"
+        "Date/Publication": "2023-11-18 01:00:02 UTC",
+        "Built": "R 4.4.0; ; 2024-04-06 02:55:17 UTC; unix"
       }
     },
     "R6": {
