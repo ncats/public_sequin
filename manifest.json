@@ -151,7 +151,7 @@
         "Maintainer": "Hervé Pagès <hpages.on.github@gmail.com>",
         "Depends": "R (>= 4.0.0), methods, utils, graphics, stats",
         "Imports": "methods, utils, graphics, stats",
-        "Suggests": "Biobase, S4Vectors, IRanges, GenomicRanges, DelayedArray,\nBiostrings, Rsamtools, AnnotationDbi, affy, affyPLM, DESeq2,\nflowClust, MSnbase, annotate, RUnit",
+        "Suggests": "Biobase, S4Vectors, IRanges, GenomicRanges,\nBiostrings, Rsamtools, AnnotationDbi, affy, affyPLM, DESeq2,\nflowClust, MSnbase, annotate, RUnit",
         "Collate": "S3-classes-as-S4-classes.R utils.R normarg-utils.R\nreplaceSlots.R aperm.R append.R as.data.frame.R as.list.R\nas.vector.R cbind.R do.call.R duplicated.R eval.R Extremes.R\nformat.R funprog.R get.R grep.R is.unsorted.R lapply.R mapply.R\nmatch.R mean.R nrow.R order.R paste.R rank.R rep.R\nrow_colnames.R sets.R sort.R start.R subset.R t.R table.R\ntapply.R unique.R unlist.R unsplit.R relist.R var.R which.R\nwhich.min.R boxplot.R image.R density.R IQR.R mad.R residuals.R\nweights.R xtabs.R annotation.R combine.R dbconn.R dge.R dims.R\nfileName.R normalize.R Ontology.R organism_species.R path.R\nplotMA.R plotPCA.R score.R strand.R toTable.R type.R\nupdateObject.R testPackage.R zzz.R",
         "git_url": "https://git.bioconductor.org/packages/BiocGenerics",
         "git_branch": "RELEASE_3_17",
