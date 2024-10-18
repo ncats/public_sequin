@@ -1141,7 +1141,7 @@
     },
     "R.utils": {
       "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
       "description": {
         "Package": "R.utils",
         "Version": "2.12.3",
