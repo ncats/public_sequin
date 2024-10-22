@@ -9,14 +9,6 @@
     "content_category": null,
     "has_parameters": false
   },
-  "python": {
-    "version": "3.12.1",
-    "package_manager": {
-      "name": "pip",
-      "version": "23.2.1",
-      "package_file": "requirements.txt"
-    }
-  },
   "packages": {
     "AnnotationDbi": {
       "Source": "Bioconductor",
