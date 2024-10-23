@@ -12,12 +12,6 @@
 #ec_host <- Sys.getenv('ec_host')
 #p <- 3306
 
-
-
-
-Sys.setenv(RDS_USERNAME = "your_username")
-Sys.setenv(RDS_PASSWORD = "your_password")
-
 # sc
 Sys.getenv(usr_sc = "usr_sc")
 Sys.getenv(usr_sc = "usr_sup")
