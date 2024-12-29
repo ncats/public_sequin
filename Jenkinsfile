@@ -10,6 +10,9 @@ pipeline {
     agent {
         label 'ci && deploy && sctl'
     }
+    triggers {
+        pollSCM('H/5 * * * *')
+    }
     environment {
         PROJECT_NAME     = "sctl"
         DOCKER_REPO_NAME = "ncats/sctl-rshiny-complex"
@@ -30,6 +33,8 @@ pipeline {
                     cd devops-pipeline-artifacts/application
                     /bin/bash getDockerHubSecretsByRole.sh
                     /bin/bash getAppSecretsByRole.sh
+                    ls -la
+                    pwd
                     '''
                 }
             }
@@ -70,7 +75,8 @@ pipeline {
                 ]) {
                     script {
                         sh '''#!/bin/bash
-                        cd /home/ops/rstudio-connect
+                        source prepare.sh
+                        cp /home/ops/rstudio-connect/*.lic .
                         docker-compose down -v --rmi all
                         docker-compose -p ${PROJECT_NAME} up -d
                         '''
