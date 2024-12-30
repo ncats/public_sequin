@@ -10,9 +10,6 @@ pipeline {
     agent {
         label 'ci && deploy && sctl'
     }
-    triggers {
-        pollSCM('H/5 * * * *')
-    }
     environment {
         PROJECT_NAME     = "sctl"
         DOCKER_REPO_NAME = "ncats/sctl-rshiny-complex"
