@@ -33,8 +33,6 @@ pipeline {
                     cd devops-pipeline-artifacts/application
                     /bin/bash getDockerHubSecretsByRole.sh
                     /bin/bash getAppSecretsByRole.sh
-                    ls -la
-                    pwd
                     '''
                 }
             }
@@ -76,7 +74,6 @@ pipeline {
                     script {
                         sh '''#!/bin/bash
                         source prepare.sh
-                        cp /home/ops/rstudio-connect/*.lic .
                         docker-compose down -v --rmi all
                         docker-compose -p ${PROJECT_NAME} up -d
                         '''
