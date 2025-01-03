@@ -71,11 +71,12 @@ pipeline {
                     script {
                         sh '''#!/bin/bash
                         source prepare.sh
-                        docker-compose -p ${PROJECT_NAME}-${APP_TYPE} down -v --rmi all | xargs echo
-                        docker rmi ${DOCKER_REPO_NAME}:current || true
+                        docker-compose -p $PROJECT_NAME down -v --rmi all | xargs echo
+                        docker rmi $DOCKER_REPO_NAME:current | xargs echo
                         docker pull ${DOCKER_REPO_NAME}:${BUILD_VERSION}
                         docker tag ${DOCKER_REPO_NAME}:${BUILD_VERSION} ${DOCKER_REPO_NAME}:current
                         docker-compose -p ${PROJECT_NAME} up -d
+                        docker rmi \$(docker images -aq) | xargs echo
                         '''
                     }
                 }
